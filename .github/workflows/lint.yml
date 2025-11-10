@@ -1,0 +1,41 @@
+name: Lint Check
+
+on:
+  push:
+    paths:
+      - 'frontend/**/*.dart'
+      - 'frontend/analysis_options.yaml'
+      - 'frontend/pubspec.yaml'
+  pull_request:
+    paths:
+      - 'frontend/**/*.dart'
+      - 'frontend/analysis_options.yaml'
+      - 'frontend/pubspec.yaml'
+
+jobs:
+  lint:
+    name: Dart Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        working-directory: ./frontend
+        run: flutter pub get
+
+      - name: Verify code formatting
+        working-directory: ./frontend
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze code
+        working-directory: ./frontend
+        run: flutter analyze --fatal-infos
