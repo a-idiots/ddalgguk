@@ -3,14 +3,14 @@ name: Lint Check
 on:
   push:
     paths:
-      - 'frontend/**/*.dart'
-      - 'frontend/analysis_options.yaml'
-      - 'frontend/pubspec.yaml'
+      - 'lib/**/*.dart'
+      - 'analysis_options.yaml'
+      - 'pubspec.yaml'
   pull_request:
     paths:
-      - 'frontend/**/*.dart'
-      - 'frontend/analysis_options.yaml'
-      - 'frontend/pubspec.yaml'
+      - 'lib/**/*.dart'
+      - 'analysis_options.yaml'
+      - 'pubspec.yaml'
 
 jobs:
   lint:
@@ -29,13 +29,10 @@ jobs:
           cache: true
 
       - name: Get dependencies
-        working-directory: ./frontend
         run: flutter pub get
 
       - name: Verify code formatting
-        working-directory: ./frontend
         run: dart format --set-exit-if-changed .
 
       - name: Analyze code
-        working-directory: ./frontend
         run: flutter analyze --fatal-infos
