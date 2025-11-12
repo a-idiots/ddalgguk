@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/features/onboarding/onboarding_screen.dart';
+import 'package:ddalgguk/features/auth/presentation/login_screen.dart';
 import 'package:ddalgguk/core/navigation/main_navigation.dart';
 
 /// Route names
@@ -93,35 +94,5 @@ class GoRouterRefreshStream extends ChangeNotifier {
   void dispose() {
     _subscription.cancel();
     super.dispose();
-  }
-}
-
-/// Temporary Login Screen placeholder
-/// This will be replaced with the actual implementation in Phase 4
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.login, size: 80, color: Colors.blue),
-            SizedBox(height: 20),
-            Text(
-              'Login Screen',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text('Social login buttons will be here'),
-          ],
-        ),
-      ),
-    );
   }
 }
