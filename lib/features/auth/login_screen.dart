@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
-import 'package:ddalgguk/features/auth/presentation/widgets/google_login_button.dart';
-import 'package:ddalgguk/features/auth/presentation/widgets/apple_login_button.dart';
-import 'package:ddalgguk/features/auth/presentation/widgets/kakao_login_button.dart';
+import 'package:ddalgguk/features/auth/widgets/google_login_button.dart';
+import 'package:ddalgguk/features/auth/widgets/apple_login_button.dart';
+import 'package:ddalgguk/features/auth/widgets/kakao_login_button.dart';
 
 /// Login Screen with social login options
 class LoginScreen extends ConsumerStatefulWidget {
