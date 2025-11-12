@@ -10,6 +10,12 @@ class AppUser {
     required this.provider,
     required this.createdAt,
     this.lastLoginAt,
+    this.id,
+    this.name,
+    this.goal,
+    this.favoriteDrink,
+    this.maxAlcohol,
+    this.hasCompletedProfileSetup = false,
   });
 
   /// Create AppUser from Firebase User
@@ -44,6 +50,17 @@ class AppUser {
       lastLoginAt: json['lastLoginAt'] != null
           ? DateTime.parse(json['lastLoginAt'] as String)
           : null,
+      id: json['id'] as String?,
+      name: json['name'] as String?,
+      goal: json['goal'] as bool?,
+      favoriteDrink: json['favoriteDrink'] != null
+          ? List<int>.from(json['favoriteDrink'] as List)
+          : null,
+      maxAlcohol: json['maxAlcohol'] != null
+          ? (json['maxAlcohol'] as num).toDouble()
+          : null,
+      hasCompletedProfileSetup:
+          json['hasCompletedProfileSetup'] as bool? ?? false,
     );
   }
 
@@ -55,6 +72,14 @@ class AppUser {
   final DateTime createdAt;
   final DateTime? lastLoginAt;
 
+  // Profile setup fields
+  final String? id; // User ID (Instagram-like username)
+  final String? name; // User's name
+  final bool? goal; // true = 즐거운 음주 (enjoyable drinking), false = 건강한 금주 (healthy abstinence)
+  final List<int>? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
+  final double? maxAlcohol; // Maximum alcohol consumption
+  final bool hasCompletedProfileSetup; // Whether profile setup is completed
+
   /// Convert AppUser to JSON (for Firestore)
   Map<String, dynamic> toJson() {
     return {
@@ -65,6 +90,12 @@ class AppUser {
       'provider': provider.value,
       'createdAt': createdAt.toIso8601String(),
       'lastLoginAt': lastLoginAt?.toIso8601String(),
+      'id': id,
+      'name': name,
+      'goal': goal,
+      'favoriteDrink': favoriteDrink,
+      'maxAlcohol': maxAlcohol,
+      'hasCompletedProfileSetup': hasCompletedProfileSetup,
     };
   }
 
@@ -77,6 +108,12 @@ class AppUser {
     LoginProvider? provider,
     DateTime? createdAt,
     DateTime? lastLoginAt,
+    String? id,
+    String? name,
+    bool? goal,
+    List<int>? favoriteDrink,
+    double? maxAlcohol,
+    bool? hasCompletedProfileSetup,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -86,6 +123,13 @@ class AppUser {
       provider: provider ?? this.provider,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      goal: goal ?? this.goal,
+      favoriteDrink: favoriteDrink ?? this.favoriteDrink,
+      maxAlcohol: maxAlcohol ?? this.maxAlcohol,
+      hasCompletedProfileSetup:
+          hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
     );
   }
 
@@ -107,7 +151,13 @@ class AppUser {
         other.photoURL == photoURL &&
         other.provider == provider &&
         other.createdAt == createdAt &&
-        other.lastLoginAt == lastLoginAt;
+        other.lastLoginAt == lastLoginAt &&
+        other.id == id &&
+        other.name == name &&
+        other.goal == goal &&
+        _listEquals(other.favoriteDrink, favoriteDrink) &&
+        other.maxAlcohol == maxAlcohol &&
+        other.hasCompletedProfileSetup == hasCompletedProfileSetup;
   }
 
   @override
@@ -118,6 +168,31 @@ class AppUser {
         photoURL.hashCode ^
         provider.hashCode ^
         createdAt.hashCode ^
-        lastLoginAt.hashCode;
+        lastLoginAt.hashCode ^
+        id.hashCode ^
+        name.hashCode ^
+        goal.hashCode ^
+        favoriteDrink.hashCode ^
+        maxAlcohol.hashCode ^
+        hasCompletedProfileSetup.hashCode;
+  }
+
+  /// Helper method to compare lists
+  bool _listEquals<T>(List<T>? a, List<T>? b) {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }

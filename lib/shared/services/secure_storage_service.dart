@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ddalgguk/core/constants/storage_keys.dart';
+import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 
 /// Service for secure storage operations
 /// Uses flutter_secure_storage for sensitive data (encrypted)
@@ -77,6 +80,47 @@ class SecureStorageService {
   /// Get user ID
   Future<String?> getUserId() async {
     return await _secureStorage.read(key: StorageKeys.userId);
+  }
+
+  /// Save user cache (entire AppUser object as JSON)
+  Future<void> saveUserCache(AppUser user) async {
+    final json = user.toJson();
+    print('SecureStorage: Saving user cache');
+    print('  - hasCompletedProfileSetup: ${json['hasCompletedProfileSetup']}');
+    print('  - name: ${json['name']}');
+    print('  - id: ${json['id']}');
+    final jsonString = jsonEncode(json);
+    print('SecureStorage: JSON string: $jsonString');
+    await _secureStorage.write(
+      key: StorageKeys.userCache,
+      value: jsonString,
+    );
+  }
+
+  /// Get user cache
+  Future<AppUser?> getUserCache() async {
+    try {
+      final jsonString = await _secureStorage.read(key: StorageKeys.userCache);
+      if (jsonString == null) {
+        print('SecureStorage: No cached user found');
+        return null;
+      }
+      print('SecureStorage: Raw cached JSON: $jsonString');
+      final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+      print('SecureStorage: Decoded JSON: $jsonMap');
+      final user = AppUser.fromJson(jsonMap);
+      print('SecureStorage: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}');
+      return user;
+    } catch (e) {
+      // If parsing fails, return null
+      print('SecureStorage: Error parsing cache - $e');
+      return null;
+    }
+  }
+
+  /// Clear user cache
+  Future<void> clearUserCache() async {
+    await _secureStorage.delete(key: StorageKeys.userCache);
   }
 
   /// Delete all secure data (logout)

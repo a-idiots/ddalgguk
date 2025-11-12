@@ -8,6 +8,7 @@ class StorageKeys {
   static const String refreshToken = 'refresh_token';
   static const String firebaseIdToken = 'firebase_id_token';
   static const String userId = 'user_id';
+  static const String userCache = 'user_cache';
 
   // SharedPreferences Keys (unencrypted)
   static const String hasCompletedOnboarding = 'has_completed_onboarding';

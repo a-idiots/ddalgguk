@@ -121,76 +121,121 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // App Logo/Icon
-              const Icon(
-                Icons.local_drink,
-                size: 100,
-                color: Colors.deepPurple,
-              ),
-              const SizedBox(height: 24),
+        child: Stack(
+          children: [
+            // 상단 영역 - 로고, 타이틀, 서브타이틀
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 100),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 앱 로고
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEA6B6B), // 핑크/레드 계열
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Image.asset(
+                          'assets/logo.png',
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-              // App Title
-              const Text(
-                '딸꾹!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple,
+                    // 메인 타이틀
+                    const Text(
+                      '딸꾹 DDALKKUK',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFEA6B6B),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // 서브타이틀
+                    Text(
+                      '나만의 HIP한 알콜 트래커',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
+            ),
 
-              // Subtitle
-              Text(
-                '음주 관리를 시작해보세요',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
+            // 하단 영역 - 로그인 버튼들
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 48.0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Kakao Login Button
+                    KakaoLoginButton(
+                      onPressed: _handleKakaoLogin,
+                      isLoading: _isKakaoLoading,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Google Login Button
+                    GoogleLoginButton(
+                      onPressed: _handleGoogleLogin,
+                      isLoading: _isGoogleLoading,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Apple Login Button
+                    AppleLoginButton(
+                      onPressed: _handleAppleLogin,
+                      isLoading: _isAppleLoading,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Terms and Privacy Policy
+                    Text(
+                      '로그인하면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade400,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 64),
-
-              // Google Login Button
-              GoogleLoginButton(
-                onPressed: _handleGoogleLogin,
-                isLoading: _isGoogleLoading,
-              ),
-              const SizedBox(height: 16),
-
-              // Apple Login Button
-              AppleLoginButton(
-                onPressed: _handleAppleLogin,
-                isLoading: _isAppleLoading,
-              ),
-              const SizedBox(height: 16),
-
-              // Kakao Login Button
-              KakaoLoginButton(
-                onPressed: _handleKakaoLogin,
-                isLoading: _isKakaoLoading,
-              ),
-              const SizedBox(height: 32),
-
-              // Terms and Privacy Policy
-              Text(
-                '로그인하면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

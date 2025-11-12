@@ -7,12 +7,14 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/features/onboarding/onboarding_screen.dart';
 import 'package:ddalgguk/features/auth/login_screen.dart';
+import 'package:ddalgguk/features/auth/onboarding/onboarding_profile_screen.dart';
 import 'package:ddalgguk/core/navigation/main_navigation.dart';
 
 /// Route names
 class Routes {
   static const String onboarding = '/onboarding';
   static const String login = '/login';
+  static const String profileSetup = '/profile-setup';
   static const String home = '/';
 }
 
@@ -28,14 +30,43 @@ final routerProvider = Provider<GoRouter>((ref) {
       final hasCompletedOnboarding =
           await SecureStorageService.instance.hasCompletedOnboarding();
 
-      // Check if user is authenticated
+      // Check if user is authenticated with Firebase
       final isAuthenticated = authState.maybeWhen(
         data: (user) => user != null,
         orElse: () => false,
       );
 
+      // Check if profile setup is completed (only if authenticated)
+      bool hasCompletedProfileSetup = false;
+      if (isAuthenticated) {
+        debugPrint('=== Router: Checking profile setup ===');
+        // Try to get from cache first for better performance
+        final cachedUser = await SecureStorageService.instance.getUserCache();
+
+        if (cachedUser != null) {
+          hasCompletedProfileSetup = cachedUser.hasCompletedProfileSetup;
+          debugPrint('Router: Using cache - hasCompletedProfileSetup: $hasCompletedProfileSetup');
+        } else {
+          debugPrint('Router: No cache, fetching from Firestore');
+          // If no cache, try to get from Firestore
+          // This ensures we always have the latest data after login
+          try {
+            final authRepository = ref.read(authRepositoryProvider);
+            final currentUser = await authRepository.getCurrentUser();
+            hasCompletedProfileSetup = currentUser?.hasCompletedProfileSetup ?? false;
+            debugPrint('Router: From Firestore - hasCompletedProfileSetup: $hasCompletedProfileSetup');
+          } catch (e) {
+            debugPrint('Router: Error fetching user - $e');
+            // If error, assume profile setup is not complete
+            hasCompletedProfileSetup = false;
+          }
+        }
+        debugPrint('======================================');
+      }
+
       final isOnOnboardingPage = state.matchedLocation == Routes.onboarding;
       final isOnLoginPage = state.matchedLocation == Routes.login;
+      final isOnProfileSetupPage = state.matchedLocation == Routes.profileSetup;
 
       // Redirect logic
       // 1. If not completed onboarding, go to onboarding
@@ -48,8 +79,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         return Routes.login;
       }
 
-      // 3. If authenticated and on login/onboarding page, go to home
-      if (isAuthenticated && (isOnLoginPage || isOnOnboardingPage)) {
+      // 3. If authenticated but not completed profile setup, go to profile setup
+      if (isAuthenticated &&
+          !hasCompletedProfileSetup &&
+          !isOnProfileSetupPage) {
+        return Routes.profileSetup;
+      }
+
+      // 4. If authenticated, completed profile, and on login/onboarding page, go to home
+      if (isAuthenticated &&
+          hasCompletedProfileSetup &&
+          (isOnLoginPage || isOnOnboardingPage)) {
+        return Routes.home;
+      }
+
+      // 5. If authenticated, completed profile, and on profile setup page, go to home
+      if (isAuthenticated &&
+          hasCompletedProfileSetup &&
+          isOnProfileSetupPage) {
         return Routes.home;
       }
 
@@ -69,6 +116,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: Routes.login,
         name: 'login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: Routes.profileSetup,
+        name: 'profileSetup',
+        builder: (context, state) => const OnboardingProfileScreen(),
       ),
       GoRoute(
         path: Routes.home,

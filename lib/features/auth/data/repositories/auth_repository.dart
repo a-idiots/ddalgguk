@@ -46,17 +46,37 @@ class AuthRepository {
       final userCredential =
           await _firebaseAuthService.signInWithCredential(credential);
 
-      // Create AppUser
-      final appUser = AppUser.fromFirebaseUser(
-        uid: userCredential.user!.uid,
-        email: userCredential.user!.email,
-        displayName: userCredential.user!.displayName,
-        photoURL: userCredential.user!.photoURL,
-        provider: LoginProvider.google,
-      );
+      final uid = userCredential.user!.uid;
 
-      // Save to Firestore
-      await _saveUserToFirestore(appUser);
+      // Check if user already exists in Firestore
+      debugPrint('=== Sign in with Google - checking Firestore ===');
+      final doc = await _usersCollection.doc(uid).get();
+      final AppUser appUser;
+
+      if (doc.exists) {
+        // Existing user - load from Firestore
+        final data = doc.data() as Map<String, dynamic>;
+        debugPrint('Firestore data: $data');
+        appUser = AppUser.fromJson(data);
+        debugPrint('Existing user:');
+        debugPrint('  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+        debugPrint('  - name: ${appUser.name}');
+        debugPrint('  - id: ${appUser.id}');
+      } else {
+        // New user - create with basic info
+        appUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          email: userCredential.user!.email,
+          displayName: userCredential.user!.displayName,
+          photoURL: userCredential.user!.photoURL,
+          provider: LoginProvider.google,
+        );
+        debugPrint('New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+
+        // Save new user to Firestore
+        await _saveUserToFirestore(appUser);
+      }
+      debugPrint('===============================================');
 
       // Save token and provider to secure storage
       await _saveAuthData(appUser, LoginProvider.google);
@@ -78,17 +98,37 @@ class AuthRepository {
       final userCredential =
           await _firebaseAuthService.signInWithCredential(credential);
 
-      // Create AppUser
-      final appUser = AppUser.fromFirebaseUser(
-        uid: userCredential.user!.uid,
-        email: userCredential.user!.email,
-        displayName: userCredential.user!.displayName,
-        photoURL: userCredential.user!.photoURL,
-        provider: LoginProvider.apple,
-      );
+      final uid = userCredential.user!.uid;
 
-      // Save to Firestore
-      await _saveUserToFirestore(appUser);
+      // Check if user already exists in Firestore
+      debugPrint('=== Sign in with Apple - checking Firestore ===');
+      final doc = await _usersCollection.doc(uid).get();
+      final AppUser appUser;
+
+      if (doc.exists) {
+        // Existing user - load from Firestore
+        final data = doc.data() as Map<String, dynamic>;
+        debugPrint('Firestore data: $data');
+        appUser = AppUser.fromJson(data);
+        debugPrint('Existing user:');
+        debugPrint('  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+        debugPrint('  - name: ${appUser.name}');
+        debugPrint('  - id: ${appUser.id}');
+      } else {
+        // New user - create with basic info
+        appUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          email: userCredential.user!.email,
+          displayName: userCredential.user!.displayName,
+          photoURL: userCredential.user!.photoURL,
+          provider: LoginProvider.apple,
+        );
+        debugPrint('New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+
+        // Save new user to Firestore
+        await _saveUserToFirestore(appUser);
+      }
+      debugPrint('===============================================');
 
       // Save token and provider to secure storage
       await _saveAuthData(appUser, LoginProvider.apple);
@@ -167,20 +207,44 @@ class AuthRepository {
     }
   }
 
-  /// Get current user from Firestore
+  /// Get current user (checks cache first, then Firestore)
   Future<AppUser?> getCurrentUser() async {
     try {
       final firebaseUser = _firebaseAuthService.currentUser;
       if (firebaseUser == null) {
+        debugPrint('getCurrentUser: No Firebase user');
         return null;
       }
 
+      debugPrint('getCurrentUser: Firebase user exists - ${firebaseUser.uid}');
+
+      // Try to get from cache first
+      final cachedUser = await _storageService.getUserCache();
+      if (cachedUser != null && cachedUser.uid == firebaseUser.uid) {
+        debugPrint('getCurrentUser: Using cached user - hasCompletedProfileSetup: ${cachedUser.hasCompletedProfileSetup}');
+        return cachedUser;
+      }
+
+      debugPrint('getCurrentUser: No valid cache, fetching from Firestore');
+
+      // If not in cache or cache is stale, get from Firestore
       final doc = await _usersCollection.doc(firebaseUser.uid).get();
       if (!doc.exists) {
+        debugPrint('getCurrentUser: Document does not exist in Firestore');
         return null;
       }
 
-      return AppUser.fromJson(doc.data() as Map<String, dynamic>);
+      final data = doc.data() as Map<String, dynamic>;
+      debugPrint('getCurrentUser: Firestore data - $data');
+
+      final user = AppUser.fromJson(data);
+      debugPrint('getCurrentUser: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}');
+
+      // Update cache
+      await _storageService.saveUserCache(user);
+      debugPrint('getCurrentUser: Cache updated');
+
+      return user;
     } catch (e) {
       debugPrint('Get current user error: $e');
       return null;
@@ -214,6 +278,9 @@ class AuthRepository {
 
       // Save last login provider
       await _storageService.saveLastLoginProvider(provider);
+
+      // Save user to cache
+      await _storageService.saveUserCache(user);
     } catch (e) {
       debugPrint('Save auth data error: $e');
       rethrow;
@@ -244,6 +311,81 @@ class AuthRepository {
       }
     } catch (e) {
       debugPrint('Update user profile error: $e');
+      rethrow;
+    }
+  }
+
+  /// Save profile data (onboarding completion)
+  Future<void> saveProfileData({
+    required String id,
+    required String name,
+    required bool goal,
+    required List<int> favoriteDrink,
+    required double maxAlcohol,
+  }) async {
+    try {
+      final firebaseUser = _firebaseAuthService.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('User not found');
+      }
+
+      final uid = firebaseUser.uid;
+
+      // Try to get current user data
+      AppUser updatedUser;
+      final currentUser = await getCurrentUser();
+
+      if (currentUser != null) {
+        // User exists, update with profile data
+        updatedUser = currentUser.copyWith(
+          id: id,
+          name: name,
+          goal: goal,
+          favoriteDrink: favoriteDrink,
+          maxAlcohol: maxAlcohol,
+          hasCompletedProfileSetup: true,
+          lastLoginAt: DateTime.now(),
+        );
+      } else {
+        // User doesn't exist in Firestore, create new AppUser
+        // Try to get last login provider from storage
+        final lastProvider = await _storageService.getLastLoginProvider();
+
+        updatedUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          provider: lastProvider ?? LoginProvider.google,
+        ).copyWith(
+          id: id,
+          name: name,
+          goal: goal,
+          favoriteDrink: favoriteDrink,
+          maxAlcohol: maxAlcohol,
+          hasCompletedProfileSetup: true,
+          lastLoginAt: DateTime.now(),
+        );
+      }
+
+      // Save to Firestore
+      final jsonData = updatedUser.toJson();
+      debugPrint('=== Saving profile data to Firestore ===');
+      debugPrint('JSON data: $jsonData');
+      debugPrint('hasCompletedProfileSetup: ${jsonData['hasCompletedProfileSetup']}');
+
+      await _usersCollection.doc(uid).set(
+            jsonData,
+            SetOptions(merge: true),
+          );
+
+      // Save to cache
+      await _storageService.saveUserCache(updatedUser);
+
+      debugPrint('Profile data saved successfully');
+      debugPrint('======================================');
+    } catch (e) {
+      debugPrint('Save profile data error: $e');
       rethrow;
     }
   }

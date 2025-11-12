@@ -22,19 +22,18 @@ final authStateProvider = StreamProvider<User?>((ref) {
 
 /// Provider for current AppUser
 /// Returns AppUser when authenticated, null when not authenticated
-final currentUserProvider = Provider<AppUser?>((ref) {
+final currentUserProvider = FutureProvider<AppUser?>((ref) async {
   final authState = ref.watch(authStateProvider);
 
   return authState.when(
-    data: (user) {
+    data: (user) async {
       if (user == null) {
         return null;
       }
 
-      // Note: We don't have the provider info here yet
-      // This will be enhanced when we implement the full auth flow
-      // For now, we'll return null until the auth repository is implemented
-      return null;
+      // Get the full user data from repository (cache or Firestore)
+      final authRepository = ref.read(authRepositoryProvider);
+      return authRepository.getCurrentUser();
     },
     loading: () => null,
     error: (_, __) => null,
@@ -48,4 +47,10 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
     data: (user) => user != null,
     orElse: () => false,
   );
+});
+
+/// Provider to check if user has completed profile setup
+final hasCompletedProfileSetupProvider = FutureProvider<bool>((ref) async {
+  final currentUser = await ref.watch(currentUserProvider.future);
+  return currentUser?.hasCompletedProfileSetup ?? false;
 });
