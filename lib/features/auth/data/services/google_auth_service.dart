@@ -5,9 +5,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// Google Authentication Service
 /// Handles Google Sign-In operations
 class GoogleAuthService {
-  GoogleAuthService({
-    GoogleSignIn? googleSignIn,
-  }) : _googleSignIn = googleSignIn ?? GoogleSignIn();
+  GoogleAuthService({GoogleSignIn? googleSignIn})
+    : _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   final GoogleSignIn _googleSignIn;
 

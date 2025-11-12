@@ -150,10 +150,7 @@ class _OnboardingProfileScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('프로필 저장 실패: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('프로필 저장 실패: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -166,7 +163,9 @@ class _OnboardingProfileScreenState
   }
 
   void _handleBack() {
-    print('DEBUG: _handleBack called, _currentPage = $_currentPage, _isLoading = $_isLoading');
+    print(
+      'DEBUG: _handleBack called, _currentPage = $_currentPage, _isLoading = $_isLoading',
+    );
 
     if (_isLoading) {
       print('DEBUG: Cannot go back while loading');
@@ -201,7 +200,8 @@ class _OnboardingProfileScreenState
     final isKeyboardVisible = keyboardHeight > 100;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Detect keyboard manually via MediaQuery
+      resizeToAvoidBottomInset:
+          false, // Detect keyboard manually via MediaQuery
       body: Container(
         decoration: _currentPage == 2
             ? const BoxDecoration(color: Colors.white)
@@ -218,91 +218,89 @@ class _OnboardingProfileScreenState
               ),
         child: SafeArea(
           child: Stack(
-          children: [
-            // Page content
-            PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (page) {
-                setState(() {
-                  _currentPage = page;
-                });
-              },
-              children: [
-                // Page 1: Name input
-                InfoInputPage(
-                  title: '당신의 이름을 알려주세요!',
-                  speechBubbleText: '안녕 나는 사쿠!\n나는 너의 간의 정령이야',
-                  hintText: '행복한 술고래',
-                  onNext: _handleNameSubmit,
-                  validator: _validateName,
-                  initialValue: _name,
-                  inputType: InfoInputType.name,
-                ),
-                // Page 2: ID input
-                InfoInputPage(
-                  title: '당신의 아이디를 알려주세요!',
-                  speechBubbleText: '안녕 $_name!\n앞으로 잘 부탁해 :)',
-                  hintText: 'username',
-                  onNext: _handleIdSubmit,
-                  validator: _validateId,
-                  initialValue: _id,
-                  inputType: InfoInputType.id,
-                ),
-                // Page 3: Goal setting
-                GoalSettingPage(
-                  onComplete: _handleComplete,
-                  initialGoal: _goal,
-                  initialFavoriteDrinks: _favoriteDrinks,
-                  initialMaxAlcohol: _maxAlcohol,
-                ),
-              ],
-            ),
-            // Page indicator - Hidden when keyboard is visible or on page 3
-            if (!isKeyboardVisible && _currentPage != 2)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 40,
-                child: Center(
-                  child: PageIndicator(
-                    currentPage: _currentPage,
-                    pageCount: 3,
+            children: [
+              // Page content
+              PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (page) {
+                  setState(() {
+                    _currentPage = page;
+                  });
+                },
+                children: [
+                  // Page 1: Name input
+                  InfoInputPage(
+                    title: '당신의 이름을 알려주세요!',
+                    speechBubbleText: '안녕 나는 사쿠!\n나는 너의 간의 정령이야',
+                    hintText: '행복한 술고래',
+                    onNext: _handleNameSubmit,
+                    validator: _validateName,
+                    initialValue: _name,
+                    inputType: InfoInputType.name,
+                  ),
+                  // Page 2: ID input
+                  InfoInputPage(
+                    title: '당신의 아이디를 알려주세요!',
+                    speechBubbleText: '안녕 $_name!\n앞으로 잘 부탁해 :)',
+                    hintText: 'username',
+                    onNext: _handleIdSubmit,
+                    validator: _validateId,
+                    initialValue: _id,
+                    inputType: InfoInputType.id,
+                  ),
+                  // Page 3: Goal setting
+                  GoalSettingPage(
+                    onComplete: _handleComplete,
+                    initialGoal: _goal,
+                    initialFavoriteDrinks: _favoriteDrinks,
+                    initialMaxAlcohol: _maxAlcohol,
+                  ),
+                ],
+              ),
+              // Page indicator - Hidden when keyboard is visible or on page 3
+              if (!isKeyboardVisible && _currentPage != 2)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 40,
+                  child: Center(
+                    child: PageIndicator(
+                      currentPage: _currentPage,
+                      pageCount: 3,
+                    ),
                   ),
                 ),
-              ),
-            // Back button (only show on pages 2 and 3)
-            if (_currentPage > 0)
-              Positioned(
-                top: 16,
-                left: 16,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      _handleBack();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 24,
+              // Back button (only show on pages 2 and 3)
+              if (_currentPage > 0)
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        _handleBack();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            // Loading overlay
-            if (_isLoading)
-              Container(
-                color: Colors.black54,
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
+              // Loading overlay
+              if (_isLoading)
+                Container(
+                  color: Colors.black54,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
                   ),
                 ),
-              ),
             ],
           ),
         ),

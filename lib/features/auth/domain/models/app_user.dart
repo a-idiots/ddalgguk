@@ -44,7 +44,8 @@ class AppUser {
       email: json['email'] as String?,
       displayName: json['displayName'] as String?,
       photoURL: json['photoURL'] as String?,
-      provider: LoginProvider.fromString(json['provider'] as String?) ??
+      provider:
+          LoginProvider.fromString(json['provider'] as String?) ??
           LoginProvider.google,
       createdAt: DateTime.parse(json['createdAt'] as String),
       lastLoginAt: json['lastLoginAt'] != null
@@ -75,7 +76,8 @@ class AppUser {
   // Profile setup fields
   final String? id; // User ID (Instagram-like username)
   final String? name; // User's name
-  final bool? goal; // true = 즐거운 음주 (enjoyable drinking), false = 건강한 금주 (healthy abstinence)
+  final bool?
+  goal; // true = 즐거운 음주 (enjoyable drinking), false = 건강한 금주 (healthy abstinence)
   final List<int>? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
   final double? maxAlcohol; // Maximum alcohol consumption
   final bool hasCompletedProfileSetup; // Whether profile setup is completed

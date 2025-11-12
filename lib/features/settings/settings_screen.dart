@@ -21,10 +21,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              '로그아웃',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('로그아웃', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -42,10 +39,7 @@ class SettingsScreen extends ConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('로그아웃 실패: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('로그아웃 실패: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -125,10 +119,7 @@ class SettingsScreen extends ConsumerWidget {
           // Logout Button
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text(
-              '로그아웃',
-              style: TextStyle(color: Colors.red),
-            ),
+            title: const Text('로그아웃', style: TextStyle(color: Colors.red)),
             onTap: () => _handleLogout(context, ref),
           ),
         ],

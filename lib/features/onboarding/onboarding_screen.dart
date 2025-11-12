@@ -18,21 +18,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _currentPage = 0;
 
   final List<OnboardingPage> _pages = const [
-    OnboardingPage(
-      icon: Icons.local_drink,
-      title: '1',
-      description: '1',
-    ),
-    OnboardingPage(
-      icon: Icons.calendar_today,
-      title: '2',
-      description: '2',
-    ),
-    OnboardingPage(
-      icon: Icons.groups,
-      title: '3',
-      description: '3',
-    ),
+    OnboardingPage(icon: Icons.local_drink, title: '1', description: '1'),
+    OnboardingPage(icon: Icons.calendar_today, title: '2', description: '2'),
+    OnboardingPage(icon: Icons.groups, title: '3', description: '3'),
   ];
 
   Future<void> _completeOnboarding() async {
@@ -114,9 +102,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                       ),
                       child: Text(
-                        _currentPage == _pages.length - 1
-                            ? '1'
-                            : '2',
+                        _currentPage == _pages.length - 1 ? '1' : '2',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -131,10 +117,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onPressed: _completeOnboarding,
                       child: const Text(
                         '1',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ),
                 ],
@@ -167,11 +150,7 @@ class OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 120,
-            color: Colors.deepPurple,
-          ),
+          Icon(icon, size: 120, color: Colors.deepPurple),
           const SizedBox(height: 48),
           Text(
             title,
@@ -185,10 +164,7 @@ class OnboardingPage extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             description,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),
         ],

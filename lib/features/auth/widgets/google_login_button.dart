@@ -28,10 +28,8 @@ class GoogleLoginButton extends BaseSocialLoginButton {
   Color get progressIndicatorColor => Colors.black54;
 
   @override
-  BorderSide? get borderSide => BorderSide(
-        color: Colors.grey.shade300,
-        width: 1,
-      );
+  BorderSide? get borderSide =>
+      BorderSide(color: Colors.grey.shade300, width: 1);
 
   @override
   double get fallbackIconSize => 32;

@@ -19,12 +19,12 @@ class AuthRepository {
     KakaoAuthService? kakaoAuthService,
     FirebaseFirestore? firestore,
     SecureStorageService? storageService,
-  })  : _firebaseAuthService = firebaseAuthService ?? FirebaseAuthService(),
-        _googleAuthService = googleAuthService ?? GoogleAuthService(),
-        _appleAuthService = appleAuthService ?? AppleAuthService(),
-        _kakaoAuthService = kakaoAuthService ?? KakaoAuthService(),
-        _firestore = firestore ?? FirebaseFirestore.instance,
-        _storageService = storageService ?? SecureStorageService.instance;
+  }) : _firebaseAuthService = firebaseAuthService ?? FirebaseAuthService(),
+       _googleAuthService = googleAuthService ?? GoogleAuthService(),
+       _appleAuthService = appleAuthService ?? AppleAuthService(),
+       _kakaoAuthService = kakaoAuthService ?? KakaoAuthService(),
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _storageService = storageService ?? SecureStorageService.instance;
 
   final FirebaseAuthService _firebaseAuthService;
   final GoogleAuthService _googleAuthService;
@@ -43,8 +43,9 @@ class AuthRepository {
       final credential = await _googleAuthService.signInWithGoogle();
 
       // Sign in to Firebase
-      final userCredential =
-          await _firebaseAuthService.signInWithCredential(credential);
+      final userCredential = await _firebaseAuthService.signInWithCredential(
+        credential,
+      );
 
       final uid = userCredential.user!.uid;
 
@@ -59,7 +60,9 @@ class AuthRepository {
         debugPrint('Firestore data: $data');
         appUser = AppUser.fromJson(data);
         debugPrint('Existing user:');
-        debugPrint('  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+        debugPrint(
+          '  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
         debugPrint('  - name: ${appUser.name}');
         debugPrint('  - id: ${appUser.id}');
       } else {
@@ -71,7 +74,9 @@ class AuthRepository {
           photoURL: userCredential.user!.photoURL,
           provider: LoginProvider.google,
         );
-        debugPrint('New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+        debugPrint(
+          'New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
 
         // Save new user to Firestore
         await _saveUserToFirestore(appUser);
@@ -95,8 +100,9 @@ class AuthRepository {
       final credential = await _appleAuthService.signInWithApple();
 
       // Sign in to Firebase
-      final userCredential =
-          await _firebaseAuthService.signInWithCredential(credential);
+      final userCredential = await _firebaseAuthService.signInWithCredential(
+        credential,
+      );
 
       final uid = userCredential.user!.uid;
 
@@ -111,7 +117,9 @@ class AuthRepository {
         debugPrint('Firestore data: $data');
         appUser = AppUser.fromJson(data);
         debugPrint('Existing user:');
-        debugPrint('  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+        debugPrint(
+          '  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
         debugPrint('  - name: ${appUser.name}');
         debugPrint('  - id: ${appUser.id}');
       } else {
@@ -123,7 +131,9 @@ class AuthRepository {
           photoURL: userCredential.user!.photoURL,
           provider: LoginProvider.apple,
         );
-        debugPrint('New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}');
+        debugPrint(
+          'New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
 
         // Save new user to Firestore
         await _saveUserToFirestore(appUser);
@@ -221,7 +231,9 @@ class AuthRepository {
       // Try to get from cache first
       final cachedUser = await _storageService.getUserCache();
       if (cachedUser != null && cachedUser.uid == firebaseUser.uid) {
-        debugPrint('getCurrentUser: Using cached user - hasCompletedProfileSetup: ${cachedUser.hasCompletedProfileSetup}');
+        debugPrint(
+          'getCurrentUser: Using cached user - hasCompletedProfileSetup: ${cachedUser.hasCompletedProfileSetup}',
+        );
         return cachedUser;
       }
 
@@ -238,7 +250,9 @@ class AuthRepository {
       debugPrint('getCurrentUser: Firestore data - $data');
 
       final user = AppUser.fromJson(data);
-      debugPrint('getCurrentUser: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}');
+      debugPrint(
+        'getCurrentUser: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}',
+      );
 
       // Update cache
       await _storageService.saveUserCache(user);
@@ -254,10 +268,9 @@ class AuthRepository {
   /// Save user to Firestore
   Future<void> _saveUserToFirestore(AppUser user) async {
     try {
-      await _usersCollection.doc(user.uid).set(
-            user.toJson(),
-            SetOptions(merge: true),
-          );
+      await _usersCollection
+          .doc(user.uid)
+          .set(user.toJson(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Save user to Firestore error: $e');
       rethrow;
@@ -351,33 +364,33 @@ class AuthRepository {
         // Try to get last login provider from storage
         final lastProvider = await _storageService.getLastLoginProvider();
 
-        updatedUser = AppUser.fromFirebaseUser(
-          uid: uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          provider: lastProvider ?? LoginProvider.google,
-        ).copyWith(
-          id: id,
-          name: name,
-          goal: goal,
-          favoriteDrink: favoriteDrink,
-          maxAlcohol: maxAlcohol,
-          hasCompletedProfileSetup: true,
-          lastLoginAt: DateTime.now(),
-        );
+        updatedUser =
+            AppUser.fromFirebaseUser(
+              uid: uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              provider: lastProvider ?? LoginProvider.google,
+            ).copyWith(
+              id: id,
+              name: name,
+              goal: goal,
+              favoriteDrink: favoriteDrink,
+              maxAlcohol: maxAlcohol,
+              hasCompletedProfileSetup: true,
+              lastLoginAt: DateTime.now(),
+            );
       }
 
       // Save to Firestore
       final jsonData = updatedUser.toJson();
       debugPrint('=== Saving profile data to Firestore ===');
       debugPrint('JSON data: $jsonData');
-      debugPrint('hasCompletedProfileSetup: ${jsonData['hasCompletedProfileSetup']}');
+      debugPrint(
+        'hasCompletedProfileSetup: ${jsonData['hasCompletedProfileSetup']}',
+      );
 
-      await _usersCollection.doc(uid).set(
-            jsonData,
-            SetOptions(merge: true),
-          );
+      await _usersCollection.doc(uid).set(jsonData, SetOptions(merge: true));
 
       // Save to cache
       await _storageService.saveUserCache(updatedUser);
@@ -416,6 +429,5 @@ class AuthRepository {
   bool get isSignedIn => _firebaseAuthService.isSignedIn;
 
   /// Get auth state changes stream
-  Stream<User?> get authStateChanges =>
-      _firebaseAuthService.authStateChanges;
+  Stream<User?> get authStateChanges => _firebaseAuthService.authStateChanges;
 }

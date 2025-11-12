@@ -43,10 +43,7 @@ final currentUserProvider = FutureProvider<AppUser?>((ref) async {
 /// Provider to check if user is authenticated
 final isAuthenticatedProvider = Provider<bool>((ref) {
   final authState = ref.watch(authStateProvider);
-  return authState.maybeWhen(
-    data: (user) => user != null,
-    orElse: () => false,
-  );
+  return authState.maybeWhen(data: (user) => user != null, orElse: () => false);
 });
 
 /// Provider to check if user has completed profile setup

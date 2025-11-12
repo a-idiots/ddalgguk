@@ -27,8 +27,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true,
     redirect: (context, state) async {
       // Check if onboarding is completed
-      final hasCompletedOnboarding =
-          await SecureStorageService.instance.hasCompletedOnboarding();
+      final hasCompletedOnboarding = await SecureStorageService.instance
+          .hasCompletedOnboarding();
 
       // Check if user is authenticated with Firebase
       final isAuthenticated = authState.maybeWhen(
@@ -45,7 +45,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
         if (cachedUser != null) {
           hasCompletedProfileSetup = cachedUser.hasCompletedProfileSetup;
-          debugPrint('Router: Using cache - hasCompletedProfileSetup: $hasCompletedProfileSetup');
+          debugPrint(
+            'Router: Using cache - hasCompletedProfileSetup: $hasCompletedProfileSetup',
+          );
         } else {
           debugPrint('Router: No cache, fetching from Firestore');
           // If no cache, try to get from Firestore
@@ -53,8 +55,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           try {
             final authRepository = ref.read(authRepositoryProvider);
             final currentUser = await authRepository.getCurrentUser();
-            hasCompletedProfileSetup = currentUser?.hasCompletedProfileSetup ?? false;
-            debugPrint('Router: From Firestore - hasCompletedProfileSetup: $hasCompletedProfileSetup');
+            hasCompletedProfileSetup =
+                currentUser?.hasCompletedProfileSetup ?? false;
+            debugPrint(
+              'Router: From Firestore - hasCompletedProfileSetup: $hasCompletedProfileSetup',
+            );
           } catch (e) {
             debugPrint('Router: Error fetching user - $e');
             // If error, assume profile setup is not complete
@@ -94,9 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 5. If authenticated, completed profile, and on profile setup page, go to home
-      if (isAuthenticated &&
-          hasCompletedProfileSetup &&
-          isOnProfileSetupPage) {
+      if (isAuthenticated && hasCompletedProfileSetup && isOnProfileSetupPage) {
         return Routes.home;
       }
 
@@ -136,8 +139,8 @@ class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen(
-          (dynamic _) => notifyListeners(),
-        );
+      (dynamic _) => notifyListeners(),
+    );
   }
 
   late final StreamSubscription<dynamic> _subscription;

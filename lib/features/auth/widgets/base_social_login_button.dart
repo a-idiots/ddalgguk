@@ -61,7 +61,9 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
                 width: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(progressIndicatorColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progressIndicatorColor,
+                  ),
                 ),
               )
             : Row(

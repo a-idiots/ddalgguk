@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 /// Saku character widget with eye tracking capability
 /// The eyes follow the cursor position in the input field
 class SakuCharacter extends StatefulWidget {
-  const SakuCharacter({
-    super.key,
-    this.cursorOffset,
-    this.size = 200,
-  });
+  const SakuCharacter({super.key, this.cursorOffset, this.size = 200});
 
   /// Cursor offset in the input field (null when not focused)
   final Offset? cursorOffset;

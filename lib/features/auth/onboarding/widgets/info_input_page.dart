@@ -62,11 +62,13 @@ class _InfoInputPageState extends State<InfoInputPage> {
             final textFieldRenderBox =
                 textFieldContext.findRenderObject() as RenderBox?;
             if (textFieldRenderBox != null) {
-              final textFieldPosition =
-                  textFieldRenderBox.localToGlobal(Offset.zero);
+              final textFieldPosition = textFieldRenderBox.localToGlobal(
+                Offset.zero,
+              );
 
               // Calculate cursor position (approximate)
-              final cursorX = textFieldPosition.dx +
+              final cursorX =
+                  textFieldPosition.dx +
                   _controller.selection.baseOffset * 8.0; // Approximate
               final cursorY =
                   textFieldPosition.dy + textFieldRenderBox.size.height / 2;
@@ -222,10 +224,7 @@ class _InfoInputPageState extends State<InfoInputPage> {
               const SizedBox(height: 30),
               SpeechBubble(text: widget.speechBubbleText),
               const SizedBox(height: 20),
-              SakuCharacter(
-                cursorOffset: _cursorOffset,
-                size: 120,
-              ),
+              SakuCharacter(cursorOffset: _cursorOffset, size: 120),
               const SizedBox(height: 40),
               buildInputField(),
               const SizedBox(height: 60),
@@ -238,7 +237,4 @@ class _InfoInputPageState extends State<InfoInputPage> {
 }
 
 /// Input type for validation
-enum InfoInputType {
-  name,
-  id,
-}
+enum InfoInputType { name, id }

@@ -15,7 +15,8 @@ class GoalSettingPage extends StatefulWidget {
     required bool goal,
     required List<int> favoriteDrinks,
     required double maxAlcohol,
-  }) onComplete;
+  })
+  onComplete;
 
   final bool? initialGoal;
   final List<int>? initialFavoriteDrinks;
@@ -34,14 +35,17 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
   void initState() {
     super.initState();
     _selectedGoal = widget.initialGoal;
-    if (widget.initialFavoriteDrinks != null && widget.initialFavoriteDrinks!.isNotEmpty) {
+    if (widget.initialFavoriteDrinks != null &&
+        widget.initialFavoriteDrinks!.isNotEmpty) {
       _selectedDrink = widget.initialFavoriteDrinks!.first;
     }
     if (widget.initialMaxAlcohol != null) {
       _sliderIndex = _alcoholToSliderIndex(widget.initialMaxAlcohol!);
     }
     // Initialize slider index if both goal and drink are already selected
-    if (_selectedGoal != null && _selectedDrink != null && _sliderIndex == null) {
+    if (_selectedGoal != null &&
+        _selectedDrink != null &&
+        _sliderIndex == null) {
       _sliderIndex = 8; // Default to 1.5 bottles
     }
   }
@@ -71,9 +75,11 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
     }
   }
 
-  double get _maxAlcohol => _sliderIndex != null ? _sliderIndexToAlcohol(_sliderIndex!) : 0.0;
+  double get _maxAlcohol =>
+      _sliderIndex != null ? _sliderIndexToAlcohol(_sliderIndex!) : 0.0;
 
-  bool get _isFormComplete => _selectedGoal != null && _selectedDrink != null && _sliderIndex != null;
+  bool get _isFormComplete =>
+      _selectedGoal != null && _selectedDrink != null && _sliderIndex != null;
 
   void _handleComplete() {
     if (_selectedGoal == null) {
@@ -171,20 +177,14 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                   const SizedBox(height: 6),
                   const Text(
                     '음주 백과💡 소주 1병은 약 7잔이다.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black54,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                 ],
               ),
             ),
             const Spacer(),
             // Page indicator
-            const PageIndicator(
-              currentPage: 2,
-              pageCount: 3,
-            ),
+            const PageIndicator(currentPage: 2, pageCount: 3),
             const SizedBox(height: 32),
             // Complete button
             SizedBox(
@@ -204,10 +204,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                 ),
                 child: const Text(
                   '입력 완료',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -244,10 +241,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.black54,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.black54, width: 2),
             ),
             child: Center(
               child: Container(
@@ -255,7 +249,9 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                 height: 12,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? const Color(0xFFFF6B6B) : Colors.transparent,
+                  color: isSelected
+                      ? const Color(0xFFFF6B6B)
+                      : Colors.transparent,
                 ),
               ),
             ),
@@ -336,7 +332,9 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isSelected ? Colors.black87 : Colors.black54,
+                              color: isSelected
+                                  ? Colors.black87
+                                  : Colors.black54,
                             ),
                           ),
                         ],
@@ -371,10 +369,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
             children: [
               const Text(
                 '0병',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
               Text(
                 _getAlcoholDisplayText(),
@@ -386,10 +381,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
               ),
               const Text(
                 '7병',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.black54,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
             ],
           ),
@@ -401,22 +393,19 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
   String _getAlcoholDisplayText() {
     final alcohol = _maxAlcohol;
     if (alcohol >= 1) {
-      if ((alcohol * 10) % 10 != 0 ) {
+      if ((alcohol * 10) % 10 != 0) {
         return '${alcohol}병';
       } else {
         return '${alcohol.toInt()}병';
       }
     } else {
-      return '${(alcohol*7).toInt()}잔';
+      return '${(alcohol * 7).toInt()}잔';
     }
   }
 }
 
 class _NonLinearSlider extends StatelessWidget {
-  const _NonLinearSlider({
-    required this.sliderIndex,
-    required this.onChanged,
-  });
+  const _NonLinearSlider({required this.sliderIndex, required this.onChanged});
 
   final int sliderIndex;
   final ValueChanged<int> onChanged;

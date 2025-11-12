@@ -17,9 +17,7 @@ void main() async {
   await dotenv.load(fileName: '.env');
 
   // Initialize Kakao SDK
-  KakaoSdk.init(
-    nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!,
-  );
+  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!);
 
   // Initialize Firebase
   // Note: You need to add google-services.json (Android) and GoogleService-Info.plist (iOS)
@@ -37,11 +35,7 @@ void main() async {
   await SecureStorageService.instance.init();
 
   // Run the app with Riverpod
-  runApp(
-    const ProviderScope(
-      child: DdalggukApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: DdalggukApp()));
 }
 
 class DdalggukApp extends ConsumerWidget {

@@ -14,9 +14,7 @@ class SecureStorageService {
   static final SecureStorageService instance = SecureStorageService._();
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
   SharedPreferences? _prefs;
@@ -32,10 +30,7 @@ class SecureStorageService {
 
   /// Save Firebase ID token securely
   Future<void> saveFirebaseIdToken(String token) async {
-    await _secureStorage.write(
-      key: StorageKeys.firebaseIdToken,
-      value: token,
-    );
+    await _secureStorage.write(key: StorageKeys.firebaseIdToken, value: token);
   }
 
   /// Get Firebase ID token
@@ -45,10 +40,7 @@ class SecureStorageService {
 
   /// Save access token securely
   Future<void> saveAccessToken(String token) async {
-    await _secureStorage.write(
-      key: StorageKeys.accessToken,
-      value: token,
-    );
+    await _secureStorage.write(key: StorageKeys.accessToken, value: token);
   }
 
   /// Get access token
@@ -58,10 +50,7 @@ class SecureStorageService {
 
   /// Save refresh token securely
   Future<void> saveRefreshToken(String token) async {
-    await _secureStorage.write(
-      key: StorageKeys.refreshToken,
-      value: token,
-    );
+    await _secureStorage.write(key: StorageKeys.refreshToken, value: token);
   }
 
   /// Get refresh token
@@ -71,10 +60,7 @@ class SecureStorageService {
 
   /// Save user ID securely
   Future<void> saveUserId(String userId) async {
-    await _secureStorage.write(
-      key: StorageKeys.userId,
-      value: userId,
-    );
+    await _secureStorage.write(key: StorageKeys.userId, value: userId);
   }
 
   /// Get user ID
@@ -91,10 +77,7 @@ class SecureStorageService {
     print('  - id: ${json['id']}');
     final jsonString = jsonEncode(json);
     print('SecureStorage: JSON string: $jsonString');
-    await _secureStorage.write(
-      key: StorageKeys.userCache,
-      value: jsonString,
-    );
+    await _secureStorage.write(key: StorageKeys.userCache, value: jsonString);
   }
 
   /// Get user cache
@@ -109,7 +92,9 @@ class SecureStorageService {
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
       print('SecureStorage: Decoded JSON: $jsonMap');
       final user = AppUser.fromJson(jsonMap);
-      print('SecureStorage: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}');
+      print(
+        'SecureStorage: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}',
+      );
       return user;
     } catch (e) {
       // If parsing fails, return null
