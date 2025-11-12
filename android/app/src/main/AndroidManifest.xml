@@ -25,6 +25,24 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- for kakao login -->
+        <application>
+            <activity
+                android:name="com.kakao.sdk.auth.AppsHandlerActivity"
+                android:exported="true">
+                <intent-filter>
+                    <action android:name="android.intent.action.VIEW" />
+
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+
+                    <!-- 배송지 피커를 위한 설정 -->
+                    <data android:scheme="kakao${KAKAO_NATIVE_APP_KEY}" />
+                    <data android:host="address" />
+                </intent-filter>
+            </activity>
+        </application>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

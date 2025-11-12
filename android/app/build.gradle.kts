@@ -8,6 +8,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Load .env file
+val envFile = rootProject.file("../.env")
+val envProperties = java.util.Properties()
+if (envFile.exists()) {
+    envFile.inputStream().use { envProperties.load(it) }
+}
+
 android {
     namespace = "com.ddalgguk.ddalgguk"
     compileSdk = flutter.compileSdkVersion
@@ -31,6 +38,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Inject environment variables into AndroidManifest.xml
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = envProperties.getProperty("KAKAO_NATIVE_APP_KEY", "")
     }
 
     buildTypes {

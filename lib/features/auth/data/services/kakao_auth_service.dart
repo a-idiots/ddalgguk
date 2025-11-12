@@ -23,11 +23,10 @@ class KakaoAuthService {
   Future<String> signInWithKakao() async {
     try {
       // Check if KakaoTalk is installed
-      // bool isKakaoTalkInstalled = await isKakaoTalkInstalled();
-      bool isKakaoTalkInstalled = true;
+      bool isInstalled = await isKakaoTalkInstalled();
 
       OAuthToken token;
-      if (isKakaoTalkInstalled) {
+      if (isInstalled) {
         // Login with KakaoTalk app
         try {
           token = await UserApi.instance.loginWithKakaoTalk();
