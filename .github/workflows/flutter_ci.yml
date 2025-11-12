@@ -23,19 +23,15 @@ jobs:
           cache: true
 
       - name: Get dependencies
-        working-directory: ./frontend
         run: flutter pub get
 
       - name: Verify formatting
-        working-directory: ./frontend
         run: dart format --set-exit-if-changed .
 
       - name: Run linter (analyze)
-        working-directory: ./frontend
         run: flutter analyze
 
       - name: Run tests
-        working-directory: ./frontend
         run: flutter test
 
   build-android:
@@ -55,11 +51,9 @@ jobs:
           cache: true
 
       - name: Get dependencies
-        working-directory: ./frontend
         run: flutter pub get
 
       - name: Build APK
-        working-directory: ./frontend
         run: flutter build apk --release
 
   build-ios:
@@ -79,9 +73,7 @@ jobs:
           cache: true
 
       - name: Get dependencies
-        working-directory: ./frontend
         run: flutter pub get
 
       - name: Build iOS (no codesign)
-        working-directory: ./frontend
         run: flutter build ios --release --no-codesign
