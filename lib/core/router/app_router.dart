@@ -5,14 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
-import 'package:ddalgguk/features/onboarding/onboarding_screen.dart';
 import 'package:ddalgguk/features/auth/login_screen.dart';
 import 'package:ddalgguk/features/auth/onboarding/onboarding_profile_screen.dart';
 import 'package:ddalgguk/core/navigation/main_navigation.dart';
 
 /// Route names
 class Routes {
-  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String profileSetup = '/profile-setup';
   static const String home = '/';
@@ -26,10 +24,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.home,
     debugLogDiagnostics: true,
     redirect: (context, state) async {
-      // Check if onboarding is completed
-      final hasCompletedOnboarding = await SecureStorageService.instance
-          .hasCompletedOnboarding();
-
       // Check if user is authenticated with Firebase
       final isAuthenticated = authState.maybeWhen(
         data: (user) => user != null,
@@ -69,36 +63,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         debugPrint('======================================');
       }
 
-      final isOnOnboardingPage = state.matchedLocation == Routes.onboarding;
       final isOnLoginPage = state.matchedLocation == Routes.login;
       final isOnProfileSetupPage = state.matchedLocation == Routes.profileSetup;
 
       // Redirect logic
-      // 1. If not completed onboarding, go to onboarding
-      if (!hasCompletedOnboarding && !isOnOnboardingPage) {
-        return Routes.onboarding;
-      }
-
-      // 2. If completed onboarding but not authenticated, go to login
-      if (hasCompletedOnboarding && !isAuthenticated && !isOnLoginPage) {
+      // 1. If not authenticated, go to login
+      if (!isAuthenticated && !isOnLoginPage) {
         return Routes.login;
       }
 
-      // 3. If authenticated but not completed profile setup, go to profile setup
+      // 2. If authenticated but not completed profile setup, go to profile setup
       if (isAuthenticated &&
           !hasCompletedProfileSetup &&
           !isOnProfileSetupPage) {
         return Routes.profileSetup;
       }
 
-      // 4. If authenticated, completed profile, and on login/onboarding page, go to home
-      if (isAuthenticated &&
-          hasCompletedProfileSetup &&
-          (isOnLoginPage || isOnOnboardingPage)) {
+      // 3. If authenticated, completed profile, and on login page, go to home
+      if (isAuthenticated && hasCompletedProfileSetup && isOnLoginPage) {
         return Routes.home;
       }
 
-      // 5. If authenticated, completed profile, and on profile setup page, go to home
+      // 4. If authenticated, completed profile, and on profile setup page, go to home
       if (isAuthenticated && hasCompletedProfileSetup && isOnProfileSetupPage) {
         return Routes.home;
       }
@@ -110,11 +96,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ref.read(firebaseAuthProvider).authStateChanges(),
     ),
     routes: [
-      GoRoute(
-        path: Routes.onboarding,
-        name: 'onboarding',
-        builder: (context, state) => const OnboardingScreen(),
-      ),
       GoRoute(
         path: Routes.login,
         name: 'login',
