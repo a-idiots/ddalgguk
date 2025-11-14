@@ -12,7 +12,7 @@ Checking for npm/bin/npm-cli install at /snapshot/firepit/node_modules/npm/bin/n
 Found npm/bin/npm-cli install.
 Runtime binaries created.
 /usr/local/bin/firebase
-/usr/local/bin/firebase,/snapshot/firepit/firepit.js,--version
+/usr/local/bin/firebase,/snapshot/firepit/firepit.js,apps:sdkconfig,android,1:575327975025:android:8acc4d5ab6041086b0cdd0,--json
 Checking for npm/bin/npm-cli install at /Users/eunvv8/.cache/firebase/tools/lib/node_modules/npm/bin/npm-cli
 Checking for npm/bin/npm-cli install at /Users/eunvv8/.cache/firebase/tools/node_modules/npm/bin/npm-cli
 Checking for npm/bin/npm-cli install at /snapshot/firepit/node_modules/npm/bin/npm-cli
@@ -21,4 +21,4 @@ Checking for npm/bin/npm-cli install at /Users/eunvv8/.cache/firebase/tools/lib/
 Checking for npm/bin/npm-cli install at /Users/eunvv8/.cache/firebase/tools/node_modules/npm/bin/npm-cli
 Checking for npm/bin/npm-cli install at /snapshot/firepit/node_modules/npm/bin/npm-cli
 Found npm/bin/npm-cli install.
-ShellJSInternalError: ENOENT: no such file or directory, stat '/Users/eunvv8/.cache/firebase/runtime/npm.bat'
+ShellJSInternalError: ENOENT: no such file or directory, chmod '/Users/eunvv8/.cache/firebase/runtime/shell'
