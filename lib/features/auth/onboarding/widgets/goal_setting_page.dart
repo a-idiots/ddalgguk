@@ -394,7 +394,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
     final alcohol = _maxAlcohol;
     if (alcohol >= 1) {
       if ((alcohol * 10) % 10 != 0) {
-        return '${alcohol}병';
+        return '$alcohol병';
       } else {
         return '${alcohol.toInt()}병';
       }
