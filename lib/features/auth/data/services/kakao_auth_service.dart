@@ -1,11 +1,13 @@
-import 'package:cloud_functions/cloud_functions.dart';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 /// Kakao Authentication Service
 /// Handles Kakao Sign-In operations and exchanges Kakao tokens for Firebase custom tokens
 class KakaoAuthService {
-  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'asia-northeast3');
+  final String _authServerUrl = dotenv.env['AUTH_SERVER_URL'] ?? '';
   /// Sign in with Kakao
   /// Returns Firebase custom token after exchanging Kakao access token
   Future<String> signInWithKakao() async {
@@ -53,20 +55,35 @@ class KakaoAuthService {
     return token.accessToken;
   }
 
-  /// Exchange Kakao access token for Firebase custom token via Cloud Functions
+  /// Exchange Kakao access token for Firebase custom token via Auth Server
   Future<String> _exchangeKakaoTokenForFirebaseToken(String kakaoAccessToken) async {
     try {
-      // Call Firebase Cloud Function to exchange tokens
-      final HttpsCallable callable = _functions.httpsCallable('kakaoAuth');
-      final result = await callable.call<Map<String, dynamic>>({
-        'kakaoAccessToken': kakaoAccessToken,
-      });
+      if (_authServerUrl.isEmpty) {
+        throw Exception('AUTH_SERVER_URL is not configured in .env file');
+      }
 
-      // Extract custom token from response
-      final String? customToken = result.data['customToken'] as String?;
+      // Call Auth Server to exchange tokens
+      final Uri url = Uri.parse('$_authServerUrl/auth/kakao');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'kakaoAccessToken': kakaoAccessToken,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Auth server returned status ${response.statusCode}: ${response.body}');
+      }
+
+      // Parse response
+      final Map<String, dynamic> responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      final String? customToken = responseData['customToken'] as String?;
 
       if (customToken == null) {
-        throw Exception('Failed to get Firebase custom token from Cloud Functions');
+        throw Exception('Failed to get Firebase custom token from auth server');
       }
 
       return customToken;
