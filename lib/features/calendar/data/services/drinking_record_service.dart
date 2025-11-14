@@ -1,0 +1,204 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+
+/// 음주 기록을 관리하는 Firebase 서비스
+/// Firestore 구조: users/{userId}/drinkingRecords/{recordId}
+class DrinkingRecordService {
+  DrinkingRecordService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? firebaseAuth,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _auth = firebaseAuth ?? FirebaseAuth.instance;
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  /// 현재 로그인한 사용자 ID 가져오기
+  String? get _currentUserId => _auth.currentUser?.uid;
+
+  /// 사용자의 음주 기록 컬렉션 참조
+  CollectionReference<Map<String, dynamic>> _getRecordsCollection() {
+    if (_currentUserId == null) {
+      throw Exception('User not logged in');
+    }
+    return _firestore
+        .collection('users')
+        .doc(_currentUserId)
+        .collection('drinkingRecords');
+  }
+
+  /// 음주 기록 생성
+  /// 같은 날짜에 여러 기록이 있을 수 있으므로 sessionNumber를 자동으로 계산
+  Future<String> createRecord(DrinkingRecord record) async {
+    try {
+      debugPrint('=== DrinkingRecordService.createRecord ===');
+      debugPrint('현재 사용자 ID: $_currentUserId');
+      debugPrint('저장 경로: users/$_currentUserId/drinkingRecords');
+
+      if (_currentUserId == null) {
+        throw Exception('User not logged in - cannot create record');
+      }
+
+      // 같은 날짜의 기록 개수를 확인하여 sessionNumber 결정
+      final dateStart = DateTime(
+        record.date.year,
+        record.date.month,
+        record.date.day,
+      );
+      final dateEnd = dateStart.add(const Duration(days: 1));
+
+      final existingRecords = await _getRecordsCollection()
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+          .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+          .get();
+
+      final sessionNumber = existingRecords.docs.length + 1;
+
+      // sessionNumber를 포함한 새로운 record 생성
+      final recordWithSession = record.copyWith(sessionNumber: sessionNumber);
+
+      debugPrint('저장할 데이터: ${recordWithSession.toMap()}');
+
+      final docRef = await _getRecordsCollection().add(
+        recordWithSession.toMap(),
+      );
+      debugPrint('Created drinking record: ${docRef.id}');
+      debugPrint('전체 경로: ${docRef.path}');
+      return docRef.id;
+    } catch (e) {
+      debugPrint('Error creating drinking record: $e');
+      rethrow;
+    }
+  }
+
+  /// 음주 기록 읽기 (단건)
+  Future<DrinkingRecord?> getRecord(String recordId) async {
+    try {
+      final doc = await _getRecordsCollection().doc(recordId).get();
+      if (!doc.exists) {
+        return null;
+      }
+      return DrinkingRecord.fromFirestore(doc);
+    } catch (e) {
+      debugPrint('Error getting drinking record: $e');
+      rethrow;
+    }
+  }
+
+  /// 특정 날짜의 모든 음주 기록 가져오기
+  Future<List<DrinkingRecord>> getRecordsByDate(DateTime date) async {
+    try {
+      final dateStart = DateTime(date.year, date.month, date.day);
+      final dateEnd = dateStart.add(const Duration(days: 1));
+
+      final querySnapshot = await _getRecordsCollection()
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+          .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+          .orderBy('date')
+          .orderBy('sessionNumber')
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => DrinkingRecord.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting records by date: $e');
+      rethrow;
+    }
+  }
+
+  /// 특정 기간의 모든 음주 기록 가져오기
+  Future<List<DrinkingRecord>> getRecordsByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    try {
+      final querySnapshot = await _getRecordsCollection()
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+          .orderBy('date')
+          .orderBy('sessionNumber')
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => DrinkingRecord.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting records by date range: $e');
+      rethrow;
+    }
+  }
+
+  /// 특정 월의 모든 음주 기록 가져오기
+  Future<List<DrinkingRecord>> getRecordsByMonth(int year, int month) async {
+    try {
+      final startDate = DateTime(year, month, 1);
+      final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+
+      return await getRecordsByDateRange(startDate, endDate);
+    } catch (e) {
+      debugPrint('Error getting records by month: $e');
+      rethrow;
+    }
+  }
+
+  /// 음주 기록 업데이트
+  Future<void> updateRecord(DrinkingRecord record) async {
+    try {
+      await _getRecordsCollection().doc(record.id).update(record.toMap());
+      debugPrint('Updated drinking record: ${record.id}');
+    } catch (e) {
+      debugPrint('Error updating drinking record: $e');
+      rethrow;
+    }
+  }
+
+  /// 음주 기록 삭제
+  Future<void> deleteRecord(String recordId) async {
+    try {
+      await _getRecordsCollection().doc(recordId).delete();
+      debugPrint('Deleted drinking record: $recordId');
+    } catch (e) {
+      debugPrint('Error deleting drinking record: $e');
+      rethrow;
+    }
+  }
+
+  /// 실시간 음주 기록 스트림 (특정 날짜)
+  Stream<List<DrinkingRecord>> streamRecordsByDate(DateTime date) {
+    final dateStart = DateTime(date.year, date.month, date.day);
+    final dateEnd = dateStart.add(const Duration(days: 1));
+
+    return _getRecordsCollection()
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+        .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+        .orderBy('date')
+        .orderBy('sessionNumber')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => DrinkingRecord.fromFirestore(doc))
+              .toList(),
+        );
+  }
+
+  /// 실시간 음주 기록 스트림 (특정 월)
+  Stream<List<DrinkingRecord>> streamRecordsByMonth(int year, int month) {
+    final startDate = DateTime(year, month, 1);
+    final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+
+    return _getRecordsCollection()
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('date')
+        .orderBy('sessionNumber')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => DrinkingRecord.fromFirestore(doc))
+              .toList(),
+        );
+  }
+}

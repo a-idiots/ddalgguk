@@ -46,8 +46,19 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>CFBundleURLTypes</key>
-	<!-- for Kakao login -->
 	<array>
+		<!-- Google sign-in callback -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps.575327975025-9d0tkm3ounk9thbsdt651muljo7po2vl</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.575327975025-9d0tkm3ounk9thbsdt651muljo7po2vl</string>
+			</array>
+		</dict>
+		<!-- Kakao login callback -->
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
@@ -57,9 +68,14 @@
 			</array>
 		</dict>
 	</array>
-	<!-- Kakao login query schemes -->
+	<!-- Query schemes for social logins -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>googlechrome</string>
+		<string>com.google.chrome.ios</string>
+		<string>com.google.GPPShare</string>
+		<string>com.google.GPPShare.ShareExtension</string>
+		<string>com.googleapps</string>
 		<string>kakaokompassauth</string>
 		<string>kakaolink</string>
 		<string>kakaoplus</string>
