@@ -467,14 +467,15 @@ class _NonLinearSlider extends StatelessWidget {
       child: Container(
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 16),
+        clipBehavior: Clip.none,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // 실제 사용 가능한 트랙 너비 (padding 제외)
-            final trackWidth = constraints.maxWidth;
-            // Thumb의 중심 위치
-            final thumbCenterPosition = trackWidth * visualPosition;
             // Thumb의 반지름
             const thumbRadius = 10.0;
+            // 실제 사용 가능한 트랙 너비 (padding 제외)
+            final trackWidth = constraints.maxWidth;
+            // Thumb의 중심 위치 (thumbRadius ~ trackWidth - thumbRadius 범위)
+            final thumbCenterPosition = thumbRadius + (trackWidth - 2 * thumbRadius) * visualPosition;
 
             return Stack(
               alignment: Alignment.centerLeft,
