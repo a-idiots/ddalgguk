@@ -51,9 +51,7 @@ class DdalggukApp extends ConsumerWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
-        ).copyWith(
-          surface: Colors.white,
-        ),
+        ).copyWith(surface: Colors.white),
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,

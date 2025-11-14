@@ -6,13 +6,14 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// Handles Google Sign-In operations
 class GoogleAuthService {
   GoogleAuthService({GoogleSignIn? googleSignIn})
-      : _googleSignIn = googleSignIn ??
-            GoogleSignIn(
-              clientId:
-                  '575327975025-9d0tkm3ounk9thbsdt651muljo7po2vl.apps.googleusercontent.com',
-              serverClientId:
-                  '575327975025-0tqgdncpri7ikebkgcmcgmq915dl7ljg.apps.googleusercontent.com',
-            );
+    : _googleSignIn =
+          googleSignIn ??
+          GoogleSignIn(
+            clientId:
+                '575327975025-9d0tkm3ounk9thbsdt651muljo7po2vl.apps.googleusercontent.com',
+            serverClientId:
+                '575327975025-0tqgdncpri7ikebkgcmcgmq915dl7ljg.apps.googleusercontent.com',
+          );
 
   final GoogleSignIn _googleSignIn;
 
