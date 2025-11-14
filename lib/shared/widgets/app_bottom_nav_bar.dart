@@ -12,24 +12,39 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Theme.of(context).primaryColor,
+      backgroundColor: Colors.white,
+      selectedItemColor: theme.primaryColor,
       unselectedItemColor: Colors.grey,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      selectedIconTheme: const IconThemeData(size: 30),
+      unselectedIconTheme: const IconThemeData(size: 28),
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month),
-          label: 'Calendar',
+          icon: Icon(Icons.person),
+          label: '',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Social'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month),
+          label: '',
+        ),
         BottomNavigationBarItem(
           icon: Icon(Icons.sports_esports),
-          label: 'Games',
+          label: '',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.menu),
+          label: '',
+        ),
       ],
     );
   }
