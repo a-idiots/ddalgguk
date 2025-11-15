@@ -1,4 +1,4 @@
-package com.ddalgguk.ddalgguk
+package com.aidiot.ddalgguk
 
 import io.flutter.embedding.android.FlutterActivity
 

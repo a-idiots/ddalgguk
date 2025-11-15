@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ddalgguk.ddalgguk"
+    namespace = "com.aidiot.ddalgguk"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
