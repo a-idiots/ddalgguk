@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/features/auth/widgets/animated_login_transition.dart';
+import 'package:ddalgguk/core/providers/app_state_provider.dart';
 
-/// Splash screen that displays the app branding before transitioning to login
-class SplashScreen extends StatefulWidget {
+/// Splash screen that displays the app branding before transitioning to login or home
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-transition to login after 1 second
+    // Auto-transition to login or home after 2 seconds
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         _startTransition();
@@ -107,7 +108,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _startTransition() {
-    // Navigate to the animated transition screen
-    context.go('/login');
+    // Mark splash animation as completed
+    // Router's redirect logic will handle navigation
+    ref.read(appStateProvider.notifier).setSplashAnimationCompleted();
   }
 }

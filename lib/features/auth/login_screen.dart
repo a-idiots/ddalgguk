@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/core/router/app_router.dart';
+import 'package:ddalgguk/core/providers/app_state_provider.dart';
 import 'package:ddalgguk/features/auth/widgets/google_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/apple_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/kakao_login_button.dart';
@@ -90,8 +89,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       await authRepository.signInWithGoogle();
 
       if (mounted) {
-        // Navigation will be handled automatically by go_router redirect
-        context.go(Routes.home);
+        // Set flag to indicate user just logged in
+        // Router redirect will handle navigation
+        ref.read(appStateProvider.notifier).setJustLoggedIn(true);
       }
     } catch (e) {
       if (mounted) {
@@ -121,8 +121,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       await authRepository.signInWithApple();
 
       if (mounted) {
-        // Navigation will be handled automatically by go_router redirect
-        context.go(Routes.home);
+        // Set flag to indicate user just logged in
+        // Router redirect will handle navigation
+        ref.read(appStateProvider.notifier).setJustLoggedIn(true);
       }
     } catch (e) {
       if (mounted) {
@@ -152,8 +153,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       await authRepository.signInWithKakao();
 
       if (mounted) {
-        // Navigation will be handled automatically by go_router redirect
-        context.go(Routes.home);
+        // Set flag to indicate user just logged in
+        // Router redirect will handle navigation
+        ref.read(appStateProvider.notifier).setJustLoggedIn(true);
       }
     } catch (e) {
       if (mounted) {

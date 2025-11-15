@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/app_state_provider.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/features/auth/splash_screen.dart';
 import 'package:ddalgguk/features/auth/login_screen.dart';
@@ -22,6 +23,7 @@ class Routes {
 /// Router provider
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
+  final appState = ref.watch(appStateProvider);
 
   return GoRouter(
     initialLocation: Routes.splash,
@@ -48,23 +50,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       );
 
       debugPrint('Router: isAuthenticated = $isAuthenticated');
+      debugPrint('Router: justLoggedIn = ${appState.justLoggedIn}');
+      debugPrint('Router: splashAnimationCompleted = ${appState.splashAnimationCompleted}');
 
       final isOnSplashPage = currentLocation == Routes.splash;
       final isOnLoginPage = currentLocation == Routes.login;
       final isOnProfileSetupPage = currentLocation == Routes.profileSetup;
-
-      // Redirect logic
-      // 0. If authenticated and on splash page, skip to home/onboarding
-      if (isAuthenticated && isOnSplashPage) {
-        debugPrint('Router: Skipping splash (already authenticated)');
-        return Routes.home; // Will be further redirected by logic below if needed
-      }
-
-      // 1. If not authenticated and not on splash or login, go to splash
-      if (!isAuthenticated && !isOnLoginPage && !isOnSplashPage) {
-        debugPrint('Router: Redirecting to splash (not authenticated)');
-        return Routes.splash;
-      }
 
       // Check if profile setup is completed (only if authenticated)
       bool hasCompletedProfileSetup = false;
@@ -98,24 +89,68 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // 2. If authenticated but not completed profile setup, go to profile setup
+      // Redirect logic
+
+      // 1. If user just logged in, skip splash and go directly to appropriate page
+      if (appState.justLoggedIn && isAuthenticated) {
+        debugPrint('Router: User just logged in, determining target route');
+
+        // Determine target route based on profile setup status
+        final targetRoute = hasCompletedProfileSetup
+            ? Routes.home
+            : Routes.profileSetup;
+
+        // If already on target page, just reset flag and return
+        if (currentLocation == targetRoute) {
+          debugPrint('Router: Already on target page ($targetRoute), resetting flag');
+          ref.read(appStateProvider.notifier).setJustLoggedIn(false);
+          return null;
+        }
+
+        // Reset flag after redirect decision (using microtask to avoid race condition)
+        Future.microtask(() {
+          ref.read(appStateProvider.notifier).setJustLoggedIn(false);
+        });
+
+        debugPrint('Router: Redirecting to $targetRoute');
+        return targetRoute;
+      }
+
+      // 2. If on splash page and animation not completed, wait for animation
+      if (isOnSplashPage && !appState.splashAnimationCompleted) {
+        debugPrint('Router: On splash, waiting for animation to complete');
+        return null;
+      }
+
+      // 3. If on splash page and animation completed, redirect based on auth status
+      if (isOnSplashPage && appState.splashAnimationCompleted) {
+        if (isAuthenticated && hasCompletedProfileSetup) {
+          debugPrint('Router: Splash animation done, redirecting to home');
+          return Routes.home;
+        } else if (isAuthenticated && !hasCompletedProfileSetup) {
+          debugPrint('Router: Splash animation done, redirecting to profile setup');
+          return Routes.profileSetup;
+        } else {
+          debugPrint('Router: Splash animation done, redirecting to login');
+          return Routes.login;
+        }
+      }
+
+      // 4. If not authenticated and not on splash or login, go to splash
+      if (!isAuthenticated && !isOnLoginPage && !isOnSplashPage) {
+        debugPrint('Router: Redirecting to splash (not authenticated)');
+        // Reset app state when going back to splash
+        ref.read(appStateProvider.notifier).reset();
+        return Routes.splash;
+      }
+
+      // 5. If authenticated but not completed profile setup, go to profile setup
       if (isAuthenticated &&
           !hasCompletedProfileSetup &&
-          !isOnProfileSetupPage) {
+          !isOnProfileSetupPage &&
+          !isOnSplashPage) {
         debugPrint('Router: Redirecting to profile setup (not completed)');
         return Routes.profileSetup;
-      }
-
-      // 3. If authenticated, completed profile, and on login page, go to home
-      if (isAuthenticated && hasCompletedProfileSetup && isOnLoginPage) {
-        debugPrint('Router: Redirecting to home from login (completed profile)');
-        return Routes.home;
-      }
-
-      // 4. If authenticated, completed profile, and on profile setup page, go to home
-      if (isAuthenticated && hasCompletedProfileSetup && isOnProfileSetupPage) {
-        debugPrint('Router: Redirecting to home from profile setup (completed profile)');
-        return Routes.home;
       }
 
       // No redirect needed
