@@ -34,10 +34,6 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
   /// 버튼 텍스트 폰트 굵기 (선택사항)
   FontWeight get fontWeight => FontWeight.w600;
 
-  double _px(double value, BuildContext context) {
-    return value / MediaQuery.of(context).devicePixelRatio;
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
