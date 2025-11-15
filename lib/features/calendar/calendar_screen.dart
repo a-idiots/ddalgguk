@@ -330,16 +330,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () => _addNoDrinkRecord(_selectedDay!),
-                icon: const Icon(Icons.check_circle_outline),
-                label: const Text('술을 한방울도 안마셨어요!'),
+              ElevatedButton(
+                onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPink,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,
                   ),
                 ),
+                child: const Text('금주 기록 추가하기'),
               ),
             ],
           ),
@@ -444,7 +445,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             ),
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
                                 child: CustomPaint(
                                   painter: _DottedLinePainter(
                                     color: Colors.grey[300]!,
@@ -496,8 +499,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  /// 무음주 기록 추가
-  Future<void> _addNoDrinkRecord(DateTime date) async {
+  /// 금주 기록 추가 확인 및 추가
+  Future<void> _confirmAndAddNoDrinkRecord(DateTime date) async {
     // 미래 날짜 체크
     final today = DateTime.now();
     final normalizedToday = DateTime(today.year, today.month, today.day);
@@ -516,12 +519,41 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       return;
     }
 
+    // 확인 다이얼로그 표시
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('금주 기록 추가'),
+        content: Text(
+          '${DateFormat('yyyy년 M월 d일').format(date)}에\n금주 기록을 추가하시겠습니까?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPink,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('추가'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
     try {
       final record = DrinkingRecord(
         id: '', // Firestore에서 자동 생성
         date: date,
         sessionNumber: 0, // 서비스에서 자동 계산
-        meetingName: '무음주',
+        meetingName: '금주',
         drunkLevel: 0,
         drinkAmounts: [],
         memo: {'text': '술을 한방울도 안마셨어요!'},
@@ -537,7 +569,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('무음주 기록이 추가되었습니다!'),
+            content: Text('금주 기록이 추가되었습니다!'),
             duration: Duration(seconds: 2),
             backgroundColor: Colors.green,
           ),
