@@ -1,3 +1,4 @@
+import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
@@ -115,7 +116,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         offset: const Offset(16, 0),
         child: FloatingActionButton(
           onPressed: () => _showAddRecordDialog(context),
-          backgroundColor: const Color(0xFFF27B7B),
+          backgroundColor: AppColors.primaryPink,
           foregroundColor: Colors.white,
           shape: const CircleBorder(),
           child: const Icon(Icons.add),
@@ -138,10 +139,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     enabledDayPredicate: (day) {
                       // 오늘 이후의 날짜는 비활성화
                       final today = DateTime.now();
-                      final normalizedToday = DateTime(today.year, today.month, today.day);
-                      final normalizedDay = DateTime(day.year, day.month, day.day);
+                      final normalizedToday = DateTime(
+                        today.year,
+                        today.month,
+                        today.day,
+                      );
+                      final normalizedDay = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                      );
                       return normalizedDay.isBefore(normalizedToday) ||
-                             normalizedDay.isAtSameMomentAs(normalizedToday);
+                          normalizedDay.isAtSameMomentAs(normalizedToday);
                     },
                     calendarFormat: CalendarFormat.month,
                     rowHeight: 72,
@@ -381,10 +390,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey[300]!,
-            width: 1.5,
-          ),
+          border: Border.all(color: Colors.grey[300]!, width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -501,7 +507,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                      icon: const Icon(
+                        Icons.delete,
+                        size: 20,
+                        color: Colors.red,
+                      ),
                       onPressed: () => _deleteRecord(record.id),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -669,9 +679,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 controller: meetingNameController,
                                 decoration: InputDecoration(
                                   hintText: '피넛버터샌드위치',
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                  ),
+                                  hintStyle: TextStyle(color: Colors.grey[400]),
                                   border: const OutlineInputBorder(),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12,
@@ -716,16 +724,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                     ),
                                   ),
                                   Expanded(
-                                    child: Slider(
-                                      value: drunkLevel,
-                                      min: 0,
-                                      max: 10,
-                                      divisions: 20,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          drunkLevel = value;
-                                        });
-                                      },
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        activeTrackColor: AppColors.primaryPink,
+                                        thumbColor: AppColors.primaryPink,
+                                        overlayColor: AppColors.primaryPink
+                                            .withValues(alpha: 0.2),
+                                        inactiveTrackColor: AppColors
+                                            .primaryPink
+                                            .withValues(alpha: 0.3),
+                                      ),
+                                      child: Slider(
+                                        value: drunkLevel,
+                                        min: 0,
+                                        max: 10,
+                                        divisions: 20,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            drunkLevel = value;
+                                          });
+                                        },
+                                      ),
                                     ),
                                   ),
                                   const Text(
@@ -995,7 +1014,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   debugPrint('=== 기록 추가 완료 ===');
 
                                   // 캘린더 새로고침을 위해 provider invalidate
-                                  ref.invalidate(monthRecordsProvider(_focusedDay));
+                                  ref.invalidate(
+                                    monthRecordsProvider(_focusedDay),
+                                  );
 
                                   if (context.mounted) {
                                     Navigator.pop(context);
