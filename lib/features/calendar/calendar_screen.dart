@@ -115,6 +115,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         offset: const Offset(16, 0),
         child: FloatingActionButton(
           onPressed: () => _showAddRecordDialog(context),
+          backgroundColor: const Color(0xFFF27B7B),
+          foregroundColor: Colors.white,
           shape: const CircleBorder(),
           child: const Icon(Icons.add),
         ),
@@ -361,45 +363,176 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       itemCount: records.length,
       itemBuilder: (context, index) {
         final record = records[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(child: Text('${record.sessionNumber}차')),
-            title: Text(
-              record.meetingName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text('취함 정도: ${record.drunkLevel}/10'),
-                Text('술값: ${NumberFormat('#,###').format(record.cost)}원'),
-                if (record.drinkAmounts.isNotEmpty)
-                  Text(
-                    '음주량: ${record.drinkAmounts.length}종류',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () => _showEditRecordDialog(context, record),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                  onPressed: () => _deleteRecord(record.id),
-                ),
-              ],
-            ),
-            onTap: () => _showRecordDetail(context, record),
-          ),
-        );
+        return _buildRecordCard(record, index);
       },
     );
+  }
+
+  /// 기록 카드 빌드
+  Widget _buildRecordCard(DrinkingRecord record, int index) {
+    const sakuSize = 60.0;
+    const eyesScale = 0.35;
+
+    return GestureDetector(
+      onTap: () => _showRecordDetail(context, record),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.grey[300]!,
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 왼쪽: 사쿠 캐릭터
+            SizedBox(
+              width: sakuSize,
+              height: sakuSize,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    _getBodyImagePath(record.drunkLevel),
+                    width: sakuSize,
+                    height: sakuSize,
+                    fit: BoxFit.contain,
+                  ),
+                  Image.asset(
+                    'assets/saku/eyes.png',
+                    width: sakuSize * eyesScale,
+                    height: sakuSize * eyesScale,
+                    fit: BoxFit.contain,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // 중앙: 정보
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 모임명
+                  Text(
+                    record.meetingName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 혈중 알콜 농도
+                  Text(
+                    '혈중알콜농도 ${record.drunkLevel * 10}%',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red[400],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 음주량
+                  if (record.drinkAmounts.isNotEmpty) ...[
+                    ...record.drinkAmounts.map((drink) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '${_getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}% ${_formatDrinkAmount(drink.amount)}',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 4),
+                  ],
+                  // 지출 금액
+                  Text(
+                    '${NumberFormat('#,###').format(record.cost)}원',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // 우측: 회차 및 액션 버튼
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.red[300]!, width: 1.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${record.sessionNumber}차',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red[400],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () => _showEditRecordDialog(context, record),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                      onPressed: () => _deleteRecord(record.id),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 음주량 포맷팅 (간단 버전)
+  String _formatDrinkAmount(double amountInMl) {
+    if (amountInMl >= 1000) {
+      final bottles = amountInMl / 500;
+      if (bottles % 1 == 0) {
+        return '${bottles.toInt()}병';
+      }
+      return '${bottles.toStringAsFixed(1)}병';
+    } else if (amountInMl >= 150) {
+      final glasses = amountInMl / 150;
+      if (glasses % 1 == 0) {
+        return '${glasses.toInt()}잔';
+      }
+      return '${glasses.toStringAsFixed(1)}잔';
+    } else {
+      return '${amountInMl.toInt()}ml';
+    }
   }
 
   /// 무음주 기록 추가
@@ -534,10 +667,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                               const SizedBox(height: 8),
                               TextField(
                                 controller: meetingNameController,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: '피넛버터샌드위치',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey[400],
+                                  ),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12,
                                     vertical: 12,
                                   ),
