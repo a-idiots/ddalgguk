@@ -111,6 +111,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     lastDay: DateTime.utc(2030, 12, 31),
                     focusedDay: _focusedDay,
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                    enabledDayPredicate: (day) {
+                      // 오늘 이후의 날짜는 비활성화
+                      final today = DateTime.now();
+                      final normalizedToday = DateTime(today.year, today.month, today.day);
+                      final normalizedDay = DateTime(day.year, day.month, day.day);
+                      return normalizedDay.isBefore(normalizedToday) ||
+                             normalizedDay.isAtSameMomentAs(normalizedToday);
+                    },
                     calendarFormat: CalendarFormat.month,
                     rowHeight: 72,
                     startingDayOfWeek: StartingDayOfWeek.monday,
@@ -170,6 +178,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           isOutsideMonth: isOutsideMonth,
                           isToday: isToday,
                           isSelected: true,
+                        );
+                      },
+                      disabledBuilder: (context, date, focusedDay) {
+                        // 미래 날짜도 동일하게 표시 (단, 선택 불가)
+                        final isOutsideMonth = date.month != focusedDay.month;
+                        return _buildDayCell(
+                          date,
+                          isOutsideMonth: isOutsideMonth,
+                          isToday: false,
                         );
                       },
                       outsideBuilder: (context, date, focusedDay) =>
