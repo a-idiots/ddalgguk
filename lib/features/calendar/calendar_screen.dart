@@ -175,29 +175,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       outsideBuilder: (context, date, focusedDay) =>
                           const SizedBox.shrink(),
                       markerBuilder: (context, date, records) {
-                        if (date.month != _focusedDay.month) {
-                          return null;
-                        }
-                        final normalizedToday = _normalizeDate(DateTime.now());
-                        final normalizedDate = _normalizeDate(date);
-                        final shouldShowSaku = normalizedDate.isBefore(
-                          normalizedToday,
-                        );
-
-                        final recordList = records.cast<DrinkingRecord>();
-                        if (recordList.isEmpty || !shouldShowSaku) {
-                          return null;
-                        }
-
-                        // 취함 정도에 따라 눈의 상태 결정 (예시)
-                        final maxDrunkLevel = recordList
-                            .map((r) => r.drunkLevel)
-                            .reduce((a, b) => a > b ? a : b);
-
-                        return Positioned(
-                          bottom: 1,
-                          child: _buildSakuCharacter(maxDrunkLevel),
-                        );
+                        // markerBuilder는 사용하지 않음 (이미 _buildDayCell에서 처리)
+                        return null;
                       },
                     ),
                   ),
@@ -228,14 +207,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         : isToday
         ? Colors.red
         : Colors.black87;
-    final highlightColor = isSelected
-        ? Colors.blue.withValues(alpha: 0.45)
-        : Colors.transparent;
-    final normalizedToday = _normalizeDate(DateTime.now());
-    final normalizedDate = _normalizeDate(date);
-    final isPastDay = normalizedDate.isBefore(normalizedToday);
-    final shouldShowSaku = isPastDay;
-    final shouldShowEmpty = !isPastDay;
+
+    // 기록 유무 확인
+    final hasRecord = _getRecordsForDay(date).isNotEmpty;
+
     const sakuSize = 44.0;
     const eyesScale = 0.35;
 
@@ -247,23 +222,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            if (highlightColor != Colors.transparent)
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: highlightColor,
-                ),
+            // 기본 플레이스홀더 (항상 표시)
+            Opacity(
+              opacity: isOutsideMonth ? 0.25 : 0.5,
+              child: Image.asset(
+                'assets/calendar/empty_date.png',
+                width: sakuSize,
+                height: sakuSize,
+                fit: BoxFit.contain,
               ),
-            if (shouldShowSaku)
+            ),
+            // 기록이 있을 때만 사쿠 이미지를 위에 겹침
+            if (hasRecord)
               Opacity(
                 opacity: isOutsideMonth ? 0.35 : 1,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     Image.asset(
-                      'assets/saku/body.png',
+                      'assets/saku_gradient/body1.png',
                       width: sakuSize,
                       height: sakuSize,
                       fit: BoxFit.contain,
@@ -275,16 +252,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       fit: BoxFit.contain,
                     ),
                   ],
-                ),
-              ),
-            if (shouldShowEmpty)
-              Opacity(
-                opacity: isOutsideMonth ? 0.25 : 0.5,
-                child: Image.asset(
-                  'assets/calendar/empty_date.png',
-                  width: sakuSize,
-                  height: sakuSize,
-                  fit: BoxFit.contain,
                 ),
               ),
             Positioned(
@@ -302,44 +269,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
       ),
     );
-  }
-
-  /// 사쿠 캐릭터 빌드 (body.png + eyes.png 겹치기)
-  Widget _buildSakuCharacter(int drunkLevel) {
-    const markerSize = 36.0;
-    const markerEyeScale = 0.35;
-    return SizedBox(
-      width: markerSize,
-      height: markerSize,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Body
-          Image.asset(
-            'assets/saku/body.png',
-            width: markerSize,
-            height: markerSize,
-            fit: BoxFit.contain,
-          ),
-          // Eyes - 취함 정도에 따라 위치나 스타일 변경 가능
-          Opacity(
-            opacity: _getEyesOpacity(drunkLevel),
-            child: Image.asset(
-              'assets/saku/eyes.png',
-              width: markerSize * markerEyeScale,
-              height: markerSize * markerEyeScale,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 취함 정도에 따른 눈의 투명도 (1-5 스케일)
-  double _getEyesOpacity(int drunkLevel) {
-    // drunkLevel이 높을수록 눈이 흐려짐
-    return 1.0 - (drunkLevel / 10.0).clamp(0.0, 0.8);
   }
 
   /// 선택된 날짜의 기록 목록 표시
@@ -366,6 +295,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             const Text(
               '음주 기록이 없습니다',
               style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => _addNoDrinkRecord(_selectedDay!),
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text('술을 한방울도 안마셨어요!'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
             ),
           ],
         ),
@@ -416,6 +357,45 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         );
       },
     );
+  }
+
+  /// 무음주 기록 추가
+  Future<void> _addNoDrinkRecord(DateTime date) async {
+    try {
+      final record = DrinkingRecord(
+        id: '', // Firestore에서 자동 생성
+        date: date,
+        sessionNumber: 0, // 서비스에서 자동 계산
+        meetingName: '무음주',
+        drunkLevel: 0,
+        drinkAmounts: [],
+        memo: {'text': '술을 한방울도 안마셨어요!'},
+        cost: 0,
+      );
+
+      final service = ref.read(drinkingRecordServiceProvider);
+      await service.createRecord(record);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('무음주 기록이 추가되었습니다!'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('기록 추가 실패: $e'),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// 기록 추가 다이얼로그
