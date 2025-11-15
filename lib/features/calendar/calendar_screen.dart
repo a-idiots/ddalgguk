@@ -1,5 +1,6 @@
 import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -64,6 +65,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   List<DrinkingRecord> _getRecordsForDay(DateTime day) {
     final normalizedDay = _normalizeDate(day);
     return _recordsMap[normalizedDay] ?? [];
+  }
+
+  /// 알딸딸 지수에 따른 body 이미지 경로 반환
+  String _getBodyImagePath(int drunkLevel) {
+    // drunkLevel: 0-10
+    // 0-2: body1 (0-20%)
+    // 3-4: body2 (30-40%)
+    // 5-6: body3 (50-60%)
+    // 7-8: body4 (70-80%)
+    // 9-10: body5 (90-100%)
+    if (drunkLevel <= 2) {
+      return 'assets/saku_gradient/body1.png';
+    } else if (drunkLevel <= 4) {
+      return 'assets/saku_gradient/body2.png';
+    } else if (drunkLevel <= 6) {
+      return 'assets/saku_gradient/body3.png';
+    } else if (drunkLevel <= 8) {
+      return 'assets/saku_gradient/body4.png';
+    } else {
+      return 'assets/saku_gradient/body5.png';
+    }
   }
 
   @override
@@ -225,8 +247,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ? Colors.red
         : Colors.black87;
 
-    // 기록 유무 확인
-    final hasRecord = _getRecordsForDay(date).isNotEmpty;
+    // 기록 유무 및 최대 취함 정도 확인
+    final records = _getRecordsForDay(date);
+    final hasRecord = records.isNotEmpty;
+    final maxDrunkLevel = hasRecord
+        ? records.map((r) => r.drunkLevel).reduce((a, b) => a > b ? a : b)
+        : 0;
 
     const sakuSize = 44.0;
     const eyesScale = 0.35;
@@ -257,7 +283,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   alignment: Alignment.center,
                   children: [
                     Image.asset(
-                      'assets/saku_gradient/body1.png',
+                      _getBodyImagePath(maxDrunkLevel),
                       width: sakuSize,
                       height: sakuSize,
                       fit: BoxFit.contain,
@@ -1284,46 +1310,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   void _showRecordDetail(BuildContext context, DrinkingRecord record) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('${record.meetingName} - ${record.sessionNumber}차'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('날짜: ${DateFormat('yyyy-MM-dd').format(record.date)}'),
-              const SizedBox(height: 8),
-              Text('취함 정도: ${record.drunkLevel}/10'),
-              const SizedBox(height: 8),
-              Text('술값: ${NumberFormat('#,###').format(record.cost)}원'),
-              const SizedBox(height: 8),
-              const Text('음주량:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...record.drinkAmounts.map(
-                (drink) => Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 4),
-                  child: Text(
-                    '종류 ${drink.drinkType}: ${drink.amount}ml (${drink.alcoholContent}%)',
-                  ),
-                ),
-              ),
-              if (record.memo.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                const Text(
-                  '메모:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(record.memo.toString()),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('닫기'),
-          ),
-        ],
-      ),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (context) => DrinkingRecordDetailDialog(record: record),
     );
   }
 
