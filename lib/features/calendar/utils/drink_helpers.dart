@@ -57,7 +57,7 @@ String getDefaultUnit(int drinkType) {
     case 1: // 소주
       return '병';
     case 2: // 맥주
-      return '병';
+      return 'ml';
     case 3: // 와인
       return '잔';
     case 4: // 막걸리
