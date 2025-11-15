@@ -658,7 +658,31 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (confirmed == true) {
       try {
         final service = ref.read(drinkingRecordServiceProvider);
+
+        // 삭제하기 전에 해당 기록의 정보를 가져옴
+        final recordToDelete = await service.getRecord(recordId);
+        if (recordToDelete == null) {
+          throw Exception('기록을 찾을 수 없습니다');
+        }
+
+        final deletedDate = recordToDelete.date;
+        final deletedSessionNumber = recordToDelete.sessionNumber;
+
+        // 기록 삭제
         await service.deleteRecord(recordId);
+
+        // 같은 날짜의 남은 기록들을 가져옴
+        final remainingRecords = await service.getRecordsByDate(deletedDate);
+
+        // 삭제된 차수보다 큰 차수를 가진 기록들의 차수를 1씩 감소
+        for (final record in remainingRecords) {
+          if (record.sessionNumber > deletedSessionNumber) {
+            final updatedRecord = record.copyWith(
+              sessionNumber: record.sessionNumber - 1,
+            );
+            await service.updateRecord(updatedRecord);
+          }
+        }
 
         // 캘린더 새로고침을 위해 provider invalidate
         ref.invalidate(monthRecordsProvider(_focusedDay));
