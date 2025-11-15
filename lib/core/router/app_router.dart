@@ -12,7 +12,7 @@ import 'package:ddalgguk/core/navigation/main_navigation.dart';
 /// Route names
 class Routes {
   static const String login = '/login';
-  static const String profileSetup = '/profile-setup';
+  static const String profileSetup = '/auth/onboarding';
   static const String home = '/';
 }
 
@@ -24,16 +24,42 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: Routes.home,
     debugLogDiagnostics: true,
     redirect: (context, state) async {
+      final currentLocation = state.matchedLocation;
+      debugPrint('=== Router Redirect: $currentLocation ===');
+
+      // Wait for auth state to load - prevent redirect loop during loading
+      final isLoading = authState.maybeWhen(
+        loading: () => true,
+        orElse: () => false,
+      );
+
+      if (isLoading) {
+        debugPrint('Router: Auth state is loading, no redirect');
+        return null;
+      }
+
       // Check if user is authenticated with Firebase
       final isAuthenticated = authState.maybeWhen(
         data: (user) => user != null,
         orElse: () => false,
       );
 
+      debugPrint('Router: isAuthenticated = $isAuthenticated');
+
+      final isOnLoginPage = currentLocation == Routes.login;
+      final isOnProfileSetupPage = currentLocation == Routes.profileSetup;
+
+      // Redirect logic
+      // 1. If not authenticated, go to login
+      if (!isAuthenticated && !isOnLoginPage) {
+        debugPrint('Router: Redirecting to login (not authenticated)');
+        return Routes.login;
+      }
+
       // Check if profile setup is completed (only if authenticated)
       bool hasCompletedProfileSetup = false;
       if (isAuthenticated) {
-        debugPrint('=== Router: Checking profile setup ===');
+        debugPrint('Router: Checking profile setup');
         // Try to get from cache first for better performance
         final cachedUser = await SecureStorageService.instance.getUserCache();
 
@@ -60,36 +86,31 @@ final routerProvider = Provider<GoRouter>((ref) {
             hasCompletedProfileSetup = false;
           }
         }
-        debugPrint('======================================');
-      }
-
-      final isOnLoginPage = state.matchedLocation == Routes.login;
-      final isOnProfileSetupPage = state.matchedLocation == Routes.profileSetup;
-
-      // Redirect logic
-      // 1. If not authenticated, go to login
-      if (!isAuthenticated && !isOnLoginPage) {
-        return Routes.login;
       }
 
       // 2. If authenticated but not completed profile setup, go to profile setup
       if (isAuthenticated &&
           !hasCompletedProfileSetup &&
           !isOnProfileSetupPage) {
+        debugPrint('Router: Redirecting to profile setup (not completed)');
         return Routes.profileSetup;
       }
 
       // 3. If authenticated, completed profile, and on login page, go to home
       if (isAuthenticated && hasCompletedProfileSetup && isOnLoginPage) {
+        debugPrint('Router: Redirecting to home from login (completed profile)');
         return Routes.home;
       }
 
       // 4. If authenticated, completed profile, and on profile setup page, go to home
       if (isAuthenticated && hasCompletedProfileSetup && isOnProfileSetupPage) {
+        debugPrint('Router: Redirecting to home from profile setup (completed profile)');
         return Routes.home;
       }
 
       // No redirect needed
+      debugPrint('Router: No redirect needed');
+      debugPrint('======================================');
       return null;
     },
     refreshListenable: GoRouterRefreshStream(
