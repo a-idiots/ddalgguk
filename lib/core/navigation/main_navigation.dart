@@ -14,12 +14,12 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+  int _currentIndex = 2;
 
   final List<Widget> _screens = const [
-    CalendarScreen(),
     ProfileScreen(),
     SocialScreen(),
+    CalendarScreen(),
     GamesScreen(),
     SettingsScreen(),
   ];

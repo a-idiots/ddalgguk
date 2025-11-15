@@ -23,7 +23,7 @@ class KakaoAuthService {
   Future<String> signInWithKakao() async {
     try {
       // Check if KakaoTalk is installed
-      bool isInstalled = await isKakaoTalkInstalled();
+      final bool isInstalled = await isKakaoTalkInstalled();
 
       OAuthToken token;
       if (isInstalled) {
@@ -41,7 +41,7 @@ class KakaoAuthService {
       }
 
       // Get Kakao user info
-      User user = await UserApi.instance.me();
+      final User user = await UserApi.instance.me();
       debugPrint('Kakao login successful:');
       debugPrint('User ID: ${user.id}');
       debugPrint('Email: ${user.kakaoAccount?.email}');
