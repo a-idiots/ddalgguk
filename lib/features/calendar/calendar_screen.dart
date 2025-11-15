@@ -1447,18 +1447,510 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 수정 다이얼로그
   void _showEditRecordDialog(BuildContext context, DrinkingRecord record) {
-    // TODO: 실제 수정 폼 구현
+    // 기존 데이터로 초기화
+    final meetingNameController = TextEditingController(
+      text: record.meetingName,
+    );
+    final costController = TextEditingController(
+      text: record.cost > 0 ? record.cost.toString() : '',
+    );
+    final memoController = TextEditingController(
+      text: record.memo['text'] as String? ?? '',
+    );
+    double drunkLevel = record.drunkLevel.toDouble();
+
+    // 기존 음주량 데이터를 _DrinkInputData 리스트로 변환
+    final List<_DrinkInputData> drinkInputs = record.drinkAmounts.isNotEmpty
+        ? record.drinkAmounts.map((drink) {
+            // ml을 단위에 맞게 변환
+            String unit;
+            double amount;
+            if (drink.amount >= 1000) {
+              unit = '병';
+              amount = drink.amount / 500;
+            } else if (drink.amount >= 150) {
+              unit = '잔';
+              amount = drink.amount / 150;
+            } else {
+              unit = 'ml';
+              amount = drink.amount;
+            }
+
+            return _DrinkInputData(
+              drinkType: drink.drinkType,
+              alcoholController: TextEditingController(
+                text: drink.alcoholContent.toString(),
+              ),
+              amountController: TextEditingController(text: amount.toString()),
+              selectedUnit: unit,
+            );
+          }).toList()
+        : [
+            _DrinkInputData(
+              drinkType: 2,
+              alcoholController: TextEditingController(text: '5.0'),
+              amountController: TextEditingController(text: '1.0'),
+              selectedUnit: '병',
+            ),
+          ];
+
+    // 상세 필드 표시 여부 (메모나 비용이 있으면 자동으로 열기)
+    bool showDetailFields =
+        (record.memo['text'] as String? ?? '').isNotEmpty || record.cost > 0;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('음주 기록 수정'),
-        content: const Text('음주 기록 수정 기능은 곧 구현됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('확인'),
-          ),
-        ],
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final screenHeight = MediaQuery.of(context).size.height;
+          final maxDialogHeight = screenHeight * 0.85;
+
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            child: Stack(
+              children: [
+                // 영수증 배경 이미지와 콘텐츠
+                Container(
+                  constraints: BoxConstraints(
+                    maxWidth: 400,
+                    maxHeight: maxDialogHeight,
+                  ),
+                  decoration: BoxDecoration(
+                    image: const DecorationImage(
+                      image: AssetImage('assets/calendar/receipt.png'),
+                      fit: BoxFit.fill,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 상단 여백 (X 버튼 공간)
+                      const SizedBox(height: 60),
+                      // 스크롤 가능한 폼 영역
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 모임명과 회차
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      '모임명',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${record.sessionNumber}차',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: meetingNameController,
+                                decoration: InputDecoration(
+                                  hintText: '피넛버터샌드위치',
+                                  hintStyle: TextStyle(color: Colors.grey[400]),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // 알딸딸 지수
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      '알딸딸 지수',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${(drunkLevel * 10).toInt()}%',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Text(
+                                    '0%',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        activeTrackColor: AppColors.primaryPink,
+                                        thumbColor: AppColors.primaryPink,
+                                        overlayColor: AppColors.primaryPink
+                                            .withValues(alpha: 0.2),
+                                        inactiveTrackColor: AppColors
+                                            .primaryPink
+                                            .withValues(alpha: 0.3),
+                                      ),
+                                      child: Slider(
+                                        value: drunkLevel,
+                                        min: 0,
+                                        max: 10,
+                                        divisions: 20,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            drunkLevel = value;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  const Text(
+                                    '100%',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // 음주량
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      '음주량',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.add_circle,
+                                      size: 28,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        drinkInputs.add(
+                                          _DrinkInputData(
+                                            drinkType: 2, // 기본 맥주
+                                            alcoholController:
+                                                TextEditingController(
+                                                  text: '5.0',
+                                                ),
+                                            amountController:
+                                                TextEditingController(
+                                                  text: '1.0',
+                                                ),
+                                            selectedUnit: '병',
+                                          ),
+                                        );
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+
+                              // 음주량 리스트
+                              ...drinkInputs.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final inputData = entry.value;
+                                return _buildDrinkInputCard(
+                                  inputData: inputData,
+                                  onTypeChange: (int newType) {
+                                    setState(() {
+                                      inputData.drinkType = newType;
+                                      inputData.alcoholController.text =
+                                          _getDefaultAlcoholContent(
+                                            newType,
+                                          ).toString();
+                                      inputData.selectedUnit = _getDefaultUnit(
+                                        newType,
+                                      );
+                                    });
+                                  },
+                                  onUnitChange: (String newUnit) {
+                                    setState(() {
+                                      inputData.selectedUnit = newUnit;
+                                    });
+                                  },
+                                  onDelete: drinkInputs.length > 1
+                                      ? () {
+                                          setState(() {
+                                            drinkInputs.removeAt(index);
+                                          });
+                                        }
+                                      : null,
+                                );
+                              }),
+                              const SizedBox(height: 16),
+
+                              // 상세 기록하기 버튼
+                              TextButton.icon(
+                                icon: Icon(
+                                  showDetailFields ? Icons.remove : Icons.add,
+                                  size: 16,
+                                ),
+                                label: const Text(
+                                  '상세 기록하기',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    showDetailFields = !showDetailFields;
+                                  });
+                                },
+                              ),
+
+                              // 메모와 술값 (상세 기록)
+                              if (showDetailFields) ...[
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: memoController,
+                                  decoration: const InputDecoration(
+                                    labelText: '메모',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.all(12),
+                                  ),
+                                  maxLines: 3,
+                                ),
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: costController,
+                                  decoration: const InputDecoration(
+                                    labelText: '술값(지출 금액)',
+                                    suffixText: '원',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ],
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // 하단 버튼
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('취소'),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (meetingNameController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('모임명을 입력해주세요'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                // 음주량 입력 유효성 검사 및 변환
+                                final drinkAmounts = <DrinkAmount>[];
+                                for (var i = 0; i < drinkInputs.length; i++) {
+                                  final input = drinkInputs[i];
+                                  final alcoholText = input
+                                      .alcoholController
+                                      .text
+                                      .trim();
+                                  final amountText = input.amountController.text
+                                      .trim();
+
+                                  if (alcoholText.isEmpty ||
+                                      amountText.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '음주량 ${i + 1}의 도수와 양을 모두 입력해주세요',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  final alcohol = double.tryParse(alcoholText);
+                                  final amount = double.tryParse(amountText);
+
+                                  if (alcohol == null || amount == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '음주량 ${i + 1}의 도수와 양은 숫자여야 합니다',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  if (alcohol < 0 || alcohol > 100) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '음주량 ${i + 1}의 도수는 0~100 사이여야 합니다',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  if (amount <= 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '음주량 ${i + 1}의 양은 0보다 커야 합니다',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  // ml로 변환
+                                  final amountInMl =
+                                      amount *
+                                      _getUnitMultiplier(input.selectedUnit);
+
+                                  drinkAmounts.add(
+                                    DrinkAmount(
+                                      drinkType: input.drinkType,
+                                      alcoholContent: alcohol,
+                                      amount: amountInMl,
+                                    ),
+                                  );
+                                }
+
+                                try {
+                                  final updatedRecord = DrinkingRecord(
+                                    id: record.id, // 기존 ID 유지
+                                    date: record.date, // 날짜는 변경하지 않음
+                                    sessionNumber:
+                                        record.sessionNumber, // 회차 유지
+                                    meetingName: meetingNameController.text,
+                                    drunkLevel: drunkLevel.toInt(),
+                                    drinkAmounts: drinkAmounts,
+                                    memo: {'text': memoController.text},
+                                    cost: costController.text.isEmpty
+                                        ? 0
+                                        : int.parse(costController.text),
+                                  );
+
+                                  final service = ref.read(
+                                    drinkingRecordServiceProvider,
+                                  );
+                                  await service.updateRecord(updatedRecord);
+
+                                  // 캘린더 새로고침을 위해 provider invalidate
+                                  ref.invalidate(
+                                    monthRecordsProvider(_focusedDay),
+                                  );
+
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('기록이 수정되었습니다'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('수정 실패: $e'),
+                                        duration: const Duration(seconds: 3),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+
+                                // 컨트롤러 정리
+                                for (var input in drinkInputs) {
+                                  input.dispose();
+                                }
+                              },
+                              child: const Text('수정'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // 우측 상단 X 버튼
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black87),
+                    onPressed: () {
+                      // 컨트롤러 정리
+                      for (var input in drinkInputs) {
+                        input.dispose();
+                      }
+                      Navigator.pop(context);
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

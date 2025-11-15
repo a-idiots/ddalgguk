@@ -4,10 +4,7 @@ import 'package:intl/intl.dart';
 
 /// 음주 기록 상세 다이얼로그
 class DrinkingRecordDetailDialog extends StatelessWidget {
-  const DrinkingRecordDetailDialog({
-    required this.record,
-    super.key,
-  });
+  const DrinkingRecordDetailDialog({required this.record, super.key});
 
   final DrinkingRecord record;
 
@@ -167,10 +164,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             child: Text(
                               record.memo['text'] as String,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                height: 1.5,
-                              ),
+                              style: const TextStyle(fontSize: 14, height: 1.5),
                             ),
                           ),
                         ],
