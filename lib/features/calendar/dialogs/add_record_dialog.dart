@@ -41,8 +41,8 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     _memoController = TextEditingController();
     _drinkInputs = [
       DrinkInputData(
-        drinkType: 2, // 맥주
-        alcoholController: TextEditingController(text: '5.0'),
+        drinkType: 0, // 미정
+        alcoholController: TextEditingController(text: '0.0'),
         amountController: TextEditingController(text: '1.0'),
         selectedUnit: '병',
       ),
@@ -72,6 +72,15 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     final drinkAmounts = <DrinkAmount>[];
     for (var i = 0; i < _drinkInputs.length; i++) {
       final input = _drinkInputs[i];
+
+      // 술 종류가 미정인지 확인
+      if (input.drinkType == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('음주량 ${i + 1}의 술 종류를 선택해주세요')),
+        );
+        return;
+      }
+
       final alcoholText = input.alcoholController.text.trim();
       final amountText = input.amountController.text.trim();
 
@@ -336,9 +345,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                           setState(() {
                             _drinkInputs.add(
                               DrinkInputData(
-                                drinkType: 2, // 기본 맥주
+                                drinkType: 0, // 미정
                                 alcoholController: TextEditingController(
-                                  text: '5.0',
+                                  text: '0.0',
                                 ),
                                 amountController: TextEditingController(
                                   text: '1.0',

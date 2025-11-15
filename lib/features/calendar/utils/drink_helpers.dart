@@ -2,21 +2,32 @@ import 'package:flutter/material.dart';
 
 /// 술 종류에 따른 아이콘 반환
 Widget getDrinkIcon(int drinkType) {
+  final iconPath = getDrinkIconPath(drinkType);
+  return Image.asset(
+    iconPath,
+    width: 28,
+    height: 28,
+    fit: BoxFit.contain,
+  );
+}
+
+/// 술 종류에 따른 아이콘 경로 반환
+String getDrinkIconPath(int drinkType) {
   switch (drinkType) {
     case 1: // 소주
-      return const Icon(Icons.liquor, size: 22);
+      return 'assets/alcohol_icons/soju.png';
     case 2: // 맥주
-      return const Icon(Icons.sports_bar, size: 22);
+      return 'assets/alcohol_icons/beer.png';
     case 3: // 와인
-      return const Icon(Icons.wine_bar, size: 22);
+      return 'assets/alcohol_icons/wine.png';
     case 4: // 막걸리
-      return const Icon(Icons.local_bar, size: 22);
+      return 'assets/alcohol_icons/makgulli.png';
     case 5: // 칵테일
-      return const Icon(Icons.local_bar, size: 22);
-    case 6: // 위스키
-      return const Icon(Icons.liquor, size: 22);
-    default:
-      return const Icon(Icons.local_bar, size: 22);
+      return 'assets/alcohol_icons/cocktail.png';
+    case 6: // 기타
+      return 'assets/alcohol_icons/undecided.png';
+    default: // 미정
+      return 'assets/alcohol_icons/undecided.png';
   }
 }
 
@@ -33,9 +44,9 @@ double getDefaultAlcoholContent(int drinkType) {
       return 4.0;
     case 5: // 칵테일
       return 0.0;
-    case 6: // 위스키
+    case 6: // 기타
       return 0.0;
-    default:
+    default: // 미정
       return 0.0;
   }
 }
@@ -53,9 +64,9 @@ String getDefaultUnit(int drinkType) {
       return '병';
     case 5: // 칵테일
       return '잔';
-    case 6: // 위스키
+    case 6: // 기타
       return '잔';
-    default:
+    default: // 미정
       return '병';
   }
 }
@@ -88,9 +99,9 @@ String getDrinkTypeName(int drinkType) {
     case 5:
       return '칵테일';
     case 6:
-      return '위스키';
-    default:
       return '기타';
+    default:
+      return '미정';
   }
 }
 

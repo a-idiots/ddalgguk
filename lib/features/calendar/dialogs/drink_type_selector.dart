@@ -78,7 +78,7 @@ class DrinkTypeSelector {
                   const SizedBox(width: 16),
                   _DrinkTypeButton(
                     drinkType: 6,
-                    label: '위스키',
+                    label: '기타',
                     isSelected: currentType == 6,
                     onSelect: onSelect,
                   ),
@@ -129,7 +129,14 @@ class _DrinkTypeButton extends StatelessWidget {
                 width: 2,
               ),
             ),
-            child: Center(child: getDrinkIcon(drinkType)),
+            child: Center(
+              child: Image.asset(
+                getDrinkIconPath(drinkType),
+                width: 40,
+                height: 40,
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
