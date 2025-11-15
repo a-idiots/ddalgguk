@@ -75,7 +75,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(16, 0),
+        offset: const Offset(-3, 0), // 기록 추가 버튼 우측 패딩
         child: FloatingActionButton(
           onPressed: () => _showAddRecordDialog(context),
           backgroundColor: AppColors.primaryPink,
@@ -349,7 +349,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 50),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: records.length,
