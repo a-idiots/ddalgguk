@@ -75,9 +75,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
 
       // 술 종류가 미정인지 확인
       if (input.drinkType == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('음주량 ${i + 1}의 술 종류를 선택해주세요')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('음주량 ${i + 1}의 술 종류를 선택해주세요')));
         return;
       }
 

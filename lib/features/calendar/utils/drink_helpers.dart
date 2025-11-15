@@ -3,12 +3,7 @@ import 'package:flutter/material.dart';
 /// 술 종류에 따른 아이콘 반환
 Widget getDrinkIcon(int drinkType) {
   final iconPath = getDrinkIconPath(drinkType);
-  return Image.asset(
-    iconPath,
-    width: 28,
-    height: 28,
-    fit: BoxFit.contain,
-  );
+  return Image.asset(iconPath, width: 28, height: 28, fit: BoxFit.contain);
 }
 
 /// 술 종류에 따른 아이콘 경로 반환

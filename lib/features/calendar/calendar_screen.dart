@@ -436,9 +436,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     ...record.drinkAmounts.map((drink) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}% ${formatDrinkAmount(drink.amount)}',
-                          style: const TextStyle(fontSize: 13),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: CustomPaint(
+                                  painter: _DottedLinePainter(
+                                    color: Colors.grey[300]!,
+                                  ),
+                                  child: const SizedBox(height: 13),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              formatDrinkAmount(drink.amount),
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ],
                         ),
                       );
                     }),
@@ -455,52 +474,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ],
               ),
             ),
-            // 우측: 회차 및 액션 버튼
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red[300]!, width: 1.5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${record.sessionNumber}차',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red[400],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+            // 우측: 회차
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.red[300]!, width: 1.5),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${record.sessionNumber}차',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.red[400],
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showEditRecordDialog(context, record),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        size: 20,
-                        color: Colors.red,
-                      ),
-                      onPressed: () => _deleteRecord(record.id),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -630,7 +618,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => DrinkingRecordDetailDialog(record: record),
+      builder: (context) => DrinkingRecordDetailDialog(
+        record: record,
+        onEdit: () => _showEditRecordDialog(context, record),
+        onDelete: () => _deleteRecord(record.id),
+      ),
     );
   }
 
@@ -701,4 +693,29 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       }
     }
   }
+}
+
+/// 점선을 그리는 CustomPainter
+class _DottedLinePainter extends CustomPainter {
+  _DottedLinePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+
+    const dotRadius = 1.5;
+    const dotSpacing = 4.0;
+    final y = size.height / 2;
+
+    for (double x = 0; x < size.width; x += dotSpacing) {
+      canvas.drawCircle(Offset(x, y), dotRadius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DottedLinePainter oldDelegate) => false;
 }
