@@ -89,6 +89,7 @@ flutter:
     - .env
     - assets/
     - assets/saku/
+    - assets/saku_gradient/
     - assets/calendar/
 
   # An image asset can refer to one or more resolution-specific "variants", see
