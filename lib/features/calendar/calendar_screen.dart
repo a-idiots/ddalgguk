@@ -98,22 +98,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     lastDay: DateTime.utc(2030, 12, 31),
                     focusedDay: _focusedDay,
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    enabledDayPredicate: (day) {
-                      // 오늘 이후의 날짜는 비활성화
-                      final today = DateTime.now();
-                      final normalizedToday = DateTime(
-                        today.year,
-                        today.month,
-                        today.day,
-                      );
-                      final normalizedDay = DateTime(
-                        day.year,
-                        day.month,
-                        day.day,
-                      );
-                      return normalizedDay.isBefore(normalizedToday) ||
-                          normalizedDay.isAtSameMomentAs(normalizedToday);
-                    },
+                    // enabledDayPredicate를 제거하여 모든 날짜 선택 가능하도록 변경
                     calendarFormat: CalendarFormat.month,
                     rowHeight: 72,
                     startingDayOfWeek: StartingDayOfWeek.monday,
@@ -490,6 +475,24 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 무음주 기록 추가
   Future<void> _addNoDrinkRecord(DateTime date) async {
+    // 미래 날짜 체크
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+
+    if (normalizedDate.isAfter(normalizedToday)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('미래의 기록은 미리 추가할 수 없습니다'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
     try {
       final record = DrinkingRecord(
         id: '', // Firestore에서 자동 생성
@@ -533,6 +536,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   /// 기록 추가 다이얼로그
   void _showAddRecordDialog(BuildContext context) {
     final selectedDate = _selectedDay ?? DateTime.now();
+
+    // 미래 날짜 체크
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedSelectedDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+
+    if (normalizedSelectedDate.isAfter(normalizedToday)) {
+      // 미래 날짜인 경우 스낵바 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('미래의 기록은 미리 추가할 수 없습니다'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final records = _getRecordsForDay(selectedDate);
     final sessionNumber = records.length + 1;
 
