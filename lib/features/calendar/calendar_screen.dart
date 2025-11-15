@@ -376,6 +376,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final service = ref.read(drinkingRecordServiceProvider);
       await service.createRecord(record);
 
+      // 캘린더 새로고침을 위해 provider invalidate
+      ref.invalidate(monthRecordsProvider(_focusedDay));
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -811,6 +814,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
                                   debugPrint('기록 ID: $recordId');
                                   debugPrint('=== 기록 추가 완료 ===');
+
+                                  // 캘린더 새로고침을 위해 provider invalidate
+                                  ref.invalidate(monthRecordsProvider(_focusedDay));
 
                                   if (context.mounted) {
                                     Navigator.pop(context);
@@ -1329,6 +1335,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       try {
         final service = ref.read(drinkingRecordServiceProvider);
         await service.deleteRecord(recordId);
+
+        // 캘린더 새로고침을 위해 provider invalidate
+        ref.invalidate(monthRecordsProvider(_focusedDay));
+
         if (mounted) {
           ScaffoldMessenger.of(
             context,
