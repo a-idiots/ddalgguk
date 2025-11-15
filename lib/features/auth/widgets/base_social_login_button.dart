@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Base Social Login Button Widget
 /// 모든 소셜 로그인 버튼의 공통 구조를 정의하는 추상 클래스
@@ -21,78 +22,60 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
   /// 로고 이미지 경로
   String get logoAssetPath;
 
-  /// 이미지 로드 실패 시 대체 아이콘
-  IconData get fallbackIcon;
+  /// 버튼 테두리 (선택사항)
+  BorderSide? get borderSide => null;
 
   /// 버튼 텍스트
   String get buttonText;
 
-  /// 로딩 인디케이터 색상
-  Color get progressIndicatorColor;
+  /// 버튼 텍스트 폰트 크기 (선택사항)
+  double get fontSize => 16;
 
-  /// 버튼 테두리 (선택사항)
-  BorderSide? get borderSide => null;
+  /// 버튼 텍스트 폰트 굵기 (선택사항)
+  FontWeight get fontWeight => FontWeight.w600;
 
-  /// 로고 색상 (선택사항)
-  Color? get logoColor => null;
-
-  /// fallback 아이콘 크기 (선택사항)
-  double get fallbackIconSize => 24;
+  double _px(double value, BuildContext context) {
+    return value / MediaQuery.of(context).devicePixelRatio;
+  }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.75,
-      height: 56,
-      child: ElevatedButton(
+      height: 52,
+      child: TextButton(
         onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
+        style: TextButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
-          elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(26),
             side: borderSide ?? BorderSide.none,
           ),
         ),
-        child: isLoading
-            ? SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    progressIndicatorColor,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                logoAssetPath,
+                height: 20,
+                width: 20,
+                placeholderBuilder: (context) => const SizedBox.shrink(),
+              ),
+              Expanded(child: 
+                Text(
+                  buttonText,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: fontWeight,
                   ),
                 ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    logoAssetPath,
-                    height: 24,
-                    width: 24,
-                    color: logoColor,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Fallback icon if image is not found
-                      return Icon(
-                        fallbackIcon,
-                        size: fallbackIconSize,
-                        color: foregroundColor,
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    buttonText,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
               ),
+            ],
+          ),
+        ),
       ),
     );
   }
