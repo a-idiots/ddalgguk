@@ -215,11 +215,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ? Colors.red
         : Colors.black87;
 
-    // 기록 유무 및 최대 취함 정도 확인
+    // 기록 유무 및 평균 취함 정도 확인
     final records = _getRecordsForDay(date);
     final hasRecord = records.isNotEmpty;
-    final maxDrunkLevel = hasRecord
-        ? records.map((r) => r.drunkLevel).reduce((a, b) => a > b ? a : b)
+    final avgDrunkLevel = hasRecord
+        ? (records.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
+                  records.length)
+              .round()
         : 0;
 
     const sakuSize = 44.0;
@@ -265,7 +267,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   alignment: Alignment.center,
                   children: [
                     Image.asset(
-                      getBodyImagePath(maxDrunkLevel * 10),
+                      getBodyImagePath(avgDrunkLevel * 10),
                       width: sakuSize,
                       height: sakuSize,
                       fit: BoxFit.contain,
