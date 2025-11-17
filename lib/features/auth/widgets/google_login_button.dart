@@ -16,21 +16,12 @@ class GoogleLoginButton extends BaseSocialLoginButton {
   Color get foregroundColor => Colors.black87;
 
   @override
-  String get logoAssetPath => 'assets/images/google_logo.png';
-
-  @override
-  IconData get fallbackIcon => Icons.g_mobiledata;
-
-  @override
-  String get buttonText => 'Google로 계속하기';
-
-  @override
-  Color get progressIndicatorColor => Colors.black54;
+  String get logoAssetPath => 'assets/login_icon/google_logo.svg';
 
   @override
   BorderSide? get borderSide =>
-      BorderSide(color: Colors.grey.shade300, width: 1);
+    BorderSide(color: Colors.grey.shade300, width: 1);
 
   @override
-  double get fallbackIconSize => 32;
+  String get buttonText => '구글로 로그인';
 }

@@ -86,7 +86,6 @@ class _OnboardingProfileScreenState
   void _handleNameSubmit(String name) {
     setState(() {
       _name = name;
-      _currentPage = 1;
     });
     _pageController.animateToPage(
       1,
@@ -102,7 +101,6 @@ class _OnboardingProfileScreenState
 
     setState(() {
       _id = id;
-      _currentPage = 2;
     });
     _pageController.animateToPage(
       2,
@@ -163,17 +161,17 @@ class _OnboardingProfileScreenState
   }
 
   void _handleBack() {
-    print(
+    debugPrint(
       'DEBUG: _handleBack called, _currentPage = $_currentPage, _isLoading = $_isLoading',
     );
 
     if (_isLoading) {
-      print('DEBUG: Cannot go back while loading');
+      debugPrint('DEBUG: Cannot go back while loading');
       return;
     }
 
     if (_currentPage > 0) {
-      print('DEBUG: Going back from page $_currentPage to ${_currentPage - 1}');
+      debugPrint('DEBUG: Going back from page $_currentPage to ${_currentPage - 1}');
       setState(() {
         _currentPage--;
       });
@@ -184,7 +182,7 @@ class _OnboardingProfileScreenState
       );
       _saveState();
     } else {
-      print('DEBUG: Already on first page, cannot go back');
+      debugPrint('DEBUG: Already on first page, cannot go back');
     }
   }
 
@@ -199,111 +197,114 @@ class _OnboardingProfileScreenState
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = keyboardHeight > 100;
 
+    final isWhiteBg = (_pageController.hasClients
+      ? (_pageController.page ?? _currentPage.toDouble())
+      : _currentPage.toDouble()) >= 1.5;
+
+    final backIconColor = isWhiteBg ? Colors.black87 : Colors.white;
+
     return Scaffold(
       resizeToAvoidBottomInset:
           false, // Detect keyboard manually via MediaQuery
-      body: Container(
-        decoration: _currentPage == 2
-            ? const BoxDecoration(color: Colors.white)
-            : const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFFFA3A3), // Top color
-                    Color(0xFFE35252), // Bottom color at 85%
+      body: Stack(
+        children: [
+          // 🔥 페이지 스크롤에 맞춰 ‘배경’이 함께 이동하는 레이어
+          Positioned.fill(
+            child: _AnimatedOnboardingBackground(
+              controller: _pageController,
+              // 초기에는 controller.page가 null일 수 있으니 폴백 전달
+              fallbackPage: _currentPage,
+            ),
+          ),
+          SafeArea(
+            child: Stack(
+              children: [
+                // Page content
+                PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (page) {
+                    setState(() {
+                      _currentPage = page;
+                    });
+                  },
+                  children: [
+                    // Page 1: Name input
+                    InfoInputPage(
+                      title: '당신의 이름을 알려주세요!',
+                      speechBubbleText: '안녕 나는 사쿠!\n나는 너의 간의 정령이야',
+                      hintText: '행복한술고래',
+                      onNext: _handleNameSubmit,
+                      validator: _validateName,
+                      initialValue: _name,
+                      inputType: InfoInputType.name,
+                    ),
+                    // Page 2: ID input
+                    InfoInputPage(
+                      title: '당신의 아이디를 알려주세요!',
+                      speechBubbleText: '안녕 $_name!\n앞으로 잘 부탁해 :)',
+                      hintText: 'username',
+                      onNext: _handleIdSubmit,
+                      validator: _validateId,
+                      initialValue: _id,
+                      inputType: InfoInputType.id,
+                    ),
+                    // Page 3: Goal setting
+                    GoalSettingPage(
+                      onComplete: _handleComplete,
+                      initialGoal: _goal,
+                      initialFavoriteDrinks: _favoriteDrinks,
+                      initialMaxAlcohol: _maxAlcohol,
+                    ),
                   ],
-                  stops: [0.0, 0.85],
                 ),
-              ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Page content
-              PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
-                },
-                children: [
-                  // Page 1: Name input
-                  InfoInputPage(
-                    title: '당신의 이름을 알려주세요!',
-                    speechBubbleText: '안녕 나는 사쿠!\n나는 너의 간의 정령이야',
-                    hintText: '행복한 술고래',
-                    onNext: _handleNameSubmit,
-                    validator: _validateName,
-                    initialValue: _name,
-                    inputType: InfoInputType.name,
-                  ),
-                  // Page 2: ID input
-                  InfoInputPage(
-                    title: '당신의 아이디를 알려주세요!',
-                    speechBubbleText: '안녕 $_name!\n앞으로 잘 부탁해 :)',
-                    hintText: 'username',
-                    onNext: _handleIdSubmit,
-                    validator: _validateId,
-                    initialValue: _id,
-                    inputType: InfoInputType.id,
-                  ),
-                  // Page 3: Goal setting
-                  GoalSettingPage(
-                    onComplete: _handleComplete,
-                    initialGoal: _goal,
-                    initialFavoriteDrinks: _favoriteDrinks,
-                    initialMaxAlcohol: _maxAlcohol,
-                  ),
-                ],
-              ),
-              // Page indicator - Hidden when keyboard is visible or on page 3
-              if (!isKeyboardVisible && _currentPage != 2)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 40,
-                  child: Center(
-                    child: PageIndicator(
-                      currentPage: _currentPage,
-                      pageCount: 3,
+                // Page indicator - Hidden when keyboard is visible or on page 3
+                if (!isKeyboardVisible && _currentPage != 2)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 40,
+                    child: Center(
+                      child: PageIndicator(
+                        currentPage: _currentPage,
+                        pageCount: 3,
+                      ),
                     ),
                   ),
-                ),
-              // Back button (only show on pages 2 and 3)
-              if (_currentPage > 0)
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        _handleBack();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 24,
+                // Back button (only show on pages 2 and 3)
+                if (_currentPage > 0)
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          _handleBack();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: backIconColor,
+                            size: 24,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              // Loading overlay
-              if (_isLoading)
-                Container(
-                  color: Colors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
+                // Loading overlay
+                if (_isLoading)
+                  Container(
+                    color: Colors.black54,
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -367,5 +368,62 @@ class _OnboardingProfileScreenState
     }
 
     return null;
+  }
+}
+
+class _AnimatedOnboardingBackground extends StatelessWidget {
+  const _AnimatedOnboardingBackground({
+    required this.controller,
+    required this.fallbackPage,
+  });
+
+  final PageController controller;
+  final int fallbackPage;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        return AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) {
+            // 0,1,2 페이지 사이의 실시간 위치값 (ex. 1.0 -> 1.35 -> 2.0)
+            final page = controller.hasClients
+                ? (controller.page ?? fallbackPage.toDouble())
+                : fallbackPage.toDouble();
+
+            // 기본(0~1페이지) 배경: 그라데이션
+            const gradientBg = DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFA3A3), Color(0xFFE35252)],
+                  stops: [0.0, 0.85],
+                ),
+              ),
+            );
+
+            // 2페이지(세 번째) 배경: 오른쪽에서 슬라이드 인 되는 화이트
+            // page = 1.0  -> dx = width (오른쪽 바깥)
+            // page = 2.0  -> dx = 0     (완전히 자리 잡음)
+            final dx = ((2 - page).clamp(0.0, 1.0)) * width;
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                gradientBg,
+                Transform.translate(
+                  offset: Offset(dx, 0),
+                  child: const ColoredBox(color: Colors.white),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

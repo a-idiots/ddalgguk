@@ -1,28 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/core/router/app_router.dart';
+import 'package:ddalgguk/core/providers/app_state_provider.dart';
 import 'package:ddalgguk/features/auth/widgets/google_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/apple_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/kakao_login_button.dart';
+import 'package:ddalgguk/features/auth/widgets/animated_login_transition.dart';
 
 /// Login Screen with social login options
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.animate = true,
+  });
+
+  final bool animate;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
-  bool _isGoogleLoading = false;
-  bool _isAppleLoading = false;
-  bool _isKakaoLoading = false;
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
+  bool _isLoading = false;
+  late AnimationController _animationController;
+  late Animation<double> _kakaoButtonFade;
+  late Animation<double> _googleButtonFade;
+  late Animation<double> _appleButtonFade;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Button fade-in animation controller (400ms duration, starting at 800ms)
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    // Staggered fade-in animations for buttons
+    _kakaoButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+    );
+
+    _googleButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.25, 0.75, curve: Curves.easeOut),
+      ),
+    );
+
+    _appleButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    // Start animation after circular reveal completes (800ms)
+    if (widget.animate) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          _animationController.forward();
+        }
+      });
+    } else {
+      // If no animation, show buttons immediately
+      _animationController.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleGoogleLogin() async {
     setState(() {
-      _isGoogleLoading = true;
+      _isLoading = true;
     });
 
     try {
@@ -30,8 +89,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authRepository.signInWithGoogle();
 
       if (mounted) {
-        // Navigation will be handled automatically by go_router redirect
-        context.go(Routes.home);
+        // Set flag to indicate user just logged in
+        // Router redirect will handle navigation
+        ref.read(appStateProvider.notifier).setJustLoggedIn(true);
       }
     } catch (e) {
       if (mounted) {
@@ -45,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isGoogleLoading = false;
+          _isLoading = false;
         });
       }
     }
@@ -53,7 +113,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleAppleLogin() async {
     setState(() {
-      _isAppleLoading = true;
+      _isLoading = true;
     });
 
     try {
@@ -61,8 +121,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authRepository.signInWithApple();
 
       if (mounted) {
-        // Navigation will be handled automatically by go_router redirect
-        context.go(Routes.home);
+        // Set flag to indicate user just logged in
+        // Router redirect will handle navigation
+        ref.read(appStateProvider.notifier).setJustLoggedIn(true);
       }
     } catch (e) {
       if (mounted) {
@@ -76,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isAppleLoading = false;
+          _isLoading = false;
         });
       }
     }
@@ -84,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleKakaoLogin() async {
     setState(() {
-      _isKakaoLoading = true;
+      _isLoading = true;
     });
 
     try {
@@ -92,8 +153,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authRepository.signInWithKakao();
 
       if (mounted) {
-        // Navigation will be handled automatically by go_router redirect
-        context.go(Routes.home);
+        // Set flag to indicate user just logged in
+        // Router redirect will handle navigation
+        ref.read(appStateProvider.notifier).setJustLoggedIn(true);
       }
     } catch (e) {
       if (mounted) {
@@ -112,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isKakaoLoading = false;
+          _isLoading = false;
         });
       }
     }
@@ -129,32 +191,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 100),
+                padding: const EdgeInsets.only(top: 180),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // 앱 로고
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEA6B6B), // 핑크/레드 계열
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    Hero(
+                      tag: 'app_logo',
+                      flightShuttleBuilder: logoFlightShuttleBuilder,
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFFF8080),
+                              Color(0xFFDA4444),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Image.asset(
-                          'assets/logo.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Center(
+                            child: Image.asset(
+                              'assets/logo.png',
+                              width: 80,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -166,7 +239,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFFEA6B6B),
                         letterSpacing: 0.5,
                       ),
@@ -194,32 +267,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24.0,
-                  vertical: 48.0,
+                  vertical: 16.0,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Kakao Login Button
-                    KakaoLoginButton(
-                      onPressed: _handleKakaoLogin,
-                      isLoading: _isKakaoLoading,
+                    _buildAnimatedButton(
+                      animation: _kakaoButtonFade,
+                      child: KakaoLoginButton(
+                        onPressed: _handleKakaoLogin,
+                        isLoading: _isLoading,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
                     // Google Login Button
-                    GoogleLoginButton(
-                      onPressed: _handleGoogleLogin,
-                      isLoading: _isGoogleLoading,
+                    _buildAnimatedButton(
+                      animation: _googleButtonFade,
+                      child: GoogleLoginButton(
+                        onPressed: _handleGoogleLogin,
+                        isLoading: _isLoading,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
                     // Apple Login Button
-                    AppleLoginButton(
-                      onPressed: _handleAppleLogin,
-                      isLoading: _isAppleLoading,
+                    _buildAnimatedButton(
+                      animation: _appleButtonFade,
+                      child: AppleLoginButton(
+                        onPressed: _handleAppleLogin,
+                        isLoading: _isLoading,
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 96),
 
                     // Terms and Privacy Policy
                     Text(
@@ -238,6 +320,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAnimatedButton({
+    required Animation<double> animation,
+    required Widget child,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: animation.value,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - animation.value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 }

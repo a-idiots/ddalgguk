@@ -12,7 +12,7 @@ class GoogleAuthService {
             clientId:
                 '575327975025-9d0tkm3ounk9thbsdt651muljo7po2vl.apps.googleusercontent.com',
             serverClientId:
-                '575327975025-0tqgdncpri7ikebkgcmcgmq915dl7ljg.apps.googleusercontent.com',
+                '575327975025-06qg084oq1se651uud413ccc96app35f.apps.googleusercontent.com',
           );
 
   final GoogleSignIn _googleSignIn;

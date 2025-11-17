@@ -16,20 +16,8 @@ class AppleLoginButton extends BaseSocialLoginButton {
   Color get foregroundColor => Colors.white;
 
   @override
-  String get logoAssetPath => 'assets/images/apple_logo.png';
+  String get logoAssetPath => 'assets/login_icon/apple_logo.svg';
 
   @override
-  IconData get fallbackIcon => Icons.apple;
-
-  @override
-  String get buttonText => 'Apple로 계속하기';
-
-  @override
-  Color get progressIndicatorColor => Colors.white;
-
-  @override
-  Color? get logoColor => Colors.white;
-
-  @override
-  double get fallbackIconSize => 28;
+  String get buttonText => '애플로 로그인';
 }

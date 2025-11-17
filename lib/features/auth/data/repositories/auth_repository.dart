@@ -151,40 +151,64 @@ class AuthRepository {
   }
 
   /// Sign in with Kakao
-  /// NOTE: This is a skeleton implementation
-  /// Requires backend server to exchange Kakao token for Firebase custom token
+  /// Exchanges Kakao token for Firebase custom token via Cloud Functions
   Future<AppUser> signInWithKakao() async {
-    throw UnimplementedError(
-      'Kakao login requires a backend server to exchange tokens. '
-      'Please implement the backend endpoint first. '
-      'See kakao_auth_service.dart for details.',
-    );
+    try {
+      // Get Firebase custom token (Kakao token is exchanged internally)
+      final firebaseCustomToken = await _kakaoAuthService.signInWithKakao();
 
-    // TODO: Implement after setting up backend
-    // try {
-    //   // Get Kakao access token
-    //   final kakaoAccessToken = await _kakaoAuthService.signInWithKakao();
-    //
-    //   // Exchange for Firebase custom token (requires backend)
-    //   // final firebaseCustomToken = await _exchangeKakaoTokenForFirebaseToken(kakaoAccessToken);
-    //
-    //   // Sign in to Firebase with custom token
-    //   // final userCredential = await _firebaseAuthService.signInWithCustomToken(firebaseCustomToken);
-    //
-    //   // Create AppUser
-    //   // final appUser = AppUser.fromFirebaseUser(...);
-    //
-    //   // Save to Firestore
-    //   // await _saveUserToFirestore(appUser);
-    //
-    //   // Save token and provider to secure storage
-    //   // await _saveAuthData(appUser, LoginProvider.kakao);
-    //
-    //   // return appUser;
-    // } catch (e) {
-    //   debugPrint('Sign in with Kakao error: $e');
-    //   rethrow;
-    // }
+      // Sign in to Firebase with custom token
+      final userCredential = await _firebaseAuthService.signInWithCustomToken(
+        firebaseCustomToken,
+      );
+
+      final uid = userCredential.user!.uid;
+
+      // Get Kakao user info for profile data
+      final kakaoUser = await _kakaoAuthService.getKakaoUser();
+
+      // Check if user already exists in Firestore
+      debugPrint('=== Sign in with Kakao - checking Firestore ===');
+      final doc = await _usersCollection.doc(uid).get();
+      final AppUser appUser;
+
+      if (doc.exists) {
+        // Existing user - load from Firestore
+        final data = doc.data() as Map<String, dynamic>;
+        debugPrint('Firestore data: $data');
+        appUser = AppUser.fromJson(data);
+        debugPrint('Existing user:');
+        debugPrint(
+          '  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+        debugPrint('  - name: ${appUser.name}');
+        debugPrint('  - id: ${appUser.id}');
+      } else {
+        // New user - create with basic info from Kakao
+        appUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          email: kakaoUser.kakaoAccount?.email,
+          displayName: kakaoUser.kakaoAccount?.profile?.nickname,
+          photoURL: kakaoUser.kakaoAccount?.profile?.profileImageUrl,
+          provider: LoginProvider.kakao,
+        );
+        debugPrint(
+          'New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+
+        // Save new user to Firestore
+        await _saveUserToFirestore(appUser);
+      }
+      debugPrint('===============================================');
+
+      // Save token and provider to secure storage
+      await _saveAuthData(appUser, LoginProvider.kakao);
+
+      return appUser;
+    } catch (e) {
+      debugPrint('Sign in with Kakao error: $e');
+      rethrow;
+    }
   }
 
   /// Sign out
