@@ -90,9 +90,10 @@ flutter:
     - .env
     - assets/
     - assets/saku/
-    - assets/saku_gradient/
+    - assets/saku_gradient_10/
     - assets/calendar/
     - assets/login_icon/
+    - assets/alcohol_icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

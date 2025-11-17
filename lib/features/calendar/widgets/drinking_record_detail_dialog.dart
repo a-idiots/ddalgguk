@@ -1,12 +1,20 @@
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// 음주 기록 상세 다이얼로그
 class DrinkingRecordDetailDialog extends StatelessWidget {
-  const DrinkingRecordDetailDialog({required this.record, super.key});
+  const DrinkingRecordDetailDialog({
+    required this.record,
+    this.onEdit,
+    this.onDelete,
+    super.key,
+  });
 
   final DrinkingRecord record;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -102,12 +110,23 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '${_getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
                                     style: const TextStyle(fontSize: 14),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
+                                      child: CustomPaint(
+                                        painter: _DottedLinePainter(
+                                          color: Colors.grey[300]!,
+                                        ),
+                                        child: const SizedBox(height: 14),
+                                      ),
+                                    ),
                                   ),
                                   Text(
                                     _formatAmount(drink.amount),
@@ -173,6 +192,52 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                     ),
                   ),
                 ),
+                // 하단 버튼
+                if (onEdit != null || onDelete != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (onEdit != null)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                onEdit!();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: const Text('수정'),
+                            ),
+                          ),
+                        if (onEdit != null && onDelete != null)
+                          const SizedBox(width: 12),
+                        if (onDelete != null)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                onDelete!();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: const Text('삭제'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -205,7 +270,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Image.asset(
-            _getBodyImagePath(drunkLevel),
+            getBodyImagePath(drunkLevel * 10),
             width: size,
             height: size,
             fit: BoxFit.contain,
@@ -222,27 +287,6 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// 알딸딸 지수에 따른 body 이미지 경로 반환
-  String _getBodyImagePath(int drunkLevel) {
-    // drunkLevel: 0-10
-    // 0-2: body1 (0-20%)
-    // 3-4: body2 (30-40%)
-    // 5-6: body3 (50-60%)
-    // 7-8: body4 (70-80%)
-    // 9-10: body5 (90-100%)
-    if (drunkLevel <= 2) {
-      return 'assets/saku_gradient/body1.png';
-    } else if (drunkLevel <= 4) {
-      return 'assets/saku_gradient/body2.png';
-    } else if (drunkLevel <= 6) {
-      return 'assets/saku_gradient/body3.png';
-    } else if (drunkLevel <= 8) {
-      return 'assets/saku_gradient/body4.png';
-    } else {
-      return 'assets/saku_gradient/body5.png';
-    }
   }
 
   /// 취함 정도에 따른 눈의 투명도
@@ -291,17 +335,42 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
     if (amountInMl >= 1000) {
       final bottles = amountInMl / 500;
       if (bottles % 1 == 0) {
-        return '${bottles.toInt()}병 (${amountInMl.toInt()}ml)';
+        return '${bottles.toInt()}병';
       }
-      return '${bottles.toStringAsFixed(1)}병 (${amountInMl.toInt()}ml)';
+      return '${bottles.toStringAsFixed(1)}병';
     } else if (amountInMl >= 150) {
       final glasses = amountInMl / 150;
       if (glasses % 1 == 0) {
-        return '${glasses.toInt()}잔 (${amountInMl.toInt()}ml)';
+        return '${glasses.toInt()}잔';
       }
-      return '${glasses.toStringAsFixed(1)}잔 (${amountInMl.toInt()}ml)';
+      return '${glasses.toStringAsFixed(1)}잔';
     } else {
       return '${amountInMl.toInt()}ml';
     }
   }
+}
+
+/// 점선을 그리는 CustomPainter
+class _DottedLinePainter extends CustomPainter {
+  _DottedLinePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+
+    const dotRadius = 1.5;
+    const dotSpacing = 4.0;
+    final y = size.height / 2;
+
+    for (double x = 0; x < size.width; x += dotSpacing) {
+      canvas.drawCircle(Offset(x, y), dotRadius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DottedLinePainter oldDelegate) => false;
 }
