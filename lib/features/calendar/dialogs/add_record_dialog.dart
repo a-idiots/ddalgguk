@@ -275,7 +275,32 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
+                  // Saku character visualization
+                  Center(
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.asset(
+                            getBodyImagePath((_drunkLevel * 10).toInt()),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.contain,
+                          ),
+                          Image.asset(
+                            'assets/saku/eyes.png',
+                            width: 80 * 0.35,
+                            height: 80 * 0.35,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       const Text(
