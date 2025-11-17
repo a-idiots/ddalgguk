@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/core/providers/app_state_provider.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/features/auth/splash_screen.dart';
 import 'package:ddalgguk/features/auth/login_screen.dart';
@@ -20,153 +19,100 @@ class Routes {
   static const String home = '/';
 }
 
+/// 스플래시 최소 표시 시간 (필요시 400~800ms 내에서 조절)
+const Duration kSplashMinDisplay = Duration(milliseconds: 600);
+
 /// Router provider
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
-  final appState = ref.watch(appStateProvider);
+
+  // 라우터 생성 시점을 기록 → 스플래시 최소 표시 시간 계산에 사용
+  final routerBootTime = DateTime.now();
+
+  // 인증된 경우에만 프로필 설정 완료 여부 확인
+  Future<bool> _hasCompletedProfileSetup() async {
+    try {
+      final cachedUser = await SecureStorageService.instance.getUserCache();
+      if (cachedUser != null) return cachedUser.hasCompletedProfileSetup;
+
+      final authRepository = ref.read(authRepositoryProvider);
+      final currentUser = await authRepository.getCurrentUser();
+      return currentUser?.hasCompletedProfileSetup ?? false;
+    } catch (_) {
+      return false; // 오류시 미완료로 간주
+    }
+  }
+
+  // redirect 재평가를 트리거할 수 있는 리스너(아래 클래스 참고)
+  final refresh = GoRouterRefreshStream(
+    ref.read(firebaseAuthProvider).authStateChanges(),
+    // 비인증 최초 진입 시 스플래시를 잠깐이라도 보여주기 위해
+    initialKickDelay: kSplashMinDisplay,
+  );
 
   return GoRouter(
     initialLocation: Routes.splash,
-    debugLogDiagnostics: true,
-    redirect: (context, state) async {
-      final currentLocation = state.matchedLocation;
-      debugPrint('=== Router Redirect: $currentLocation ===');
+    debugLogDiagnostics: false,
 
-      // Wait for auth state to load - prevent redirect loop during loading
+    redirect: (context, state) async {
+      final current = state.matchedLocation;
+
+      // 0) auth provider가 아직 로딩이면 그대로 두고 그려지게 함
       final isLoading = authState.maybeWhen(
         loading: () => true,
         orElse: () => false,
       );
+      if (isLoading) return null;
 
-      if (isLoading) {
-        debugPrint('Router: Auth state is loading, no redirect');
-        return null;
-      }
-
-      // Check if user is authenticated with Firebase
-      final isAuthenticated = authState.maybeWhen(
+      // 1) 인증 여부
+      final isAuthed = authState.maybeWhen(
         data: (user) => user != null,
         orElse: () => false,
       );
 
-      debugPrint('Router: isAuthenticated = $isAuthenticated');
-      debugPrint('Router: justLoggedIn = ${appState.justLoggedIn}');
-      debugPrint('Router: splashAnimationCompleted = ${appState.splashAnimationCompleted}');
-
-      final isOnSplashPage = currentLocation == Routes.splash;
-      final isOnLoginPage = currentLocation == Routes.login;
-      final isOnProfileSetupPage = currentLocation == Routes.profileSetup;
-
-      // Check if profile setup is completed (only if authenticated)
-      bool hasCompletedProfileSetup = false;
-      if (isAuthenticated) {
-        debugPrint('Router: Checking profile setup');
-        // Try to get from cache first for better performance
-        final cachedUser = await SecureStorageService.instance.getUserCache();
-
-        if (cachedUser != null) {
-          hasCompletedProfileSetup = cachedUser.hasCompletedProfileSetup;
-          debugPrint(
-            'Router: Using cache - hasCompletedProfileSetup: $hasCompletedProfileSetup',
-          );
-        } else {
-          debugPrint('Router: No cache, fetching from Firestore');
-          // If no cache, try to get from Firestore
-          // This ensures we always have the latest data after login
-          try {
-            final authRepository = ref.read(authRepositoryProvider);
-            final currentUser = await authRepository.getCurrentUser();
-            hasCompletedProfileSetup =
-                currentUser?.hasCompletedProfileSetup ?? false;
-            debugPrint(
-              'Router: From Firestore - hasCompletedProfileSetup: $hasCompletedProfileSetup',
-            );
-          } catch (e) {
-            debugPrint('Router: Error fetching user - $e');
-            // If error, assume profile setup is not complete
-            hasCompletedProfileSetup = false;
+      // 2) 현재 스플래시라면 분기
+      if (current == Routes.splash) {
+        if (!isAuthed) {
+          // ✅ 비인증이면 스플래시 최소 표시 시간 보장
+          final elapsed = DateTime.now().difference(routerBootTime);
+          if (elapsed < kSplashMinDisplay) {
+            // 아직은 스플래시에 머문다(안드로이드에서도 확실히 한 프레임 이상 노출)
+            return null;
           }
-        }
-      }
-
-      // Redirect logic
-
-      // 1. If user just logged in, skip splash and go directly to appropriate page
-      if (appState.justLoggedIn && isAuthenticated) {
-        debugPrint('Router: User just logged in, determining target route');
-
-        // Determine target route based on profile setup status
-        final targetRoute = hasCompletedProfileSetup
-            ? Routes.home
-            : Routes.profileSetup;
-
-        // If already on target page, just reset flag and return
-        if (currentLocation == targetRoute) {
-          debugPrint('Router: Already on target page ($targetRoute), resetting flag');
-          ref.read(appStateProvider.notifier).setJustLoggedIn(false);
-          return null;
-        }
-
-        // Reset flag after redirect decision (using microtask to avoid race condition)
-        Future.microtask(() {
-          ref.read(appStateProvider.notifier).setJustLoggedIn(false);
-        });
-
-        debugPrint('Router: Redirecting to $targetRoute');
-        return targetRoute;
-      }
-
-      // 2. If on splash page and animation not completed, wait for animation
-      if (isOnSplashPage && !appState.splashAnimationCompleted) {
-        debugPrint('Router: On splash, waiting for animation to complete');
-        return null;
-      }
-
-      // 3. If on splash page and animation completed, redirect based on auth status
-      if (isOnSplashPage && appState.splashAnimationCompleted) {
-        if (isAuthenticated && hasCompletedProfileSetup) {
-          debugPrint('Router: Splash animation done, redirecting to home');
-          return Routes.home;
-        } else if (isAuthenticated && !hasCompletedProfileSetup) {
-          debugPrint('Router: Splash animation done, redirecting to profile setup');
-          return Routes.profileSetup;
-        } else {
-          debugPrint('Router: Splash animation done, redirecting to login');
+          // 표시 시간이 지났으면 로그인으로 이동(아래 /login 전환 애니메이션 적용)
           return Routes.login;
+        } else {
+          // ✅ 인증됐다면 애니메이션 없이 바로 목적지
+          final done = await _hasCompletedProfileSetup();
+          return done ? Routes.home : Routes.profileSetup;
         }
       }
 
-      // 4. If not authenticated and not on splash or login, go to splash
-      if (!isAuthenticated && !isOnLoginPage && !isOnSplashPage) {
-        debugPrint('Router: Redirecting to splash (not authenticated)');
-        // Reset app state when going back to splash
-        ref.read(appStateProvider.notifier).reset();
-        return Routes.splash;
+      // 3) 스플래시 외 경로
+      if (!isAuthed) {
+        // 비인증 상태에서는 /login에만 머문다
+        return current == Routes.login ? null : Routes.login;
       }
 
-      // 5. If authenticated but not completed profile setup, go to profile setup
-      if (isAuthenticated &&
-          !hasCompletedProfileSetup &&
-          !isOnProfileSetupPage &&
-          !isOnSplashPage) {
-        debugPrint('Router: Redirecting to profile setup (not completed)');
-        return Routes.profileSetup;
+      // 인증된 상태 → 프로필 설정 여부로 분기
+      final done = await _hasCompletedProfileSetup();
+      if (done) {
+        return current == Routes.home ? null : Routes.home;
+      } else {
+        return current == Routes.profileSetup ? null : Routes.profileSetup;
       }
-
-      // No redirect needed
-      debugPrint('Router: No redirect needed');
-      debugPrint('======================================');
-      return null;
     },
-    refreshListenable: GoRouterRefreshStream(
-      ref.read(firebaseAuthProvider).authStateChanges(),
-    ),
+
+    refreshListenable: refresh,
+
     routes: [
       GoRoute(
         path: Routes.splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
+
+      // 스플래시 → 로그인: 원형 리빌 전환(플랫폼 공통)
       GoRoute(
         path: Routes.login,
         name: 'login',
@@ -175,13 +121,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             key: state.pageKey,
             child: const LoginScreen(animate: true),
             transitionDuration: const Duration(milliseconds: 1200),
+            reverseTransitionDuration: const Duration(milliseconds: 300),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return HeroControllerScope(
                 controller: HeroController(
-                  // Custom create flight callback to synchronize with circular reveal
-                  createRectTween: (begin, end) {
-                    return MaterialRectArcTween(begin: begin, end: end);
-                  },
+                  createRectTween: (begin, end) =>
+                      MaterialRectArcTween(begin: begin, end: end),
                 ),
                 child: _CircularRevealTransition(
                   animation: animation,
@@ -192,39 +137,53 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+
       GoRoute(
         path: Routes.profileSetup,
         name: 'profileSetup',
         builder: (context, state) => const OnboardingProfileScreen(),
       ),
+
+      // 메인은 애니메이션 없이 즉시 진입
       GoRoute(
         path: Routes.home,
         name: 'home',
-        builder: (context, state) => const MainNavigation(),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: MainNavigation()),
       ),
     ],
   );
 });
 
-/// Helper class to make GoRouter refresh when auth state changes
+/// Helper class to make GoRouter refresh when things change
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
+  GoRouterRefreshStream(
+    Stream<dynamic> stream, {
+    Duration? initialKickDelay,
+  }) {
+    // 인증 상태 변경 시 즉시 리프레시
     _subscription = stream.asBroadcastStream().listen(
       (dynamic _) => notifyListeners(),
     );
+
+    // 최초 한 번, 스플래시 최소 표시 시간 이후 리프레시(비인증 진입용)
+    if (initialKickDelay != null) {
+      _kickTimer = Timer(initialKickDelay, () => notifyListeners());
+    }
   }
 
   late final StreamSubscription<dynamic> _subscription;
+  Timer? _kickTimer;
 
   @override
   void dispose() {
     _subscription.cancel();
+    _kickTimer?.cancel();
     super.dispose();
   }
 }
 
-/// Circular reveal transition for splash to login screen
+/// Circular reveal transition for splash → login
 class _CircularRevealTransition extends StatelessWidget {
   const _CircularRevealTransition({
     required this.animation,
@@ -237,52 +196,43 @@ class _CircularRevealTransition extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final topPadding = MediaQuery.of(context).padding.top;
+    final center = Offset(size.width / 2, size.height * 0.35);
 
-    // Center on login screen's Hero (logo) position
-    // Logo is at: SafeArea top + 180px padding + 50px (half of 100px logo height)
-    final center = Offset(size.width / 2, topPadding + 180 + 50);
-
-    // Calculate max radius to cover entire screen from center point
+    // 화면 전체를 덮는 최대 반경
     final maxRadius = math.sqrt(
       math.pow(math.max(center.dx, size.width - center.dx), 2) +
-      math.pow(math.max(center.dy, size.height - center.dy), 2),
+          math.pow(math.max(center.dy, size.height - center.dy), 2),
     );
 
-    // Circular reveal animation: 200-800ms (0.16 - 0.67 of total 1200ms)
-    final revealAnimation = CurvedAnimation(
+    // 1200ms 중 200~800ms 구간에서 리빌
+    final reveal = CurvedAnimation(
       parent: animation,
       curve: const Interval(0.16, 0.67, curve: Curves.easeInOut),
     );
 
     return AnimatedBuilder(
-      animation: revealAnimation,
-      builder: (context, child) {
+      animation: reveal,
+      builder: (context, _) {
         return Stack(
+          fit: StackFit.expand,
           children: [
-            // White background (login screen)
-            child!,
-            // Pink background with circular shrink (outside to inside)
+            child,
             ClipPath(
               clipper: _CircularRevealClipper(
-                fraction: 1 - revealAnimation.value, // Reverse the animation
+                fraction: 1 - reveal.value,
                 center: center,
                 minRadius: 0,
                 maxRadius: maxRadius,
               ),
-              child: Container(
-                color: const Color(0xFFEA6B6B),
-              ),
+              child: Container(color: const Color(0xFFEA6B6B)),
             ),
           ],
         );
       },
-      child: child,
     );
   }
 }
 
-/// Custom clipper for circular reveal effect
 class _CircularRevealClipper extends CustomClipper<Path> {
   const _CircularRevealClipper({
     required this.fraction,
@@ -299,21 +249,14 @@ class _CircularRevealClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final radius = minRadius + (maxRadius - minRadius) * fraction;
-    final path = Path()
-      ..addOval(
-        Rect.fromCircle(
-          center: center,
-          radius: radius,
-        ),
-      );
-    return path;
+    return Path()..addOval(Rect.fromCircle(center: center, radius: radius));
   }
 
   @override
-  bool shouldReclip(_CircularRevealClipper oldClipper) {
-    return oldClipper.fraction != fraction ||
-        oldClipper.center != center ||
-        oldClipper.minRadius != minRadius ||
-        oldClipper.maxRadius != maxRadius;
+  bool shouldReclip(_CircularRevealClipper old) {
+    return old.fraction != fraction ||
+        old.center != center ||
+        old.minRadius != minRadius ||
+        old.maxRadius != maxRadius;
   }
 }
