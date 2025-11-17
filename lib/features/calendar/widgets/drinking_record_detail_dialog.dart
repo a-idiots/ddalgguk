@@ -1,4 +1,5 @@
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -269,7 +270,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Image.asset(
-            _getBodyImagePath(drunkLevel),
+            getBodyImagePath(drunkLevel * 10),
             width: size,
             height: size,
             fit: BoxFit.contain,
@@ -286,27 +287,6 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// 알딸딸 지수에 따른 body 이미지 경로 반환
-  String _getBodyImagePath(int drunkLevel) {
-    // drunkLevel: 0-10
-    // 0-2: body1 (0-20%)
-    // 3-4: body2 (30-40%)
-    // 5-6: body3 (50-60%)
-    // 7-8: body4 (70-80%)
-    // 9-10: body5 (90-100%)
-    if (drunkLevel <= 2) {
-      return 'assets/saku_gradient/body1.png';
-    } else if (drunkLevel <= 4) {
-      return 'assets/saku_gradient/body2.png';
-    } else if (drunkLevel <= 6) {
-      return 'assets/saku_gradient/body3.png';
-    } else if (drunkLevel <= 8) {
-      return 'assets/saku_gradient/body4.png';
-    } else {
-      return 'assets/saku_gradient/body5.png';
-    }
   }
 
   /// 취함 정도에 따른 눈의 투명도

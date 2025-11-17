@@ -265,7 +265,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   alignment: Alignment.center,
                   children: [
                     Image.asset(
-                      getBodyImagePath(maxDrunkLevel),
+                      getBodyImagePath(maxDrunkLevel * 10),
                       width: sakuSize,
                       height: sakuSize,
                       fit: BoxFit.contain,
@@ -393,7 +393,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 alignment: Alignment.center,
                 children: [
                   Image.asset(
-                    getBodyImagePath(record.drunkLevel),
+                    getBodyImagePath(record.drunkLevel * 10),
                     width: sakuSize,
                     height: sakuSize,
                     fit: BoxFit.contain,

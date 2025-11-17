@@ -102,23 +102,10 @@ String getDrinkTypeName(int drinkType) {
 
 /// 알딸딸 지수에 따른 body 이미지 경로 반환
 String getBodyImagePath(int drunkLevel) {
-  // drunkLevel: 0-10
-  // 0-2: body1 (0-20%)
-  // 3-4: body2 (30-40%)
-  // 5-6: body3 (50-60%)
-  // 7-8: body4 (70-80%)
-  // 9-10: body5 (90-100%)
-  if (drunkLevel <= 2) {
-    return 'assets/saku_gradient/body1.png';
-  } else if (drunkLevel <= 4) {
-    return 'assets/saku_gradient/body2.png';
-  } else if (drunkLevel <= 6) {
-    return 'assets/saku_gradient/body3.png';
-  } else if (drunkLevel <= 8) {
-    return 'assets/saku_gradient/body4.png';
-  } else {
-    return 'assets/saku_gradient/body5.png';
-  }
+  // drunkLevel: 0-100
+  // Round down to nearest 10 (e.g., 45 -> 40, 23 -> 20)
+  final level = (drunkLevel ~/ 10) * 10;
+  return 'assets/saku_gradient_10/saku_${level.toString().padLeft(2, '0')}.png';
 }
 
 /// 음주량 포맷팅 (간단 버전)
