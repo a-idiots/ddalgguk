@@ -30,7 +30,6 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
   late final TextEditingController _memoController;
   late double _drunkLevel;
   late List<DrinkInputData> _drinkInputs;
-  late bool _showDetailFields;
 
   @override
   void initState() {
@@ -76,17 +75,12 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
           }).toList()
         : [
             DrinkInputData(
-              drinkType: 2,
-              alcoholController: TextEditingController(text: '5.0'),
+              drinkType: 0, // 미정
+              alcoholController: TextEditingController(text: '0.0'),
               amountController: TextEditingController(text: '1.0'),
               selectedUnit: '병',
             ),
           ];
-
-    // 상세 필드 표시 여부 (메모나 비용이 있으면 자동으로 열기)
-    _showDetailFields =
-        (widget.record.memo['text'] as String? ?? '').isNotEmpty ||
-        widget.record.cost > 0;
   }
 
   @override
@@ -112,6 +106,15 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
     final drinkAmounts = <DrinkAmount>[];
     for (var i = 0; i < _drinkInputs.length; i++) {
       final input = _drinkInputs[i];
+
+      // 술 종류가 미정인지 확인
+      if (input.drinkType == 0) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('음주량 ${i + 1}의 술 종류를 선택해주세요')));
+        return;
+      }
+
       final alcoholText = input.alcoholController.text.trim();
       final amountText = input.amountController.text.trim();
 
@@ -202,13 +205,6 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
   @override
   Widget build(BuildContext context) {
     return ReceiptDialog(
-      onClose: () {
-        // 컨트롤러 정리
-        for (var input in _drinkInputs) {
-          input.dispose();
-        }
-        Navigator.pop(context);
-      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -233,9 +229,16 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          '모임명',
-                          style: TextStyle(fontSize: 12),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('모임명', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 2),
+                            Text(
+                              '*',
+                              style: TextStyle(fontSize: 12, color: Colors.red),
+                            ),
+                          ],
                         ),
                       ),
                       const Spacer(),
@@ -275,9 +278,16 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          '알딸딸 지수',
-                          style: TextStyle(fontSize: 12),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('알딸딸 지수', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 2),
+                            Text(
+                              '*',
+                              style: TextStyle(fontSize: 12, color: Colors.red),
+                            ),
+                          ],
                         ),
                       ),
                       const Spacer(),
@@ -363,9 +373,16 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          '음주량',
-                          style: TextStyle(fontSize: 12),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('음주량', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 2),
+                            Text(
+                              '*',
+                              style: TextStyle(fontSize: 12, color: Colors.red),
+                            ),
+                          ],
                         ),
                       ),
                       const Spacer(),
@@ -375,9 +392,9 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                           setState(() {
                             _drinkInputs.add(
                               DrinkInputData(
-                                drinkType: 2, // 기본 맥주
+                                drinkType: 0, // 미정
                                 alcoholController: TextEditingController(
-                                  text: '5.0',
+                                  text: '0.0',
                                 ),
                                 amountController: TextEditingController(
                                   text: '1.0',
@@ -434,52 +451,63 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                           : null,
                     );
                   }),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
-                  // 상세 기록하기 버튼
-                  TextButton.icon(
-                    icon: Icon(
-                      _showDetailFields ? Icons.remove : Icons.add,
-                      size: 16,
+                  // 술값 (필수 아님)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                    label: const Text(
-                      '상세 기록하기',
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '술값(지출 금액)',
                       style: TextStyle(fontSize: 12),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _showDetailFields = !_showDetailFields;
-                      });
-                    },
                   ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _costController,
+                    decoration: InputDecoration(
+                      hintText: '0',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      suffixText: '원',
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
 
-                  // 메모와 술값 (상세 기록)
-                  if (_showDetailFields) ...[
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _memoController,
-                      decoration: const InputDecoration(
-                        labelText: '메모',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(12),
-                      ),
-                      maxLines: 3,
+                  // 메모 (필수 아님)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _costController,
-                      decoration: const InputDecoration(
-                        labelText: '술값(지출 금액)',
-                        suffixText: '원',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                    child: const Text('메모', style: TextStyle(fontSize: 12)),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _memoController,
+                    decoration: InputDecoration(
+                      hintText: '예: 주사, 숙취, 재미있는 에피소드 등',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                    maxLines: 3,
+                  ),
                   const SizedBox(height: 16),
                 ],
               ),
