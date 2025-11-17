@@ -233,7 +233,7 @@ class _OnboardingProfileScreenState
                   InfoInputPage(
                     title: '당신의 이름을 알려주세요!',
                     speechBubbleText: '안녕 나는 사쿠!\n나는 너의 간의 정령이야',
-                    hintText: '행복한 술고래',
+                    hintText: '행복한술고래',
                     onNext: _handleNameSubmit,
                     validator: _validateName,
                     initialValue: _name,

@@ -147,15 +147,13 @@ class _InfoInputPageState extends State<InfoInputPage> {
                         horizontal: 20,
                         vertical: 16,
                       ),
-                      prefix: widget.inputType == InfoInputType.id
-                          ? Text(
-                              '@',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                            )
-                          : null,
+                      prefix: Text(
+                        '@',
+                        style: TextStyle(
+                          color: widget.inputType == InfoInputType.id ? Colors.black : Colors.black87,
+                          fontSize: 16,
+                        ),
+                      )
                     ),
                     onSubmitted: (_) => _handleNext(),
                   ),
