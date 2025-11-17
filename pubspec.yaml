@@ -88,7 +88,6 @@ flutter:
     - .env
     - assets/
     - assets/saku/
-    - assets/saku_gradient/
     - assets/saku_gradient_10/
     - assets/calendar/
     - assets/alcohol_icons/
