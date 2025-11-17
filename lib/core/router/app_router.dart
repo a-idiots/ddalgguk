@@ -30,10 +30,12 @@ final routerProvider = Provider<GoRouter>((ref) {
   final routerBootTime = DateTime.now();
 
   // 인증된 경우에만 프로필 설정 완료 여부 확인
-  Future<bool> _hasCompletedProfileSetup() async {
+  Future<bool> hasCompletedProfileSetup() async {
     try {
       final cachedUser = await SecureStorageService.instance.getUserCache();
-      if (cachedUser != null) return cachedUser.hasCompletedProfileSetup;
+      if (cachedUser != null) { 
+        return cachedUser.hasCompletedProfileSetup;
+      }
 
       final authRepository = ref.read(authRepositoryProvider);
       final currentUser = await authRepository.getCurrentUser();
@@ -62,7 +64,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         loading: () => true,
         orElse: () => false,
       );
-      if (isLoading) return null;
+      if (isLoading) {
+        return null;
+      }
 
       // 1) 인증 여부
       final isAuthed = authState.maybeWhen(
@@ -83,7 +87,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return Routes.login;
         } else {
           // ✅ 인증됐다면 애니메이션 없이 바로 목적지
-          final done = await _hasCompletedProfileSetup();
+          final done = await hasCompletedProfileSetup();
           return done ? Routes.home : Routes.profileSetup;
         }
       }
@@ -95,7 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 인증된 상태 → 프로필 설정 여부로 분기
-      final done = await _hasCompletedProfileSetup();
+      final done = await hasCompletedProfileSetup();
       if (done) {
         return current == Routes.home ? null : Routes.home;
       } else {

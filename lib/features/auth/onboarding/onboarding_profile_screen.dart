@@ -163,17 +163,17 @@ class _OnboardingProfileScreenState
   }
 
   void _handleBack() {
-    print(
+    debugPrint(
       'DEBUG: _handleBack called, _currentPage = $_currentPage, _isLoading = $_isLoading',
     );
 
     if (_isLoading) {
-      print('DEBUG: Cannot go back while loading');
+      debugPrint('DEBUG: Cannot go back while loading');
       return;
     }
 
     if (_currentPage > 0) {
-      print('DEBUG: Going back from page $_currentPage to ${_currentPage - 1}');
+      debugPrint('DEBUG: Going back from page $_currentPage to ${_currentPage - 1}');
       setState(() {
         _currentPage--;
       });
@@ -184,7 +184,7 @@ class _OnboardingProfileScreenState
       );
       _saveState();
     } else {
-      print('DEBUG: Already on first page, cannot go back');
+      debugPrint('DEBUG: Already on first page, cannot go back');
     }
   }
 
