@@ -86,6 +86,9 @@ class _InfoInputPageState extends State<InfoInputPage> {
   }
 
   void _handleNext() {
+    // 키보드 내림
+    FocusScope.of(context).unfocus();
+
     final error = widget.validator(_controller.text);
     if (error != null) {
       setState(() {
@@ -132,32 +135,53 @@ class _InfoInputPageState extends State<InfoInputPage> {
             ),
             child: Row(
               children: [
+                // -----------------------
+                // 1) 항상 고정된 '@' prefix
+                // -----------------------
+                if (widget.inputType == InfoInputType.id)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18),
+                    child: Text(
+                      '@',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+
+                // -----------------------
+                // 2) TextField (padding 복원)
+                // -----------------------
                 Expanded(
                   child: TextField(
                     key: _textFieldKey,
                     controller: _controller,
                     focusNode: _focusNode,
+
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _focusNode.unfocus(),
+                    onEditingComplete: () => _focusNode.unfocus(),
+
                     decoration: InputDecoration(
-                      hintText: widget.hintText,
-                      filled: false,
                       border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                      enabledBorder: InputBorder.none,
+
+                      // 🔥 placeholder가 너무 왼쪽에 붙지 않도록 padding 삽입
+                      // prefix 바로 옆에서 시작하되 내부 여백은 유지
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: widget.inputType == InfoInputType.id ? 0 : 24,
                         vertical: 16,
                       ),
-                      prefix: Text(
-                        '@',
-                        style: TextStyle(
-                          color: widget.inputType == InfoInputType.id ? Colors.black : Colors.black87,
-                          fontSize: 16,
-                        ),
-                      )
+
+                      hintText: widget.hintText,
+                      hintStyle: const TextStyle(color: Colors.black54),
                     ),
-                    onSubmitted: (_) => _handleNext(),
                   ),
                 ),
+
+                // NEXT 버튼
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
