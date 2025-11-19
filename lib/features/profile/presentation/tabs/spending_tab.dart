@@ -63,7 +63,7 @@ class _SpendingSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
         color: const Color(0xFFFFEBEB), // Light pink background
         borderRadius: BorderRadius.circular(24),
@@ -81,7 +81,7 @@ class _SpendingSummaryCard extends StatelessWidget {
                     const Text(
                       '이번 달은 지난 달과',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
@@ -90,7 +90,7 @@ class _SpendingSummaryCard extends StatelessWidget {
                     const Text(
                       '똑같은 금액을 쓰고 있어요',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -108,7 +108,7 @@ class _SpendingSummaryCard extends StatelessWidget {
                   const Text(
                     '이번 달은 지난 달보다',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
                     ),
@@ -117,7 +117,7 @@ class _SpendingSummaryCard extends StatelessWidget {
                   RichText(
                     text: TextSpan(
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                         fontFamily: 'Pretendard',
@@ -159,9 +159,9 @@ class _SpendingSummaryCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           // Monthly Total
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -169,7 +169,7 @@ class _SpendingSummaryCard extends StatelessWidget {
               Text(
                 '$month월 지출 금액',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[800],
                 ),
@@ -178,7 +178,7 @@ class _SpendingSummaryCard extends StatelessWidget {
                 data: (total) => Text(
                   '${NumberFormat('#,###').format(total)}원',
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -318,24 +318,25 @@ class _DrinkingRecordItem extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  Text(
-                    '혈중알콜농도 ${record.drunkLevel * 10}%',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFFF27B7B),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              Text(
+                '혈중알콜농도 ${record.drunkLevel * 10}%',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFFF27B7B),
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 _formatDrinkAmounts(record.drinkAmounts),
                 style: const TextStyle(fontSize: 12, color: Colors.black87),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ],
           ),
@@ -429,80 +430,93 @@ class _MaxSpendingCard extends StatelessWidget {
               '최대 지출액 (한달 기준)',
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE55D5D), Color(0xFFE37B7B)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFE55D5D).withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      SakuCharacter(
-                        size: 60,
-                        drunkLevel: maxRecord.drunkLevel * 10,
+            const SizedBox(height: 30), // Extra space for the floating icon
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(24, 30, 24, 20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFE55D5D), Color(0xFFE37B7B)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE55D5D).withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              maxRecord.meetingName,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const SizedBox(width: 60), // Space for the icon
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  maxRecord.meetingName,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '${NumberFormat('#,###').format(maxRecord.cost)}원',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                      Text(
-                        '${NumberFormat('#,###').format(maxRecord.cost)}원',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
                           color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _DrinkingRecordItem(
+                            record: maxRecord,
+                          )._formatDrinkAmounts(maxRecord.drinkAmounts),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _DrinkingRecordItem(
-                        record: maxRecord,
-                      )._formatDrinkAmounts(maxRecord.drinkAmounts),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                ),
+                Positioned(
+                  top: -20,
+                  left: 20,
+                  child: SakuCharacter(
+                    size: 70,
+                    drunkLevel: maxRecord.drunkLevel * 10,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         );

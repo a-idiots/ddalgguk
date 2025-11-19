@@ -102,9 +102,10 @@ String getDrinkTypeName(int drinkType) {
 
 /// 알딸딸 지수에 따른 body 이미지 경로 반환
 String getBodyImagePath(int drunkLevel) {
-  // drunkLevel: 0-100
+  // drunkLevel: 0-100, but clamp to ensure it's in valid range
   // Round down to nearest 10 (e.g., 45 -> 40, 23 -> 20)
-  final level = (drunkLevel ~/ 10) * 10;
+  final clampedLevel = drunkLevel.clamp(0, 100);
+  final level = (clampedLevel ~/ 10) * 10;
   return 'assets/saku_gradient_10/saku_${level.toString().padLeft(2, '0')}.png';
 }
 

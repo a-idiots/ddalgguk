@@ -28,21 +28,52 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Tag
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Text(
-              '순수 알코올(에탄올)',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+          // Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '순수 알코올(에탄올)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _getWeekLabel(_currentIndex),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down, size: 16),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
@@ -81,6 +112,16 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
         ],
       ),
     );
+  }
+
+  String _getWeekLabel(int offset) {
+    if (offset == 0) {
+      return 'This week';
+    }
+    if (offset == 1) {
+      return 'Last week';
+    }
+    return '$offset weeks ago';
   }
 
   Widget _buildStatsGrid(WidgetRef ref, int offset) {
@@ -169,41 +210,62 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   }
 
   Widget _buildDrinkTypeBreakdown(WidgetRef ref, int offset) {
-    // Mock data for breakdown as it's not in WeeklyStats yet
-    // In a real app, we'd need to aggregate this from records
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          _DrinkTypeRow(
-            icon: Icons.local_drink,
-            color: Colors.green,
-            name: '소주',
-            amount: 8310,
-            maxAmount: 10000,
+    // Mock data for breakdown
+    final drinkTypes = [
+      {
+        'name': '소주',
+        'amount': 8310,
+        'max': 10000,
+        'color': Colors.green,
+        'icon': Icons.local_drink,
+      },
+      {
+        'name': '맥주',
+        'amount': 1001,
+        'max': 10000,
+        'color': Colors.amber,
+        'icon': Icons.sports_bar,
+      },
+      {
+        'name': '와인',
+        'amount': 830,
+        'max': 10000,
+        'color': Colors.red,
+        'icon': Icons.wine_bar,
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '주종별 섭취량 TOP 3',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[200]!),
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 16),
-          _DrinkTypeRow(
-            icon: Icons.sports_bar,
-            color: Colors.amber,
-            name: '맥주',
-            amount: 1001,
-            maxAmount: 10000,
+          child: Column(
+            children: [
+              for (int i = 0; i < drinkTypes.length; i++) ...[
+                if (i > 0) const SizedBox(height: 16),
+                _DrinkTypeRow(
+                  rank: i + 1,
+                  icon: drinkTypes[i]['icon'] as IconData,
+                  color: drinkTypes[i]['color'] as Color,
+                  name: drinkTypes[i]['name'] as String,
+                  amount: drinkTypes[i]['amount'] as int,
+                  maxAmount: drinkTypes[i]['max'] as int,
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 16),
-          _DrinkTypeRow(
-            icon: Icons.wine_bar,
-            color: Colors.red,
-            name: '와인',
-            amount: 830,
-            maxAmount: 10000,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -223,147 +285,78 @@ class _WeeklyChartPage extends ConsumerWidget {
           stats.dailyData.map((d) => d.drunkLevel.toDouble()).toList(),
         );
 
-        return Stack(
-          children: [
-            // Dotted Line (Average or Limit)
-            Positioned(
-              top: 50,
-              left: 0,
-              right: 0,
-              child: CustomPaint(
-                painter: _DottedLinePainter(),
-                child: const SizedBox(height: 1, width: double.infinity),
-              ),
-            ),
-            // Label for dotted line
-            Positioned(
-              top: 30,
-              right: 50,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  '390', // Mock limit value
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ),
-            // Chart
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: maxVal,
-                  barGroups: _buildBarGroups(stats.dailyData),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-                          if (value.toInt() < dayNames.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                dayNames[value.toInt()],
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            );
-                          }
-                          return const Text('');
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 30,
-                        getTitlesWidget: (value, meta) {
-                          if (value % 100 == 0) {
-                            return Text(
-                              value.toInt().toString(),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    horizontalInterval: 100,
-                    getDrawingHorizontalLine: (value) {
-                      return FlLine(
-                        color: Colors.grey[200],
-                        strokeWidth: 1,
-                        dashArray: [4, 4],
-                      );
+        return Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: maxVal,
+              barGroups: _buildBarGroups(stats.dailyData),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      final dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+                      if (value.toInt() < dayNames.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            dayNames[value.toInt()],
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        );
+                      }
+                      return const Text('');
                     },
                   ),
-                  borderData: FlBorderData(show: false),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 30,
+                    getTitlesWidget: (value, meta) {
+                      if (value % 100 == 0) {
+                        return Text(
+                          value.toInt().toString(),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
                 ),
               ),
-            ),
-            // Week Label (Top Right)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _getWeekLabel(offset),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Icon(Icons.arrow_drop_down, size: 16),
-                  ],
-                ),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: 100,
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: Colors.grey[200],
+                    strokeWidth: 1,
+                    dashArray: [4, 4],
+                  );
+                },
               ),
+              borderData: FlBorderData(show: false),
             ),
-          ],
+          ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => const SizedBox.shrink(),
     );
-  }
-
-  String _getWeekLabel(int offset) {
-    if (offset == 0) {
-      return 'This week';
-    }
-    if (offset == 1) {
-      return 'Last week';
-    }
-    return '$offset weeks ago';
   }
 
   double _calculateMaxY(List<double> values) {
@@ -417,28 +410,6 @@ class _WeeklyChartPage extends ConsumerWidget {
     }
     return const Color(0xFFFF0000); // Red
   }
-}
-
-class _DottedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-
-    const dashWidth = 4;
-    const dashSpace = 4;
-    double startX = 0;
-
-    while (startX < size.width) {
-      canvas.drawLine(Offset(startX, 0), Offset(startX + dashWidth, 0), paint);
-      startX += dashWidth + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _StatBox extends StatelessWidget {
@@ -505,6 +476,7 @@ class _StatBox extends StatelessWidget {
 
 class _DrinkTypeRow extends StatelessWidget {
   const _DrinkTypeRow({
+    required this.rank,
     required this.icon,
     required this.color,
     required this.name,
@@ -512,6 +484,7 @@ class _DrinkTypeRow extends StatelessWidget {
     required this.maxAmount,
   });
 
+  final int rank;
   final IconData icon;
   final Color color;
   final String name;
@@ -522,6 +495,20 @@ class _DrinkTypeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        // Rank
+        SizedBox(
+          width: 24,
+          child: Text(
+            '$rank',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: rank == 1 ? Colors.amber : Colors.black,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Icon
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -531,6 +518,7 @@ class _DrinkTypeRow extends StatelessWidget {
           child: Icon(icon, color: Colors.white, size: 20),
         ),
         const SizedBox(width: 12),
+        // Details
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

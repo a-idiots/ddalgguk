@@ -6,6 +6,8 @@ import 'package:ddalgguk/features/profile/presentation/tabs/alcohol_intake_tab.d
 import 'package:ddalgguk/features/profile/presentation/tabs/recap_tab.dart';
 import 'package:ddalgguk/features/profile/presentation/tabs/spending_tab.dart';
 
+import 'package:go_router/go_router.dart';
+
 class AnalyticsScreen extends ConsumerStatefulWidget {
   const AnalyticsScreen({super.key, this.onBack});
 
@@ -32,11 +34,18 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             return PopScope(
               canPop: false,
               onPopInvokedWithResult: (didPop, result) {
-                if (didPop) return;
+                if (didPop) {
+                  return;
+                }
                 if (widget.onBack != null) {
                   widget.onBack!();
                 } else {
-                  Navigator.of(context).pop();
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    // Fallback if we can't pop (e.g. deep link entry)
+                    context.go('/profile');
+                  }
                 }
               },
               child: DefaultTabController(
