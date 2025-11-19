@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 
@@ -35,7 +38,7 @@ class SecureStorageService {
 
   /// Get Firebase ID token
   Future<String?> getFirebaseIdToken() async {
-    return await _secureStorage.read(key: StorageKeys.firebaseIdToken);
+    return _secureStorage.read(key: StorageKeys.firebaseIdToken);
   }
 
   /// Save access token securely
@@ -45,7 +48,7 @@ class SecureStorageService {
 
   /// Get access token
   Future<String?> getAccessToken() async {
-    return await _secureStorage.read(key: StorageKeys.accessToken);
+    return _secureStorage.read(key: StorageKeys.accessToken);
   }
 
   /// Save refresh token securely
@@ -55,7 +58,7 @@ class SecureStorageService {
 
   /// Get refresh token
   Future<String?> getRefreshToken() async {
-    return await _secureStorage.read(key: StorageKeys.refreshToken);
+    return _secureStorage.read(key: StorageKeys.refreshToken);
   }
 
   /// Save user ID securely
@@ -65,18 +68,18 @@ class SecureStorageService {
 
   /// Get user ID
   Future<String?> getUserId() async {
-    return await _secureStorage.read(key: StorageKeys.userId);
+    return _secureStorage.read(key: StorageKeys.userId);
   }
 
   /// Save user cache (entire AppUser object as JSON)
   Future<void> saveUserCache(AppUser user) async {
     final json = user.toJson();
-    print('SecureStorage: Saving user cache');
-    print('  - hasCompletedProfileSetup: ${json['hasCompletedProfileSetup']}');
-    print('  - name: ${json['name']}');
-    print('  - id: ${json['id']}');
+    debugPrint('SecureStorage: Saving user cache');
+    debugPrint('  - hasCompletedProfileSetup: ${json['hasCompletedProfileSetup']}');
+    debugPrint('  - name: ${json['name']}');
+    debugPrint('  - id: ${json['id']}');
     final jsonString = jsonEncode(json);
-    print('SecureStorage: JSON string: $jsonString');
+    debugPrint('SecureStorage: JSON string: $jsonString');
     await _secureStorage.write(key: StorageKeys.userCache, value: jsonString);
   }
 
@@ -85,20 +88,20 @@ class SecureStorageService {
     try {
       final jsonString = await _secureStorage.read(key: StorageKeys.userCache);
       if (jsonString == null) {
-        print('SecureStorage: No cached user found');
+        debugPrint('SecureStorage: No cached user found');
         return null;
       }
-      print('SecureStorage: Raw cached JSON: $jsonString');
+      debugPrint('SecureStorage: Raw cached JSON: $jsonString');
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-      print('SecureStorage: Decoded JSON: $jsonMap');
+      debugPrint('SecureStorage: Decoded JSON: $jsonMap');
       final user = AppUser.fromJson(jsonMap);
-      print(
+      debugPrint(
         'SecureStorage: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}',
       );
       return user;
     } catch (e) {
       // If parsing fails, return null
-      print('SecureStorage: Error parsing cache - $e');
+      debugPrint('SecureStorage: Error parsing cache - $e');
       return null;
     }
   }

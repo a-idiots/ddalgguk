@@ -1,12 +1,4 @@
 class Achievement {
-  final String id;
-  final String title;
-  final String description;
-  final String iconPath;
-  final bool isUnlocked;
-  final double progress; // 0.0 to 1.0
-  final AchievementType type;
-
   const Achievement({
     required this.id,
     required this.title,
@@ -31,6 +23,14 @@ class Achievement {
       ),
     );
   }
+
+  final String id;
+  final String title;
+  final String description;
+  final String iconPath;
+  final bool isUnlocked;
+  final double progress; // 0.0 to 1.0
+  final AchievementType type;
 
   Achievement copyWith({
     String? id,

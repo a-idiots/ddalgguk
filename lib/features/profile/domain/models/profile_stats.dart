@@ -1,10 +1,4 @@
 class ProfileStats {
-  final int thisMonthDrunkDays; // 0-100
-  final double currentAlcoholInBody; // in grams
-  final double timeToSober; // in hours
-  final String statusMessage;
-  final AlcoholBreakdown breakdown;
-
   const ProfileStats({
     required this.thisMonthDrunkDays,
     required this.currentAlcoholInBody,
@@ -22,6 +16,12 @@ class ProfileStats {
       breakdown: AlcoholBreakdown.empty(),
     );
   }
+
+  final int thisMonthDrunkDays; // 0-100
+  final double currentAlcoholInBody; // in grams
+  final double timeToSober; // in hours
+  final String statusMessage;
+  final AlcoholBreakdown breakdown;
 
   ProfileStats copyWith({
     int? currentDrunkLevel,
@@ -41,13 +41,6 @@ class ProfileStats {
 }
 
 class AlcoholBreakdown {
-  final double totalAlcoholConsumed; // in grams
-  final double alcoholRemaining; // in grams
-  final double alcoholProcessed; // in grams
-  final double progressPercentage; // 0-100
-  final DateTime? lastDrinkTime;
-  final DateTime? estimatedSoberTime;
-
   const AlcoholBreakdown({
     required this.totalAlcoholConsumed,
     required this.alcoholRemaining,
@@ -65,6 +58,13 @@ class AlcoholBreakdown {
       progressPercentage: 0,
     );
   }
+
+  final double totalAlcoholConsumed; // in grams
+  final double alcoholRemaining; // in grams
+  final double alcoholProcessed; // in grams
+  final double progressPercentage; // 0-100
+  final DateTime? lastDrinkTime;
+  final DateTime? estimatedSoberTime;
 
   AlcoholBreakdown copyWith({
     double? totalAlcoholConsumed,

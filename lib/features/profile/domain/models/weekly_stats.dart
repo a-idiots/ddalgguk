@@ -1,13 +1,4 @@
 class WeeklyStats {
-  final DateTime startDate;
-  final DateTime endDate;
-  final List<DailySakuData> dailyData; // 7 days of data
-  final int totalSessions;
-  final double totalAlcoholMl;
-  final int totalCost;
-  final double averageDrunkLevel;
-  final int soberDays;
-
   const WeeklyStats({
     required this.startDate,
     required this.endDate,
@@ -39,6 +30,15 @@ class WeeklyStats {
     );
   }
 
+  final DateTime startDate;
+  final DateTime endDate;
+  final List<DailySakuData> dailyData; // 7 days of data
+  final int totalSessions;
+  final double totalAlcoholMl;
+  final int totalCost;
+  final double averageDrunkLevel;
+  final int soberDays;
+
   WeeklyStats copyWith({
     DateTime? startDate,
     DateTime? endDate,
@@ -63,15 +63,15 @@ class WeeklyStats {
 }
 
 class DailySakuData {
-  final DateTime date;
-  final int drunkLevel; // 0-100
-  final bool hasRecords;
-
   const DailySakuData({
     required this.date,
     required this.drunkLevel,
     required this.hasRecords,
   });
+
+  final DateTime date;
+  final int drunkLevel; // 0-100
+  final bool hasRecords;
 
   DailySakuData copyWith({
     DateTime? date,

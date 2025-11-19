@@ -53,7 +53,7 @@ class ProfileStatsService {
       }
 
       // Calculate totals
-      int totalSessions = records.length;
+      final int totalSessions = records.length;
       double totalAlcoholMl = 0;
       int totalCost = 0;
       double totalDrunkLevel = 0;

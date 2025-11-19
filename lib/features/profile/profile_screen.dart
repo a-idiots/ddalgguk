@@ -8,7 +8,6 @@ import 'package:ddalgguk/features/profile/presentation/profile_detail_screen.dar
 import 'package:ddalgguk/features/profile/presentation/analytics_screen.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/scroll_indicator.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 
@@ -34,7 +33,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _handleVerticalDragUpdate(DragUpdateDetails details) {
-    if (!_isDragging) return;
+    if (!_isDragging) {
+      return;
+    }
 
     setState(() {
       // Only track upward drag (negative delta.dy)
@@ -47,7 +48,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _handleVerticalDragEnd(DragEndDetails details) {
-    if (!_isDragging) return;
+    if (!_isDragging) { 
+      return;
+    }
 
     final screenHeight = MediaQuery.of(context).size.height;
     final threshold = screenHeight * 0.2;
@@ -116,7 +119,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return currentStatsAsync.when(
           data: (stats) {
             final thisMonthDrunkDays = stats.thisMonthDrunkDays;
-            final sakuImagePath = getBodyImagePath(thisMonthDrunkDays);
 
             return GestureDetector(
               onVerticalDragStart: _handleVerticalDragStart,
