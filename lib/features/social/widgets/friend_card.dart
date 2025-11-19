@@ -1,4 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/features/auth/onboarding/widgets/speech_bubble.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:flutter/material.dart';
@@ -25,76 +26,67 @@ class FriendCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            // 상태 메시지 말풍선
-            _StatusBubble(status: status),
-            const SizedBox(height: 8),
-            // 캐릭터 이미지
-            Expanded(
-              child: Stack(
-                alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 메인 카드 (rounded rectangle)
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
                 children: [
-                  // 캐릭터 바디
-                  Image.asset(bodyImagePath, fit: BoxFit.contain),
-                  // 눈 오버레이
-                  Image.asset('assets/saku/eyes.png', fit: BoxFit.contain),
+                  const SizedBox(height: 8),
+                  // 상태 메시지 말풍선
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: SpeechBubble(
+                      text: status,
+                      backgroundColor: Colors.white,
+                      textColor: Colors.black87,
+                      fontSize: 11,
+                      maxLines: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // 캐릭터 이미지
+                  Expanded(
+                    child: FractionallySizedBox(
+                      widthFactor: 0.75,
+                      heightFactor: 0.75,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // 캐릭터 바디
+                          Image.asset(bodyImagePath, fit: BoxFit.contain),
+                          // 눈 오버레이
+                          Image.asset('assets/saku/eyes.png', fit: BoxFit.contain),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  // 최근 음주 정보
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: Text(
+                      daysSinceText,
+                      style: const TextStyle(fontSize: 9, color: Colors.black54),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-            // 최근 음주 정보
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Text(
-                daysSinceText,
-                style: const TextStyle(fontSize: 11, color: Colors.black54),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(height: 4),
-            // 친구 이름 버튼
-            _NameButton(name: friend.name),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 상태 메시지 말풍선
-class _StatusBubble extends StatelessWidget {
-  const _StatusBubble({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        status,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: Colors.black87,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          // 친구 이름 버튼 (카드 외부 하단)
+          _NameButton(name: friend.name),
+        ],
       ),
     );
   }
@@ -109,16 +101,16 @@ class _NameButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.black12),
       ),
       child: Text(
         name,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
           color: Colors.black87,
         ),

@@ -27,9 +27,11 @@ class SocialScreen extends ConsumerWidget {
             Expanded(
               child: friendsAsync.when(
                 data: (friends) {
+                  // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
                   if (friends.isEmpty) {
                     return _buildEmptyStateWithRefresh(context, ref);
                   }
+                  // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
                   return _buildFriendsGridWithRefresh(ref, friends);
                 },
                 loading: () => const Center(
@@ -120,19 +122,29 @@ class SocialScreen extends ConsumerWidget {
       child: GridView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.75,
-          crossAxisSpacing: 16,
+          crossAxisCount: 3, // 3열
+          childAspectRatio: 0.58, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
+          crossAxisSpacing: 10,
           mainAxisSpacing: 16,
         ),
         itemCount: friends.length,
         itemBuilder: (context, index) {
           final friend = friends[index];
+          final isMe = index == 0; // 첫 번째는 항상 나
+
           return FriendCard(
             friend: friend,
-            onTap: () {
-              // TODO: 친구 프로필 상세 보기
-            },
+            onTap: isMe
+                ? () {
+                    // 나 자신 클릭 시 일일 상태 다이얼로그 표시
+                    showDialog(
+                      context: context,
+                      builder: (context) => const DailyStatusDialog(),
+                    );
+                  }
+                : () {
+                    // TODO: 친구 프로필 상세 보기
+                  },
           );
         },
       ),
