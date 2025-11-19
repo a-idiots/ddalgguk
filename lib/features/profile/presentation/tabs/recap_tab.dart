@@ -152,7 +152,9 @@ class RecapTab extends ConsumerWidget {
           // This week achievements
           currentUserAsync.when(
             data: (user) {
-              if (user == null) return const SizedBox.shrink();
+              if (user == null) {
+                return const SizedBox.shrink();
+              }
 
               final badges = List<Badge>.from(user.badges);
               // Sort by date descending (newest first)
@@ -196,7 +198,9 @@ class RecapTab extends ConsumerWidget {
                             ? drinkingBadges[badge.idx]
                             : sobrietyBadges[badge.idx];
 
-                        if (badgeData == null) return const SizedBox.shrink();
+                        if (badgeData == null) {
+                          return const SizedBox.shrink();
+                        }
 
                         return Container(
                           padding: const EdgeInsets.symmetric(

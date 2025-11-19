@@ -1,15 +1,15 @@
 import 'package:equatable/equatable.dart';
 
 class Badge extends Equatable {
-  final String group; // 'drinking' or 'sobriety'
-  final int idx;
-  final DateTime achievedDay;
-
   const Badge({
     required this.group,
     required this.idx,
     required this.achievedDay,
   });
+
+  final String group; // 'drinking' or 'sobriety'
+  final int idx;
+  final DateTime achievedDay;
 
   factory Badge.fromJson(Map<String, dynamic> json) {
     return Badge(
