@@ -48,6 +48,9 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
       await friendService.updateMyDailyStatus(message);
 
       if (mounted) {
+        // 친구 목록 새로고침
+        ref.invalidate(friendsProvider);
+
         Navigator.of(context).pop();
         ScaffoldMessenger.of(
           context,
