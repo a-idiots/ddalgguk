@@ -17,10 +17,12 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
     super.key,
     this.onBack,
     this.onNavigateToAnalytics,
+    this.showCharacter = true,
   });
 
   final VoidCallback? onBack;
   final VoidCallback? onNavigateToAnalytics;
+  final bool showCharacter;
 
   @override
   ConsumerState<ProfileDetailScreen> createState() =>
@@ -54,7 +56,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
         if (widget.onBack != null) {
           widget.onBack!();
         } else {
-          Navigator.of(context).pop();
+          // If inside PageView, this might not be needed, but keeping for safety
+          // Navigator.of(context).pop();
         }
       }
 
@@ -103,7 +106,11 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                       slivers: [
                         // Header (scrollable, not sticky)
                         SliverToBoxAdapter(
-                          child: ProfileHeader(user: user, theme: theme),
+                          child: ProfileHeader(
+                            user: user,
+                            theme: theme,
+                            showCharacter: widget.showCharacter,
+                          ),
                         ),
                         // Content
                         SliverList(

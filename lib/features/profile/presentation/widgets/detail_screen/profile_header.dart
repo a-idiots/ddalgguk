@@ -6,10 +6,16 @@ import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key, required this.user, required this.theme});
+  const ProfileHeader({
+    super.key,
+    required this.user,
+    required this.theme,
+    this.showCharacter = true,
+  });
 
   final AppUser user;
   final AppTheme theme;
+  final bool showCharacter;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +35,7 @@ class ProfileHeader extends StatelessWidget {
               children: [
                 Text(
                   userName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -40,7 +46,7 @@ class ProfileHeader extends StatelessWidget {
                 ),
                 Text(
                   '@$userId',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
                     height: 1.0,
@@ -63,8 +69,12 @@ class ProfileHeader extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // Saku character on the left
-          SizedBox(width: 60, height: 60, child: SakuCharacter(size: 60)),
+          // Saku character on the right
+          SizedBox(
+            width: 60,
+            height: 60,
+            child: showCharacter ? SakuCharacter(size: 60) : null,
+          ),
         ],
       ),
     );
