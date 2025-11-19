@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/calendar/models/drink_input_data.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
 import 'package:ddalgguk/features/calendar/widgets/receipt_dialog.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -300,26 +301,9 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                   const SizedBox(height: 16),
                   // Saku character visualization
                   Center(
-                    child: SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Image.asset(
-                            getBodyImagePath((_drunkLevel * 10).toInt()),
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.contain,
-                          ),
-                          Image.asset(
-                            'assets/saku/eyes.png',
-                            width: 80 * 0.35,
-                            height: 80 * 0.35,
-                            fit: BoxFit.contain,
-                          ),
-                        ],
-                      ),
+                    child: SakuCharacter(
+                      size: 80,
+                      drunkLevel: (_drunkLevel * 10).toInt(),
                     ),
                   ),
                   const SizedBox(height: 16),

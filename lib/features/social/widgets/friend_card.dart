@@ -1,6 +1,6 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +15,6 @@ class FriendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final drunkLevel = friend.displayDrunkLevel;
     final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
-    final bodyImagePath = getBodyImagePath(drunkLevel);
     final status = friend.displayStatus;
 
     // 마지막 음주 이후 일수 계산
@@ -56,17 +55,13 @@ class FriendCard extends StatelessWidget {
                     child: FractionallySizedBox(
                       widthFactor: 0.95,
                       heightFactor: 0.75,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // 캐릭터 바디
-                          Image.asset(bodyImagePath, fit: BoxFit.contain),
-                          // 눈 오버레이
-                          Image.asset(
-                            'assets/saku/eyes.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ],
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SakuCharacter(
+                            size: constraints.maxHeight,
+                            drunkLevel: drunkLevel,
+                          );
+                        },
                       ),
                     ),
                   ),

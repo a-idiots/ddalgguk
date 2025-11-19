@@ -1,15 +1,25 @@
+import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 
 /// Saku character widget with eye tracking capability
 /// The eyes follow the cursor position in the input field
 class SakuCharacter extends StatefulWidget {
-  const SakuCharacter({super.key, this.cursorOffset, this.size = 200});
+  const SakuCharacter({
+    super.key,
+    this.cursorOffset,
+    this.size = 200,
+    this.drunkLevel = 0,
+  });
 
   /// Cursor offset in the input field (null when not focused)
   final Offset? cursorOffset;
 
   /// Size of the character
   final double size;
+
+  /// Drunk level (0-100) for gradient body images
+  /// 0 = sober, 100 = very drunk
+  final int drunkLevel;
 
   @override
   State<SakuCharacter> createState() => _SakuCharacterState();
@@ -126,15 +136,18 @@ class _SakuCharacterState extends State<SakuCharacter>
 
   @override
   Widget build(BuildContext context) {
+    // Get body image path based on drunk level
+    final bodyImagePath = getBodyImagePath(widget.drunkLevel);
+
     return SizedBox(
       width: _animatedSize,
       height: _animatedSize,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Body
+          // Body (with gradient based on drunk level)
           Image.asset(
-            'assets/saku/body.png',
+            bodyImagePath,
             width: _animatedSize,
             height: _animatedSize,
             fit: BoxFit.contain,

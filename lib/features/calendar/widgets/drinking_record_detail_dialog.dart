@@ -1,5 +1,5 @@
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -261,38 +261,8 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
   /// 캐릭터 이미지 빌드 (취함 정도에 따라)
   Widget _buildCharacterImage(int drunkLevel) {
     const size = 120.0;
-    const eyesScale = 0.35;
 
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset(
-            getBodyImagePath(drunkLevel * 10),
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-          ),
-          Opacity(
-            opacity: _getEyesOpacity(drunkLevel),
-            child: Image.asset(
-              'assets/saku/eyes.png',
-              width: size * eyesScale,
-              height: size * eyesScale,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 취함 정도에 따른 눈의 투명도
-  double _getEyesOpacity(int drunkLevel) {
-    // drunkLevel이 높을수록 눈이 흐려짐
-    return 1.0 - (drunkLevel / 10.0).clamp(0.0, 0.8);
+    return SakuCharacter(size: size, drunkLevel: drunkLevel * 10);
   }
 
   /// 점선 구분선
