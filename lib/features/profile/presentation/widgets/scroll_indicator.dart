@@ -4,7 +4,8 @@ class AnimatedScrollIndicator extends StatefulWidget {
   const AnimatedScrollIndicator({super.key});
 
   @override
-  State<AnimatedScrollIndicator> createState() => _AnimatedScrollIndicatorState();
+  State<AnimatedScrollIndicator> createState() =>
+      _AnimatedScrollIndicatorState();
 }
 
 class _AnimatedScrollIndicatorState extends State<AnimatedScrollIndicator>
@@ -23,10 +24,7 @@ class _AnimatedScrollIndicatorState extends State<AnimatedScrollIndicator>
     _animation = Tween<double>(
       begin: 0.0,
       end: 10.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -48,11 +46,7 @@ class _AnimatedScrollIndicatorState extends State<AnimatedScrollIndicator>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.keyboard_arrow_up,
-            color: Colors.black,
-            size: 24,
-          ),
+          const Icon(Icons.keyboard_arrow_up, color: Colors.black, size: 24),
           const SizedBox(height: 4),
           Text(
             '올려서 나의 음주 기록 확인해보기',

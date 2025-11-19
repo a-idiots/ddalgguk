@@ -24,16 +24,36 @@ class SpeechBubble extends StatelessWidget {
     EdgeInsets padding;
     switch (tailPosition) {
       case TailPosition.bottom:
-        padding = const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 22);
+        padding = const EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 12,
+          bottom: 22,
+        );
         break;
       case TailPosition.right:
-        padding = const EdgeInsets.only(left: 20, right: 30, top: 12, bottom: 12);
+        padding = const EdgeInsets.only(
+          left: 20,
+          right: 30,
+          top: 12,
+          bottom: 12,
+        );
         break;
       case TailPosition.left:
-        padding = const EdgeInsets.only(left: 30, right: 20, top: 12, bottom: 12);
+        padding = const EdgeInsets.only(
+          left: 30,
+          right: 20,
+          top: 12,
+          bottom: 12,
+        );
         break;
       case TailPosition.top:
-        padding = const EdgeInsets.only(left: 20, right: 20, top: 22, bottom: 12);
+        padding = const EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 22,
+          bottom: 12,
+        );
         break;
     }
 

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ReportCardSection extends StatelessWidget {
-  const ReportCardSection({
-    super.key,
-    required this.onTap,
-  });
+  const ReportCardSection({super.key, required this.onTap});
 
   final VoidCallback onTap;
 
@@ -19,10 +16,7 @@ class ReportCardSection extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF27B7B),
-              Color(0xFFE35252),
-            ],
+            colors: [Color(0xFFF27B7B), Color(0xFFE35252)],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
@@ -45,7 +39,7 @@ class ReportCardSection extends StatelessWidget {
                   Text(
                     'Your',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       height: 1.2,
@@ -54,7 +48,7 @@ class ReportCardSection extends StatelessWidget {
                   Text(
                     'Report',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       height: 1.2,
@@ -69,8 +63,8 @@ class ReportCardSection extends StatelessWidget {
               right: 24,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                  horizontal: 12,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.25),
@@ -83,7 +77,7 @@ class ReportCardSection extends StatelessWidget {
                 child: const Text(
                   '음주 기록 한 눈에 보러가기',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
@@ -101,10 +95,13 @@ class ReportCardSection extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Icon(
-                  Icons.arrow_forward,
-                  color: Color(0xFFF27B7B),
-                  size: 24,
+                child: Transform.rotate(
+                  angle: -45 * 3.141 / 180, // -45도 = 반시계 방향
+                  child: const Icon(
+                    Icons.arrow_forward,
+                    color: Color(0xFFF27B7B),
+                    size: 24,
+                  ),
                 ),
               ),
             ),

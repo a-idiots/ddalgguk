@@ -33,7 +33,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   Future<bool> hasCompletedProfileSetup() async {
     try {
       final cachedUser = await SecureStorageService.instance.getUserCache();
-      if (cachedUser != null) { 
+      if (cachedUser != null) {
         return cachedUser.hasCompletedProfileSetup;
       }
 
@@ -126,18 +126,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             child: const LoginScreen(animate: true),
             transitionDuration: const Duration(milliseconds: 1200),
             reverseTransitionDuration: const Duration(milliseconds: 300),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return HeroControllerScope(
-                controller: HeroController(
-                  createRectTween: (begin, end) =>
-                      MaterialRectArcTween(begin: begin, end: end),
-                ),
-                child: _CircularRevealTransition(
-                  animation: animation,
-                  child: child,
-                ),
-              );
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return HeroControllerScope(
+                    controller: HeroController(
+                      createRectTween: (begin, end) =>
+                          MaterialRectArcTween(begin: begin, end: end),
+                    ),
+                    child: _CircularRevealTransition(
+                      animation: animation,
+                      child: child,
+                    ),
+                  );
+                },
           );
         },
       ),
@@ -161,10 +162,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 /// Helper class to make GoRouter refresh when things change
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(
-    Stream<dynamic> stream, {
-    Duration? initialKickDelay,
-  }) {
+  GoRouterRefreshStream(Stream<dynamic> stream, {Duration? initialKickDelay}) {
     // 인증 상태 변경 시 즉시 리프레시
     _subscription = stream.asBroadcastStream().listen(
       (dynamic _) => notifyListeners(),

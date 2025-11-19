@@ -5,10 +5,7 @@ import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 
 class WeeklySakuSection extends StatelessWidget {
-  const WeeklySakuSection({
-    super.key,
-    required this.weeklyStats,
-  });
+  const WeeklySakuSection({super.key, required this.weeklyStats});
 
   final WeeklyStats weeklyStats;
 
@@ -44,7 +41,8 @@ class _WeeklySakuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isToday = DateTime.now().day == date.day &&
+    final isToday =
+        DateTime.now().day == date.day &&
         DateTime.now().month == date.month &&
         DateTime.now().year == date.year;
 
@@ -69,10 +67,7 @@ class _WeeklySakuItem extends StatelessWidget {
             shape: BoxShape.circle,
             color: Colors.grey[100],
             border: isToday
-                ? Border.all(
-                    color: const Color(0xFFF27B7B),
-                    width: 2,
-                  )
+                ? Border.all(color: const Color(0xFFF27B7B), width: 2)
                 : null,
           ),
           child: ClipOval(
@@ -87,11 +82,7 @@ class _WeeklySakuItem extends StatelessWidget {
                       );
                     },
                   )
-                : Icon(
-                    Icons.check_circle,
-                    color: Colors.green[300],
-                    size: 24,
-                  ),
+                : Icon(Icons.check_circle, color: Colors.green[300], size: 24),
           ),
         ),
         const SizedBox(height: 4),

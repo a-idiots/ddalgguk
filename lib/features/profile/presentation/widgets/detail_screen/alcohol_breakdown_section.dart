@@ -5,10 +5,7 @@ import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.
 import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alcohol_break_chart/semicircular_chart.dart';
 
 class AlcoholBreakdownSection extends StatelessWidget {
-  const AlcoholBreakdownSection({
-    super.key,
-    required this.stats,
-  });
+  const AlcoholBreakdownSection({super.key, required this.stats});
 
   final ProfileStats stats;
 
@@ -35,10 +32,7 @@ class AlcoholBreakdownSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.grey[50],
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.grey[200]!,
-                width: 1,
-              ),
+              border: Border.all(color: Colors.grey[200]!, width: 1),
             ),
             child: Row(
               children: [

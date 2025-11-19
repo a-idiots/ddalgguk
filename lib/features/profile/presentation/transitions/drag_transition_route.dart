@@ -5,9 +5,7 @@ import 'package:ddalgguk/features/profile/presentation/profile_detail_screen.dar
 
 /// Custom PageRoute that allows drag-controlled transition
 class DragTransitionRoute extends PageRoute<void> {
-  DragTransitionRoute({
-    required this.transitionData,
-  });
+  DragTransitionRoute({required this.transitionData});
 
   final ProfileTransitionData transitionData;
 
@@ -93,7 +91,10 @@ class DragNavigationController {
       _dragDistance += details.delta.dy.abs();
     } else {
       // Reduce distance when dragging down
-      _dragDistance = (_dragDistance + details.delta.dy).clamp(0.0, double.infinity);
+      _dragDistance = (_dragDistance + details.delta.dy).clamp(
+        0.0,
+        double.infinity,
+      );
     }
   }
 
@@ -111,9 +112,9 @@ class DragNavigationController {
 
     if (shouldComplete) {
       _isNavigating = true;
-      await Navigator.of(context).push(
-        DragTransitionRoute(transitionData: transitionData),
-      );
+      await Navigator.of(
+        context,
+      ).push(DragTransitionRoute(transitionData: transitionData));
       _isNavigating = false;
     }
 

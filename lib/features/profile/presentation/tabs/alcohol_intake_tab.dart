@@ -61,10 +61,7 @@ class AlcoholIntakeTab extends ConsumerWidget {
                     const SizedBox(height: 4),
                     const Text(
                       'This week',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -73,10 +70,7 @@ class AlcoholIntakeTab extends ConsumerWidget {
               // Bar chart
               const Text(
                 '주간 음주량',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -84,7 +78,11 @@ class AlcoholIntakeTab extends ConsumerWidget {
                 child: BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
-                    maxY: _calculateMaxY(weeklyStats.dailyData.map((d) => d.drunkLevel.toDouble()).toList()),
+                    maxY: _calculateMaxY(
+                      weeklyStats.dailyData
+                          .map((d) => d.drunkLevel.toDouble())
+                          .toList(),
+                    ),
                     barGroups: _buildBarGroups(weeklyStats.dailyData),
                     titlesData: FlTitlesData(
                       show: true,
@@ -92,7 +90,15 @@ class AlcoholIntakeTab extends ConsumerWidget {
                         sideTitles: SideTitles(
                           showTitles: true,
                           getTitlesWidget: (value, meta) {
-                            final dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+                            final dayNames = [
+                              '월',
+                              '화',
+                              '수',
+                              '목',
+                              '금',
+                              '토',
+                              '일',
+                            ];
                             if (value.toInt() < dayNames.length) {
                               return Text(
                                 dayNames[value.toInt()],
@@ -127,7 +133,8 @@ class AlcoholIntakeTab extends ConsumerWidget {
                       icon: Icons.local_activity,
                       iconColor: const Color(0xFFF27B7B),
                       title: '총 음주량',
-                      value: '${weeklyStats.totalAlcoholMl.toStringAsFixed(0)} ml',
+                      value:
+                          '${weeklyStats.totalAlcoholMl.toStringAsFixed(0)} ml',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -136,7 +143,8 @@ class AlcoholIntakeTab extends ConsumerWidget {
                       icon: Icons.water_drop,
                       iconColor: const Color(0xFF52A3E3),
                       title: '순수 알코올',
-                      value: '${(weeklyStats.totalAlcoholMl * 0.789).toStringAsFixed(0)} g',
+                      value:
+                          '${(weeklyStats.totalAlcoholMl * 0.789).toStringAsFixed(0)} g',
                     ),
                   ),
                 ],
@@ -154,9 +162,8 @@ class AlcoholIntakeTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('Error loading data: $error'),
-      ),
+      error: (error, stack) =>
+          Center(child: Text('Error loading data: $error')),
     );
   }
 
@@ -181,7 +188,9 @@ class AlcoholIntakeTab extends ConsumerWidget {
               toY: hasRecords ? drunkLevel : 0,
               color: _getBarColor(dailyData[index].drunkLevel),
               width: 24,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(4),
+              ),
             ),
           ],
         );
@@ -237,13 +246,7 @@ class _StatCard extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(title, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
           const SizedBox(height: 4),
           Text(
             value,
@@ -257,10 +260,7 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle!,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
             ),
           ],
         ],

@@ -171,7 +171,9 @@ class _OnboardingProfileScreenState
     }
 
     if (_currentPage > 0) {
-      debugPrint('DEBUG: Going back from page $_currentPage to ${_currentPage - 1}');
+      debugPrint(
+        'DEBUG: Going back from page $_currentPage to ${_currentPage - 1}',
+      );
       setState(() {
         _currentPage--;
       });
@@ -197,9 +199,11 @@ class _OnboardingProfileScreenState
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = keyboardHeight > 100;
 
-    final isWhiteBg = (_pageController.hasClients
-      ? (_pageController.page ?? _currentPage.toDouble())
-      : _currentPage.toDouble()) >= 1.5;
+    final isWhiteBg =
+        (_pageController.hasClients
+            ? (_pageController.page ?? _currentPage.toDouble())
+            : _currentPage.toDouble()) >=
+        1.5;
 
     final backIconColor = isWhiteBg ? Colors.black87 : Colors.white;
 

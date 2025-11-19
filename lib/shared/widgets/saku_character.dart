@@ -49,13 +49,10 @@ class _SakuCharacterState extends State<SakuCharacter>
       duration: const Duration(milliseconds: 200),
     );
 
-    _sizeAnimation = Tween<double>(
-      begin: widget.size,
-      end: widget.size,
-    ).animate(CurvedAnimation(
-      parent: _sizeController,
-      curve: Curves.easeInOut,
-    ));
+    _sizeAnimation = Tween<double>(begin: widget.size, end: widget.size)
+        .animate(
+          CurvedAnimation(parent: _sizeController, curve: Curves.easeInOut),
+        );
 
     _sizeAnimation.addListener(() {
       setState(() {
@@ -76,13 +73,9 @@ class _SakuCharacterState extends State<SakuCharacter>
   }
 
   void _updateSize(double oldSize) {
-    _sizeAnimation = Tween<double>(
-      begin: oldSize,
-      end: widget.size,
-    ).animate(CurvedAnimation(
-      parent: _sizeController,
-      curve: Curves.easeInOut,
-    ));
+    _sizeAnimation = Tween<double>(begin: oldSize, end: widget.size).animate(
+      CurvedAnimation(parent: _sizeController, curve: Curves.easeInOut),
+    );
 
     _sizeController.reset();
     _sizeController.forward();

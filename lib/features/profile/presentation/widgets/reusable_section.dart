@@ -73,13 +73,7 @@ class SectionSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 14,
-        color: color,
-      ),
-    );
+    return Text(text, style: TextStyle(fontSize: 14, color: color));
   }
 }
 
@@ -104,10 +98,7 @@ class SectionSubtitleButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFFFF0F0),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: const Color(0xFFF27B7B),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFF27B7B), width: 1),
         ),
         child: Text(
           text,

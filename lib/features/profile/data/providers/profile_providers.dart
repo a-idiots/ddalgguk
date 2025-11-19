@@ -30,7 +30,10 @@ final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
 });
 
 /// Monthly spending provider
-final monthlySpendingProvider = FutureProvider.family<int, DateTime>((ref, date) async {
+final monthlySpendingProvider = FutureProvider.family<int, DateTime>((
+  ref,
+  date,
+) async {
   final service = ref.watch(profileStatsServiceProvider);
   return service.calculateMonthlySpending(date.year, date.month);
 });

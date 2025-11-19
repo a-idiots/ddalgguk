@@ -4,10 +4,7 @@ import 'package:ddalgguk/features/profile/presentation/tabs/spending_tab.dart';
 import 'package:ddalgguk/features/profile/presentation/tabs/recap_tab.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({
-    super.key,
-    this.onBack,
-  });
+  const AnalyticsScreen({super.key, this.onBack});
 
   final VoidCallback? onBack;
 

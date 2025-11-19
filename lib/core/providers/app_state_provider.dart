@@ -13,10 +13,7 @@ class AppState {
   /// Whether the user just logged in (to skip splash screen)
   final bool justLoggedIn;
 
-  AppState copyWith({
-    bool? splashAnimationCompleted,
-    bool? justLoggedIn,
-  }) {
+  AppState copyWith({bool? splashAnimationCompleted, bool? justLoggedIn}) {
     return AppState(
       splashAnimationCompleted:
           splashAnimationCompleted ?? this.splashAnimationCompleted,

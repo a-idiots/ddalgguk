@@ -34,10 +34,7 @@ class SpendingTab extends ConsumerWidget {
                   children: [
                     const Text(
                       '이번 달은 지난 달보다',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     const SizedBox(height: 8),
                     RichText(
@@ -68,10 +65,7 @@ class SpendingTab extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       '(총 견적 기준)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -120,10 +114,7 @@ class SpendingTab extends ConsumerWidget {
           // Recent transactions
           const Text(
             '리스트',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           monthRecordsAsync.when(
@@ -204,10 +195,7 @@ class _TransactionItem extends StatelessWidget {
               ),
               Text(
                 DateFormat('M/d').format(date),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -248,10 +236,7 @@ class _TransactionItem extends StatelessWidget {
                 ),
                 Text(
                   '취음정도 ${drunkLevel * 10}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),

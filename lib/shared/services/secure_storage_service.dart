@@ -75,7 +75,9 @@ class SecureStorageService {
   Future<void> saveUserCache(AppUser user) async {
     final json = user.toJson();
     debugPrint('SecureStorage: Saving user cache');
-    debugPrint('  - hasCompletedProfileSetup: ${json['hasCompletedProfileSetup']}');
+    debugPrint(
+      '  - hasCompletedProfileSetup: ${json['hasCompletedProfileSetup']}',
+    );
     debugPrint('  - name: ${json['name']}');
     debugPrint('  - id: ${json['id']}');
     final jsonString = jsonEncode(json);

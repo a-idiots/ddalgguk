@@ -21,7 +21,8 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToAnalytics;
 
   @override
-  ConsumerState<ProfileDetailScreen> createState() => _ProfileDetailScreenState();
+  ConsumerState<ProfileDetailScreen> createState() =>
+      _ProfileDetailScreenState();
 }
 
 class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
@@ -80,9 +81,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     return currentUserAsync.when(
       data: (user) {
         if (user == null) {
-          return const Scaffold(
-            body: Center(child: Text('Please log in')),
-          );
+          return const Scaffold(body: Center(child: Text('Please log in')));
         }
 
         return currentStatsAsync.when(
@@ -112,9 +111,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             const SizedBox(height: 8),
                             // Section 2-1: Weekly Saku
                             weeklyStatsAsync.when(
-                              data: (weeklyStats) => WeeklySakuSection(
-                                weeklyStats: weeklyStats,
-                              ),
+                              data: (weeklyStats) =>
+                                  WeeklySakuSection(weeklyStats: weeklyStats),
                               loading: () => const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
@@ -139,9 +137,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Section 2-3: Alcohol Breakdown
-                            AlcoholBreakdownSection(
-                              stats: currentStats,
-                            ),
+                            AlcoholBreakdownSection(stats: currentStats),
                             const SizedBox(height: 8),
                             // Section 2-4: Report Card
                             ReportCardSection(
@@ -151,7 +147,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                                 } else {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => const AnalyticsScreen(),
+                                      builder: (context) =>
+                                          const AnalyticsScreen(),
                                     ),
                                   );
                                 }
@@ -167,24 +164,17 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
               ),
             );
           },
-          loading: () => const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
           error: (error, stack) => Scaffold(
-            body: Center(
-              child: Text('Error loading profile: $error'),
-            ),
+            body: Center(child: Text('Error loading profile: $error')),
           ),
         );
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Scaffold(
-        body: Center(
-          child: Text('Error: $error'),
-        ),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) =>
+          Scaffold(body: Center(child: Text('Error: $error'))),
     );
   }
 }

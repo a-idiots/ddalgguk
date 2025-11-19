@@ -44,7 +44,7 @@ class ProfileGradientBackground extends StatelessWidget {
       ];
     } else {
       // Red/Pink gradient for high drunk level (matches original design)
-      return const [        
+      return const [
         Color(0xFFFFFFFF),
         AppColors.primaryPink, // Pink
       ];

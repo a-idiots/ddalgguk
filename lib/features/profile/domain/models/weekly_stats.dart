@@ -73,11 +73,7 @@ class DailySakuData {
   final int drunkLevel; // 0-100
   final bool hasRecords;
 
-  DailySakuData copyWith({
-    DateTime? date,
-    int? drunkLevel,
-    bool? hasRecords,
-  }) {
+  DailySakuData copyWith({DateTime? date, int? drunkLevel, bool? hasRecords}) {
     return DailySakuData(
       date: date ?? this.date,
       drunkLevel: drunkLevel ?? this.drunkLevel,

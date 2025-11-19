@@ -35,10 +35,7 @@ class RecapTab extends ConsumerWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          const Color(0xFFFFF0F0),
-                          Colors.pink[50]!,
-                        ],
+                        colors: [const Color(0xFFFFF0F0), Colors.pink[50]!],
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -106,7 +103,8 @@ class RecapTab extends ConsumerWidget {
                       Expanded(
                         child: _SummaryCard(
                           label: '만취',
-                          value: '${_countHighDrunkDays(weeklyStats.dailyData)}번',
+                          value:
+                              '${_countHighDrunkDays(weeklyStats.dailyData)}번',
                           color: const Color(0xFFF27B7B),
                         ),
                       ),
@@ -150,8 +148,9 @@ class RecapTab extends ConsumerWidget {
           // This week achievements
           achievementsAsync.when(
             data: (achievements) {
-              final unlockedAchievements =
-                  achievements.where((a) => a.isUnlocked).toList();
+              final unlockedAchievements = achievements
+                  .where((a) => a.isUnlocked)
+                  .toList();
 
               if (unlockedAchievements.isEmpty) {
                 return const SizedBox.shrink();
@@ -163,10 +162,7 @@ class RecapTab extends ConsumerWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFFFF0F0),
-                      Color(0xFFFFE5E5),
-                    ],
+                    colors: [Color(0xFFFFF0F0), Color(0xFFFFE5E5)],
                   ),
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -183,10 +179,7 @@ class RecapTab extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       '${now.month}월 한주 부근 1개',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 16),
                     Wrap(
@@ -253,10 +246,7 @@ class RecapTab extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       '${now.month}월 가장 자리 부근 1개',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -328,10 +318,7 @@ class RecapTab extends ConsumerWidget {
                 const SizedBox(height: 12),
                 const Text(
                   '건이 되돌려지지 않는데도 술을 마셔요',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -418,10 +405,7 @@ class _SummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

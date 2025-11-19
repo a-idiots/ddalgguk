@@ -59,14 +59,11 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
                 width: 20,
                 placeholderBuilder: (context) => const SizedBox.shrink(),
               ),
-              Expanded(child: 
-                Text(
+              Expanded(
+                child: Text(
                   buttonText,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: fontWeight,
-                  ),
+                  style: TextStyle(fontSize: fontSize, fontWeight: fontWeight),
                 ),
               ),
             ],

@@ -3,10 +3,7 @@ import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
 
 class AchievementsSection extends StatelessWidget {
-  const AchievementsSection({
-    super.key,
-    required this.achievements,
-  });
+  const AchievementsSection({super.key, required this.achievements});
 
   final List<Achievement> achievements;
 
@@ -37,9 +34,7 @@ class AchievementsSection extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -47,10 +42,7 @@ class AchievementsSection extends StatelessWidget {
             children: [
               const Text(
                 '나의 업적',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Flexible(
@@ -85,10 +77,7 @@ class AchievementsSection extends StatelessWidget {
 }
 
 class _AchievementCard extends StatelessWidget {
-  const _AchievementCard({
-    required this.achievement,
-    this.compact = true,
-  });
+  const _AchievementCard({required this.achievement, this.compact = true});
 
   final Achievement achievement;
   final bool compact;
@@ -123,7 +112,9 @@ class _AchievementCard extends StatelessWidget {
               boxShadow: [
                 if (!isLocked)
                   BoxShadow(
-                    color: _getAchievementGradient(achievement.type)[0].withValues(alpha: 0.3),
+                    color: _getAchievementGradient(
+                      achievement.type,
+                    )[0].withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

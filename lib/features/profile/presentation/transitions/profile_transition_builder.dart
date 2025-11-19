@@ -28,7 +28,9 @@ class ProfileTransitionBuilder extends StatelessWidget {
         final sakuSize = _calculateSakuSize(progress);
         final gradientOpacity = _calculateGradientOpacity(progress);
         final bgColor = _calculateBackgroundColor(context, progress);
-        final scrollIndicatorOpacity = _calculateScrollIndicatorOpacity(progress);
+        final scrollIndicatorOpacity = _calculateScrollIndicatorOpacity(
+          progress,
+        );
         final centerInfoOpacity = _calculateCenterInfoOpacity(progress);
         final badgeOpacity = _calculateBadgeOpacity(progress);
         final statusMessageOpacity = _calculateStatusMessageOpacity(progress);
@@ -74,8 +76,8 @@ class ProfileTransitionBuilder extends StatelessWidget {
                             children: [
                               Text(
                                 transitionData.user.name ??
-                                transitionData.user.displayName ??
-                                'User',
+                                    transitionData.user.displayName ??
+                                    'User',
                                 style: const TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
@@ -169,10 +171,7 @@ class ProfileTransitionBuilder extends StatelessWidget {
 
               // Detail screen content (fades in)
               if (detailContentOpacity > 0.01)
-                Opacity(
-                  opacity: detailContentOpacity,
-                  child: child!,
-                ),
+                Opacity(opacity: detailContentOpacity, child: child!),
             ],
           ),
         );
@@ -207,9 +206,7 @@ class ProfileTransitionBuilder extends StatelessWidget {
           shape: BoxShape.circle,
           color: Colors.grey[100],
         ),
-        child: ClipOval(
-          child: sakuImage,
-        ),
+        child: ClipOval(child: sakuImage),
       );
     }
 

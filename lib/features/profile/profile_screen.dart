@@ -42,13 +42,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (details.delta.dy < 0) {
         _dragDistance += details.delta.dy.abs();
       } else {
-        _dragDistance = (_dragDistance - details.delta.dy).clamp(0.0, double.infinity);
+        _dragDistance = (_dragDistance - details.delta.dy).clamp(
+          0.0,
+          double.infinity,
+        );
       }
     });
   }
 
   void _handleVerticalDragEnd(DragEndDetails details) {
-    if (!_isDragging) { 
+    if (!_isDragging) {
       return;
     }
 
@@ -99,9 +102,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           onNavigateToAnalytics: _handleNavigateToAnalytics,
         );
       case _ProfileView.analytics:
-        return AnalyticsScreen(
-          onBack: _handleBackToDetail,
-        );
+        return AnalyticsScreen(onBack: _handleBackToDetail);
       case _ProfileView.main:
         break;
     }
@@ -175,13 +176,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       ],
                                     ],
                                   ),
-                                )
+                                ),
                               ],
                             ),
                             const Spacer(flex: 1),
                             // Saku character image
                             SakuCharacter(size: 150),
-                            
+
                             const Spacer(flex: 2),
                           ],
                         ),

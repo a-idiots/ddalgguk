@@ -41,10 +41,7 @@ class ProfileHeader extends StatelessWidget {
                 ),
                 Text(
                   '@$userId',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -64,11 +61,7 @@ class ProfileHeader extends StatelessWidget {
           const SizedBox(width: 12),
 
           // Saku character on the left
-          SizedBox(
-            width: 60,
-            height: 60,
-            child: SakuCharacter(size: 60),
-          ),
+          SizedBox(width: 60, height: 60, child: SakuCharacter(size: 60)),
         ],
       ),
     );
