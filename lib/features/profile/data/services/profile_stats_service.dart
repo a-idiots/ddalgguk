@@ -151,7 +151,7 @@ class ProfileStatsService {
       );
 
       return ProfileStats(
-        currentDrunkLevel: (latestRecord.drunkLevel * 10).clamp(0, 100), // Convert 0-10 to 0-100
+        thisMonthDrunkDays: (latestRecord.drunkLevel * 10).clamp(0, 100), // Convert 0-10 to 0-100
         currentAlcoholInBody: alcoholRemaining,
         timeToSober: timeToSober,
         statusMessage: statusMessage,

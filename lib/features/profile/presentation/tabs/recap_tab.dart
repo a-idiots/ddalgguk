@@ -44,7 +44,7 @@ class RecapTab extends ConsumerWidget {
                     ),
                     child: Center(
                       child: Image.asset(
-                        getBodyImagePath(stats.currentDrunkLevel),
+                        getBodyImagePath(stats.thisMonthDrunkDays),
                         width: 120,
                         height: 120,
                         fit: BoxFit.contain,
@@ -80,7 +80,7 @@ class RecapTab extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '평균적으로 술자리에서 ${_getDrunkLevelText(stats.currentDrunkLevel)}% 취기를 유지세요',
+                      '평균적으로 술자리에서 ${_getDrunkLevelText(stats.thisMonthDrunkDays)}% 취기를 유지세요',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFFF27B7B),

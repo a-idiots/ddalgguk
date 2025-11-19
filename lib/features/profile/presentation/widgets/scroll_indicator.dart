@@ -49,17 +49,17 @@ class _AnimatedScrollIndicatorState extends State<AnimatedScrollIndicator>
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
-            Icons.keyboard_arrow_down,
-            color: Colors.white,
-            size: 32,
+            Icons.keyboard_arrow_up,
+            color: Colors.black,
+            size: 24,
           ),
           const SizedBox(height: 4),
           Text(
-            'Swipe up',
+            '올려서 나의 음주 기록 확인해보기',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: Colors.black,
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

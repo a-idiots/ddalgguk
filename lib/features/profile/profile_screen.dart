@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/presentation/profile_detail_screen.dart';
 import 'package:ddalgguk/features/profile/presentation/analytics_screen.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/scroll_indicator.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -111,15 +115,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         return currentStatsAsync.when(
           data: (stats) {
-            final drunkLevel = stats.currentDrunkLevel;
-            final sakuImagePath = getBodyImagePath(drunkLevel);
+            final thisMonthDrunkDays = stats.thisMonthDrunkDays;
+            final sakuImagePath = getBodyImagePath(thisMonthDrunkDays);
 
             return GestureDetector(
               onVerticalDragStart: _handleVerticalDragStart,
               onVerticalDragUpdate: _handleVerticalDragUpdate,
               onVerticalDragEnd: _handleVerticalDragEnd,
               child: ProfileGradientBackground(
-                drunkenDays: drunkLevel,
+                drunkenDays: thisMonthDrunkDays,
                 child: SafeArea(
                   child: Stack(
                     children: [
@@ -128,83 +132,61 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Spacer(flex: 2),
+                            const Spacer(flex: 1),
                             // User info and status at top
                             Column(
                               children: [
                                 Text(
                                   user.name ?? 'User',
                                   style: const TextStyle(
-                                    fontSize: 32,
+                                    fontSize: 26,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: Colors.black,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '@${user.id ?? 'username'}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                // Drunk level percentage
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.25),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    '$drunkLevel%',
+                                const SizedBox(height: 4),
+                                RichText(
+                                  text: TextSpan(
                                     style: const TextStyle(
-                                      fontSize: 28,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: Colors.black,
                                     ),
+                                    children: [
+                                      const TextSpan(text: '이번 달 '),
+                                      if (thisMonthDrunkDays == 0) ...[
+                                        TextSpan(
+                                          text: '$thisMonthDrunkDays일째',
+                                          style: const TextStyle(
+                                            color: AppColors.secondaryGreen,
+                                          ),
+                                        ),
+                                        const TextSpan(text: ' 금주 중이네요!'),
+                                      ] else ...[
+                                        TextSpan(
+                                          text: '$thisMonthDrunkDays번째',
+                                          style: const TextStyle(
+                                            color: AppColors.secondaryPink,
+                                          ),
+                                        ),
+                                        const TextSpan(text: ' 음주네요!'),
+                                      ],
+                                    ],
                                   ),
-                                ),
+                                )
                               ],
                             ),
-                            const SizedBox(height: 40),
+                            const Spacer(flex: 1),
                             // Saku character image
-                            Image.asset(
-                              sakuImagePath,
-                              height: 200,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/saku/body.png',
-                                  height: 200,
-                                  fit: BoxFit.contain,
-                                );
-                              },
-                            ),
+                            SakuCharacter(size: 150),
+                            
                             const Spacer(flex: 2),
-                            // Status message
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 32),
-                              child: Text(
-                                stats.statusMessage,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
                           ],
                         ),
                       ),
                       // Scroll indicator at bottom
                       const Positioned(
-                        bottom: 40,
+                        bottom: 50,
                         left: 0,
                         right: 0,
                         child: AnimatedScrollIndicator(),

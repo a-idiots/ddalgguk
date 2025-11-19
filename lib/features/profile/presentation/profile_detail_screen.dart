@@ -120,7 +120,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                       collapsedHeight: 70,
                       flexibleSpace: ProfileHeader(
                         user: user,
-                        drunkLevel: currentStats.currentDrunkLevel,
+                        drunkLevel: currentStats.thisMonthDrunkDays,
                         isExpanded: _isHeaderExpanded,
                       ),
                       automaticallyImplyLeading: false,

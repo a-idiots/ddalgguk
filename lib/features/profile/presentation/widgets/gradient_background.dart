@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ddalgguk/core/constants/app_colors.dart';
 
 class ProfileGradientBackground extends StatelessWidget {
   const ProfileGradientBackground({
@@ -25,7 +26,7 @@ class ProfileGradientBackground extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: colors,
-          stops: const [0.0, 0.85],
+          stops: const [0.0, 0.67, 1.0],
         ),
       ),
       child: child,
@@ -36,14 +37,16 @@ class ProfileGradientBackground extends StatelessWidget {
     if (days == 0) {
       // Green gradient for low/sober state
       return const [
-        Color(0xFFFFFFFF), // Light green
-        Color(0xFFD3FBE8), // Green
+        Color(0xFFFFFFFF),
+        Color(0xFFFFFFFF),
+        AppColors.primaryGreen, // Green
       ];
     } else {
       // Red/Pink gradient for high drunk level (matches original design)
-      return const [
-        Color(0xFFFFA3A3), // Light pink/red
-        Color(0xFFE35252), // Red
+      return const [        
+        Color(0xFFFFFFFF),
+        Color(0xFFFFFFFF),
+        AppColors.primaryPink, // Pink
       ];
     }
   }

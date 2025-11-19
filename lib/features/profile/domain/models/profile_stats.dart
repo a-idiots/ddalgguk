@@ -1,12 +1,12 @@
 class ProfileStats {
-  final int currentDrunkLevel; // 0-100
+  final int thisMonthDrunkDays; // 0-100
   final double currentAlcoholInBody; // in grams
   final double timeToSober; // in hours
   final String statusMessage;
   final AlcoholBreakdown breakdown;
 
   const ProfileStats({
-    required this.currentDrunkLevel,
+    required this.thisMonthDrunkDays,
     required this.currentAlcoholInBody,
     required this.timeToSober,
     required this.statusMessage,
@@ -15,7 +15,7 @@ class ProfileStats {
 
   factory ProfileStats.empty() {
     return ProfileStats(
-      currentDrunkLevel: 0,
+      thisMonthDrunkDays: 0,
       currentAlcoholInBody: 0,
       timeToSober: 0,
       statusMessage: '건강한 상태입니다',
@@ -31,7 +31,7 @@ class ProfileStats {
     AlcoholBreakdown? breakdown,
   }) {
     return ProfileStats(
-      currentDrunkLevel: currentDrunkLevel ?? this.currentDrunkLevel,
+      thisMonthDrunkDays: currentDrunkLevel ?? this.thisMonthDrunkDays,
       currentAlcoholInBody: currentAlcoholInBody ?? this.currentAlcoholInBody,
       timeToSober: timeToSober ?? this.timeToSober,
       statusMessage: statusMessage ?? this.statusMessage,
