@@ -1,4 +1,5 @@
 import 'package:ddalgguk/core/constants/storage_keys.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 
 /// Application user model
 class AppUser {
@@ -15,7 +16,9 @@ class AppUser {
     this.goal,
     this.favoriteDrink,
     this.maxAlcohol,
+
     this.hasCompletedProfileSetup = false,
+    this.badges = const [],
   });
 
   /// Create AppUser from Firebase User
@@ -62,6 +65,11 @@ class AppUser {
           : null,
       hasCompletedProfileSetup:
           json['hasCompletedProfileSetup'] as bool? ?? false,
+      badges: json['badges'] != null
+          ? (json['badges'] as List)
+                .map((e) => Badge.fromJson(e as Map<String, dynamic>))
+                .toList()
+          : const [],
     );
   }
 
@@ -80,7 +88,9 @@ class AppUser {
   goal; // true = 즐거운 음주 (enjoyable drinking), false = 건강한 금주 (healthy abstinence)
   final List<int>? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
   final double? maxAlcohol; // Maximum alcohol consumption
+
   final bool hasCompletedProfileSetup; // Whether profile setup is completed
+  final List<Badge> badges;
 
   /// Convert AppUser to JSON (for Firestore)
   Map<String, dynamic> toJson() {
@@ -98,6 +108,7 @@ class AppUser {
       'favoriteDrink': favoriteDrink,
       'maxAlcohol': maxAlcohol,
       'hasCompletedProfileSetup': hasCompletedProfileSetup,
+      'badges': badges.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -115,7 +126,9 @@ class AppUser {
     bool? goal,
     List<int>? favoriteDrink,
     double? maxAlcohol,
+
     bool? hasCompletedProfileSetup,
+    List<Badge>? badges,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -132,6 +145,7 @@ class AppUser {
       maxAlcohol: maxAlcohol ?? this.maxAlcohol,
       hasCompletedProfileSetup:
           hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
+      badges: badges ?? this.badges,
     );
   }
 
@@ -159,7 +173,8 @@ class AppUser {
         other.goal == goal &&
         _listEquals(other.favoriteDrink, favoriteDrink) &&
         other.maxAlcohol == maxAlcohol &&
-        other.hasCompletedProfileSetup == hasCompletedProfileSetup;
+        other.hasCompletedProfileSetup == hasCompletedProfileSetup &&
+        _listEquals(other.badges, badges);
   }
 
   @override
@@ -176,7 +191,8 @@ class AppUser {
         goal.hashCode ^
         favoriteDrink.hashCode ^
         maxAlcohol.hashCode ^
-        hasCompletedProfileSetup.hashCode;
+        hasCompletedProfileSetup.hashCode ^
+        badges.hashCode;
   }
 
   /// Helper method to compare lists

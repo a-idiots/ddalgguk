@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart';
+import 'package:ddalgguk/features/profile/domain/models/badge_data.dart';
 import 'package:ddalgguk/features/calendar/calendar_screen.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
@@ -14,7 +17,7 @@ class RecapTab extends ConsumerWidget {
     final now = DateTime.now();
     final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
-    final achievementsAsync = ref.watch(achievementsProvider);
+    final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(monthRecordsProvider(now));
 
     return SingleChildScrollView(
@@ -146,13 +149,16 @@ class RecapTab extends ConsumerWidget {
           ),
           const SizedBox(height: 32),
           // This week achievements
-          achievementsAsync.when(
-            data: (achievements) {
-              final unlockedAchievements = achievements
-                  .where((a) => a.isUnlocked)
-                  .toList();
+          // This week achievements
+          currentUserAsync.when(
+            data: (user) {
+              if (user == null) return const SizedBox.shrink();
 
-              if (unlockedAchievements.isEmpty) {
+              final badges = List<Badge>.from(user.badges);
+              // Sort by date descending (newest first)
+              badges.sort((a, b) => b.achievedDay.compareTo(a.achievedDay));
+
+              if (badges.isEmpty) {
                 return const SizedBox.shrink();
               }
 
@@ -178,14 +184,20 @@ class RecapTab extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${now.month}월 한주 부근 1개',
+                      '${now.month}월 한주 부근 ${badges.length}개',
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 16),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
-                      children: unlockedAchievements.take(3).map((achievement) {
+                      children: badges.take(3).map((badge) {
+                        final badgeData = badge.group == 'drinking'
+                            ? drinkingBadges[badge.idx]
+                            : sobrietyBadges[badge.idx];
+
+                        if (badgeData == null) return const SizedBox.shrink();
+
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -196,7 +208,7 @@ class RecapTab extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
-                            achievement.title,
+                            badgeData.title,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,

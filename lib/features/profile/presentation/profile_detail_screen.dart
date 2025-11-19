@@ -78,7 +78,6 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     final currentUserAsync = ref.watch(currentUserProvider);
     final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
-    final achievementsAsync = ref.watch(achievementsProvider);
 
     return currentUserAsync.when(
       data: (user) {
@@ -125,19 +124,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Section 2-2: Achievements
-                            achievementsAsync.when(
-                              data: (achievements) => AchievementsSection(
-                                achievements: achievements,
-                                theme: theme,
-                              ),
-                              loading: () => const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(32.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              error: (error, stack) => const SizedBox.shrink(),
-                            ),
+                            // Section 2-2: Achievements
+                            AchievementsSection(theme: theme),
                             const SizedBox(height: 8),
                             // Section 2-3: Alcohol Breakdown
                             AlcoholBreakdownSection(

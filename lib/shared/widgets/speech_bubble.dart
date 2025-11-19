@@ -95,8 +95,15 @@ class _BubblePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final path = Path();
-    final tailWidth = 20.0;
-    final tailHeight = 10.0;
+    double tailWidth = 20.0;
+    double tailHeight = 10.0;
+
+    // Reduce tail size for side positions
+    if (tailPosition == TailPosition.left ||
+        tailPosition == TailPosition.right) {
+      tailWidth *= 0.6;
+      tailHeight *= 0.8;
+    }
 
     // Main bubble rectangle with rounded corners (size adjusted based on tail position)
     RRect rect;
@@ -110,13 +117,13 @@ class _BubblePainter extends CustomPainter {
       case TailPosition.right:
         rect = RRect.fromRectAndRadius(
           Rect.fromLTWH(0, 0, size.width - tailHeight, size.height),
-          const Radius.circular(20),
+          const Radius.circular(10),
         );
         break;
       case TailPosition.left:
         rect = RRect.fromRectAndRadius(
           Rect.fromLTWH(tailHeight, 0, size.width - tailHeight, size.height),
-          const Radius.circular(20),
+          const Radius.circular(10),
         );
         break;
       case TailPosition.top:
