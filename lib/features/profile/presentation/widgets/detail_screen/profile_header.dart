@@ -1,3 +1,4 @@
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
@@ -42,7 +43,6 @@ class ProfileHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
                 Text(
                   '@${user.id ?? 'username'}',
                   style: TextStyle(
@@ -61,20 +61,13 @@ class ProfileHeader extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             width: sakuSize,
             height: sakuSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[100],
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                getBodyImagePath(drunkLevel),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/saku/body.png',
-                    fit: BoxFit.cover,
-                  );
-                },
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: ClipOval(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SakuCharacter(size: sakuSize),
+                ),
               ),
             ),
           ),

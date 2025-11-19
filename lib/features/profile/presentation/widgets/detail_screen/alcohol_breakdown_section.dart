@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/semicircular_chart.dart';
+import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alcohol_break_chart/semicircular_chart.dart';
 
 class AlcoholBreakdownSection extends StatelessWidget {
   const AlcoholBreakdownSection({

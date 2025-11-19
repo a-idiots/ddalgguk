@@ -4,10 +4,11 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/presentation/analytics_screen.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/profile_header.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/weekly_saku_section.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/achievements_section.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/alcohol_breakdown_section.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/report_card_section.dart';
+import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/weekly_saku_section.dart';
+import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/achievements_section.dart';
+import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alcohol_breakdown_section.dart';
+import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/report_card_section.dart';
+import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
 
 class ProfileDetailScreen extends ConsumerStatefulWidget {
   const ProfileDetailScreen({
@@ -104,83 +105,87 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
         return currentStatsAsync.when(
           data: (currentStats) {
             return Scaffold(
-              backgroundColor: Colors.grey[50],
-              body: SafeArea(
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: _handleScrollNotification,
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      // Sticky Header
-                      SliverAppBar(
-                        pinned: true,
-                        backgroundColor: Colors.white,
-                        elevation: 2,
-                        expandedHeight: 100,
-                        collapsedHeight: 70,
-                        flexibleSpace: ProfileHeader(
-                          user: user,
-                          drunkLevel: currentStats.thisMonthDrunkDays,
-                          isExpanded: _isHeaderExpanded,
+              backgroundColor: Colors.transparent,
+              body: ProfileGradientBackground(
+                drunkenDays: currentStats.thisMonthDrunkDays,
+                reversed: true,
+                child: SafeArea(
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: _handleScrollNotification,
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        // Sticky Header
+                        SliverAppBar(
+                          pinned: true,
+                          backgroundColor: Colors.white,
+                          elevation: 2,
+                          expandedHeight: 100,
+                          collapsedHeight: 70,
+                          flexibleSpace: ProfileHeader(
+                            user: user,
+                            drunkLevel: currentStats.thisMonthDrunkDays,
+                            isExpanded: _isHeaderExpanded,
+                          ),
+                          automaticallyImplyLeading: false,
                         ),
-                        automaticallyImplyLeading: false,
-                      ),
-                      // Content
-                      SliverList(
-                        delegate: SliverChildListDelegate([
-                          const SizedBox(height: 16),
-                          // Section 2-1: Weekly Saku
-                          weeklyStatsAsync.when(
-                            data: (weeklyStats) => WeeklySakuSection(
-                              weeklyStats: weeklyStats,
-                            ),
-                            loading: () => const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32.0),
-                                child: CircularProgressIndicator(),
+                        // Content
+                        SliverList(
+                          delegate: SliverChildListDelegate([
+                            const SizedBox(height: 16),
+                            // Section 2-1: Weekly Saku
+                            weeklyStatsAsync.when(
+                              data: (weeklyStats) => WeeklySakuSection(
+                                weeklyStats: weeklyStats,
                               ),
-                            ),
-                            error: (error, stack) => const SizedBox.shrink(),
-                          ),
-                          const SizedBox(height: 8),
-                          // Section 2-2: Achievements
-                          achievementsAsync.when(
-                            data: (achievements) => AchievementsSection(
-                              achievements: achievements,
-                            ),
-                            loading: () => const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32.0),
-                                child: CircularProgressIndicator(),
+                              loading: () => const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(),
+                                ),
                               ),
+                              error: (error, stack) => const SizedBox.shrink(),
                             ),
-                            error: (error, stack) => const SizedBox.shrink(),
-                          ),
-                          const SizedBox(height: 8),
-                          // Section 2-3: Alcohol Breakdown
-                          AlcoholBreakdownSection(
-                            stats: currentStats,
-                          ),
-                          const SizedBox(height: 8),
-                          // Section 2-4: Report Card
-                          ReportCardSection(
-                            onTap: () {
-                              if (widget.onNavigateToAnalytics != null) {
-                                widget.onNavigateToAnalytics!();
-                              } else {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const AnalyticsScreen(),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 32),
-                        ]),
-                      ),
-                    ],
+                            const SizedBox(height: 8),
+                            // Section 2-2: Achievements
+                            achievementsAsync.when(
+                              data: (achievements) => AchievementsSection(
+                                achievements: achievements,
+                              ),
+                              loading: () => const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                              error: (error, stack) => const SizedBox.shrink(),
+                            ),
+                            const SizedBox(height: 8),
+                            // Section 2-3: Alcohol Breakdown
+                            AlcoholBreakdownSection(
+                              stats: currentStats,
+                            ),
+                            const SizedBox(height: 8),
+                            // Section 2-4: Report Card
+                            ReportCardSection(
+                              onTap: () {
+                                if (widget.onNavigateToAnalytics != null) {
+                                  widget.onNavigateToAnalytics!();
+                                } else {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const AnalyticsScreen(),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                          ]),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

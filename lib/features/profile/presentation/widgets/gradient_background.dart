@@ -6,10 +6,12 @@ class ProfileGradientBackground extends StatelessWidget {
     super.key,
     required this.drunkenDays,
     required this.child,
+    this.reversed = false,
   });
 
   final int drunkenDays; // >=0
   final Widget child;
+  final bool reversed; // If true, gradient goes from bottom to top
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +25,10 @@ class ProfileGradientBackground extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: colors,
-          stops: const [0.0, 0.67, 1.0],
+          begin: reversed ? Alignment.bottomCenter : Alignment.topCenter,
+          end: reversed ? Alignment.topCenter : Alignment.bottomCenter,
+          colors: reversed ? colors : [Color(0xFFFFFFFF)] + colors,
+          stops: reversed ? const [0.0, 1.0] : const [0.0, 0.67, 1.0],
         ),
       ),
       child: child,
@@ -38,13 +40,11 @@ class ProfileGradientBackground extends StatelessWidget {
       // Green gradient for low/sober state
       return const [
         Color(0xFFFFFFFF),
-        Color(0xFFFFFFFF),
         AppColors.primaryGreen, // Green
       ];
     } else {
       // Red/Pink gradient for high drunk level (matches original design)
       return const [        
-        Color(0xFFFFFFFF),
         Color(0xFFFFFFFF),
         AppColors.primaryPink, // Pink
       ];
