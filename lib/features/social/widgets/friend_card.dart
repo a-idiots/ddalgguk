@@ -13,8 +13,9 @@ class FriendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final drunkLevel = friend.displayDrunkLevel;
-    final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
+    final drunkLevel = friend.displayDrunkLevel; // 0-10 range
+    final drunkLevelPercent = drunkLevel * 10; // Convert to 0-100 range
+    final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevelPercent);
     final status = friend.displayStatus;
 
     // 마지막 음주 이후 일수 계산
@@ -59,7 +60,7 @@ class FriendCard extends StatelessWidget {
                         builder: (context, constraints) {
                           return SakuCharacter(
                             size: constraints.maxHeight,
-                            drunkLevel: drunkLevel,
+                            drunkLevel: drunkLevelPercent,
                           );
                         },
                       ),
