@@ -17,6 +17,16 @@ class Friend {
   /// Firestore에서 불러오기
   factory Friend.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
+
+    // lastDrinkDate가 있으면 실시간으로 daysSince 계산
+    final lastDrinkDate = data['lastDrinkDate'] != null
+        ? (data['lastDrinkDate'] as Timestamp).toDate()
+        : null;
+
+    final daysSinceLastDrink = lastDrinkDate != null
+        ? DateTime.now().difference(lastDrinkDate).inDays
+        : null;
+
     return Friend(
       userId: data['userId'] as String,
       name: data['name'] as String,
@@ -28,10 +38,8 @@ class Friend {
             )
           : null,
       currentDrunkLevel: data['currentDrunkLevel'] as int?,
-      lastDrinkDate: data['lastDrinkDate'] != null
-          ? (data['lastDrinkDate'] as Timestamp).toDate()
-          : null,
-      daysSinceLastDrink: data['daysSinceLastDrink'] as int?,
+      lastDrinkDate: lastDrinkDate,
+      daysSinceLastDrink: daysSinceLastDrink,
     );
   }
 

@@ -261,6 +261,19 @@ class FriendService {
 
       final currentUser = _auth.currentUser!;
 
+      // lastDrinkDate가 있으면 실시간으로 daysSince 계산
+      final lastDrinkDate = data['lastDrinkDate'] != null
+          ? (data['lastDrinkDate'] as Timestamp).toDate()
+          : null;
+
+      final daysSinceLastDrink = lastDrinkDate != null
+          ? DateTime.now().difference(lastDrinkDate).inDays
+          : null;
+
+      debugPrint('lastDrinkDate from Firestore: $lastDrinkDate');
+      debugPrint('Calculated daysSinceLastDrink: $daysSinceLastDrink');
+      debugPrint('daysSinceLastDrink from Firestore: ${data['daysSinceLastDrink']}');
+
       final profile = Friend(
         userId: _currentUserId!,
         name: data['name'] as String? ?? currentUser.displayName ?? 'Me',
@@ -272,13 +285,11 @@ class FriendService {
               )
             : null,
         currentDrunkLevel: data['currentDrunkLevel'] as int?,
-        lastDrinkDate: data['lastDrinkDate'] != null
-            ? (data['lastDrinkDate'] as Timestamp).toDate()
-            : null,
-        daysSinceLastDrink: data['daysSinceLastDrink'] as int?,
+        lastDrinkDate: lastDrinkDate,
+        daysSinceLastDrink: daysSinceLastDrink,
       );
 
-      debugPrint('✅ My profile loaded: ${profile.name}, drunkLevel: ${profile.currentDrunkLevel}');
+      debugPrint('✅ My profile loaded: ${profile.name}, drunkLevel: ${profile.currentDrunkLevel}, daysSince: ${profile.daysSinceLastDrink}');
       return profile;
     } catch (e) {
       debugPrint('❌ Error getting my profile: $e');
@@ -402,6 +413,11 @@ class FriendService {
       debugPrint('=== sendFriendRequest ===');
       debugPrint('From: $_currentUserId (${currentUser.displayName})');
       debugPrint('To: $toUserId ($toUserName)');
+
+      // 자기 자신에게 요청 보내는지 확인
+      if (toUserId == _currentUserId) {
+        throw Exception('자기 자신에게는 친구 신청을 보낼 수 없습니다');
+      }
 
       // 이미 친구인지 확인
       final alreadyFriends = await isFriend(toUserId);
