@@ -28,43 +28,64 @@ class AchievementsSection extends ConsumerWidget {
         return ProfileSection(
           title: '나의 업적',
           titleOutside: true,
-          subtitle: SectionSubtitleButton(
-            text: '더 많은 뱃지 확인하기',
+          subtitle: GestureDetector(
             onTap: () {
               _showAllAchievements(context, user.badges);
             },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.secondaryGreen.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                '더 많은 뱃지 확인하기',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.secondaryGreen.withValues(alpha: 1),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ),
-          content: SizedBox(
-            height: 130,
-            child: badges.isEmpty
-                ? const Center(
-                    child: Text(
-                      '아직 획득한 뱃지가 없습니다.',
-                      style: TextStyle(color: Colors.grey),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: SizedBox(
+              height: 110,
+              child: badges.isEmpty
+                  ? const Center(
+                      child: Text(
+                        '아직 획득한 뱃지가 없습니다.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: badges.length,
+                      itemBuilder: (context, index) {
+                        final badge = badges[index];
+                        final badgeData = badge.group == 'drinking'
+                            ? drinkingBadges[badge.idx]
+                            : sobrietyBadges[badge.idx];
+
+                        if (badgeData == null) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: AchievementItem(
+                            data: badgeData,
+                            isUnlocked: true,
+                          ),
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: badges.length,
-                    itemBuilder: (context, index) {
-                      final badge = badges[index];
-                      final badgeData = badge.group == 'drinking'
-                          ? drinkingBadges[badge.idx]
-                          : sobrietyBadges[badge.idx];
-
-                      if (badgeData == null) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: AchievementItem(
-                          data: badgeData,
-                          isUnlocked: true,
-                        ),
-                      );
-                    },
-                  ),
+            ),
           ),
         );
       },
@@ -80,11 +101,12 @@ class AchievementsSection extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -92,12 +114,22 @@ class AchievementsSection extends ConsumerWidget {
                 alignment: Alignment.center,
                 children: [
                   const SizedBox(width: double.infinity),
-                  const Text(
-                    '음주 뱃지',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFE53935),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 2,
+                      horizontal: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFDA4444)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      '음주 뱃지',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFFDA4444),
+                      ),
                     ),
                   ),
                   Positioned(
@@ -109,28 +141,28 @@ class AchievementsSection extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               _buildBadgeGrid(drinkingBadges, userBadges, 'drinking'),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 24,
+                  vertical: 2,
+                  horizontal: 12,
                 ),
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF33B366)),
-                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF11BC6A)),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text(
                   '금주 뱃지',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF33B366),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF11BC6A),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               _buildBadgeGrid(sobrietyBadges, userBadges, 'sobriety'),
             ],
           ),
@@ -150,7 +182,6 @@ class AchievementsSection extends ConsumerWidget {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         crossAxisSpacing: 8,
-        mainAxisSpacing: 16,
         childAspectRatio: 0.65,
       ),
       itemCount: badgeMap.length,
@@ -198,20 +229,20 @@ class AchievementItem extends StatelessWidget {
           data.title,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: compact ? 11 : 12,
+            fontSize: compact ? 10 : 11,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
           maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          overflow: TextOverflow.visible,
         ),
         const SizedBox(height: 2),
         Text(
           data.subtitle,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: compact ? 9 : 10, color: Colors.grey[600]),
+          style: TextStyle(fontSize: compact ? 8 : 9, color: Colors.grey[600]),
           maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          overflow: TextOverflow.visible,
         ),
       ],
     );
@@ -234,6 +265,11 @@ class AchievementIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if text1 is 2 characters
+    final bool isTwoChars = text1.length == 2;
+    // If text2 is present, we force standard size for text1 to match text2
+    final bool hasSubtitle = text2 != null;
+
     return Container(
       width: size,
       height: size,
@@ -246,8 +282,14 @@ class AchievementIcon extends StatelessWidget {
               text1,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: size * 0.22,
-                fontWeight: FontWeight.w500,
+                // Use large font only if 2 chars AND no subtitle
+                fontSize: (isTwoChars && !hasSubtitle)
+                    ? size * 0.4
+                    : size * 0.3,
+                fontWeight: (isTwoChars && !hasSubtitle)
+                    ? FontWeight.w300
+                    : FontWeight.w400,
+                height: 1.0,
               ),
             ),
             if (text2 != null)
@@ -255,8 +297,8 @@ class AchievementIcon extends StatelessWidget {
                 text2!,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: size * 0.22,
-                  fontWeight: FontWeight.w500,
+                  fontSize: size * 0.3,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
           ],

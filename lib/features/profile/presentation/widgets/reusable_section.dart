@@ -126,39 +126,3 @@ class SectionSubtitle extends StatelessWidget {
     return Text(text, style: TextStyle(fontSize: 14, color: color));
   }
 }
-
-/// Subtitle button widget
-class SectionSubtitleButton extends StatelessWidget {
-  const SectionSubtitleButton({
-    super.key,
-    required this.text,
-    required this.onTap,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFF0F0),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFF27B7B), width: 1),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFFF27B7B),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-}
