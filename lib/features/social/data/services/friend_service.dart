@@ -355,13 +355,21 @@ class FriendService {
       // 이미 친구인지 확인
       final alreadyFriends = await isFriend(toUserId);
       if (alreadyFriends) {
-        throw Exception('Already friends with this user');
+        throw Exception('이미 친구로 등록된 사용자입니다');
       }
 
-      // 이미 요청을 보냈는지 확인 (임시로 주석 처리)
-      // Rules 문제로 인해 다른 사용자의 friendRequests를 읽을 수 없음
-      // 대신 Firestore에서 중복 시도 시 자동으로 처리됨
-      debugPrint('Skipping duplicate request check due to permission limitations');
+      // 이미 요청을 보냈는지 확인
+      final existingRequest = await _firestore
+          .collection('users')
+          .doc(toUserId)
+          .collection('friendRequests')
+          .where('fromUserId', isEqualTo: _currentUserId)
+          .where('status', isEqualTo: FriendRequestStatus.pending.name)
+          .get();
+
+      if (existingRequest.docs.isNotEmpty) {
+        throw Exception('이미 친구 신청을 보낸 유저입니다');
+      }
 
       // 상대방의 friendRequests 컬렉션에 요청 추가
       final request = {

@@ -61,9 +61,11 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
       }
     } catch (e) {
       if (mounted) {
+        // Exception 메시지만 추출
+        final errorMessage = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('오류: $e')));
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } finally {
       if (mounted) {
@@ -117,9 +119,11 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
       }
     } catch (e) {
       if (mounted) {
+        // Exception 메시지만 추출
+        final errorMessage = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('오류: $e')));
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } finally {
       if (mounted) {
