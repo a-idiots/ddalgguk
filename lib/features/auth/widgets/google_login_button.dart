@@ -20,7 +20,7 @@ class GoogleLoginButton extends BaseSocialLoginButton {
 
   @override
   BorderSide? get borderSide =>
-    BorderSide(color: Colors.grey.shade300, width: 1);
+      BorderSide(color: Colors.grey.shade300, width: 1);
 
   @override
   String get buttonText => '구글로 로그인';

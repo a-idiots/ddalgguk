@@ -143,10 +143,7 @@ class _InfoInputPageState extends State<InfoInputPage> {
                     padding: const EdgeInsets.only(left: 18),
                     child: Text(
                       '@',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
                     ),
                   ),
 
@@ -171,7 +168,9 @@ class _InfoInputPageState extends State<InfoInputPage> {
                       // 🔥 placeholder가 너무 왼쪽에 붙지 않도록 padding 삽입
                       // prefix 바로 옆에서 시작하되 내부 여백은 유지
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: widget.inputType == InfoInputType.id ? 0 : 24,
+                        horizontal: widget.inputType == InfoInputType.id
+                            ? 0
+                            : 24,
                         vertical: 16,
                       ),
 

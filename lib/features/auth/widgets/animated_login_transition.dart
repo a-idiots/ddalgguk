@@ -14,15 +14,18 @@ Widget logoFlightShuttleBuilder(
     builder: (context, child) {
       final size = Tween<double>(begin: 180, end: 100).evaluate(animation);
       final imageSize = Tween<double>(begin: 140, end: 80).evaluate(animation);
-      final borderRadius = Tween<double>(begin: 90, end: 24).evaluate(animation);
+      final borderRadius = Tween<double>(
+        begin: 90,
+        end: 24,
+      ).evaluate(animation);
 
       // 그라디언트는 25~60% 구간에서 서서히 활성화
       final t = animation.value;
       final gradientOpacity = t < 0.25
           ? 0.0
           : t > 0.6
-              ? 1.0
-              : (t - 0.25) / 0.35;
+          ? 1.0
+          : (t - 0.25) / 0.35;
 
       final startColor = Color.lerp(
         const Color(0xFFEA6B6B),
@@ -50,17 +53,17 @@ Widget logoFlightShuttleBuilder(
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
               blurRadius: Tween<double>(begin: 20, end: 10).evaluate(animation),
-              offset: Offset(0, Tween<double>(begin: 8, end: 4).evaluate(animation)),
+              offset: Offset(
+                0,
+                Tween<double>(begin: 8, end: 4).evaluate(animation),
+              ),
             ),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           child: Center(
-            child: Image.asset(
-              'assets/logo.png',
-              width: imageSize,
-            ),
+            child: Image.asset('assets/logo.png', width: imageSize),
           ),
         ),
       );
@@ -80,7 +83,8 @@ class AnimatedLoginTransition extends StatefulWidget {
   final bool animate;
 
   @override
-  State<AnimatedLoginTransition> createState() => _AnimatedLoginTransitionState();
+  State<AnimatedLoginTransition> createState() =>
+      _AnimatedLoginTransitionState();
 }
 
 class _AnimatedLoginTransitionState extends State<AnimatedLoginTransition>
@@ -119,12 +123,13 @@ class _AnimatedLoginTransitionState extends State<AnimatedLoginTransition>
       ),
     );
 
-    _logoPosition = Tween<Offset>(begin: Offset.zero, end: const Offset(0, -0.6)).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.33, 0.67, curve: Curves.easeInOut),
-      ),
-    );
+    _logoPosition =
+        Tween<Offset>(begin: Offset.zero, end: const Offset(0, -0.6)).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.33, 0.67, curve: Curves.easeInOut),
+          ),
+        );
 
     // Buttons fade-in: 70~100% 구간에서 순차 등장 (카카오 → 구글 → 애플)
     _kakaoButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -147,7 +152,9 @@ class _AnimatedLoginTransitionState extends State<AnimatedLoginTransition>
     );
 
     if (widget.animate) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _controller.forward());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _controller.forward(),
+      );
     } else {
       _controller.value = 1.0;
     }
@@ -161,7 +168,7 @@ class _AnimatedLoginTransitionState extends State<AnimatedLoginTransition>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.animate) { 
+    if (!widget.animate) {
       return widget.child;
     }
 
@@ -199,8 +206,9 @@ class LoginTransitionAnimations extends InheritedWidget {
   final Animation<double> appleButtonFade;
 
   static LoginTransitionAnimations? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<LoginTransitionAnimations>();
-    }
+    return context
+        .dependOnInheritedWidgetOfExactType<LoginTransitionAnimations>();
+  }
 
   @override
   bool updateShouldNotify(LoginTransitionAnimations oldWidget) => true;

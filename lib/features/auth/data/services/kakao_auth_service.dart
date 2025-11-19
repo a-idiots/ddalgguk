@@ -8,6 +8,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 /// Handles Kakao Sign-In operations and exchanges Kakao tokens for Firebase custom tokens
 class KakaoAuthService {
   final String _authServerUrl = dotenv.env['AUTH_SERVER_URL'] ?? '';
+
   /// Sign in with Kakao
   /// Returns Firebase custom token after exchanging Kakao access token
   Future<String> signInWithKakao() async {
@@ -16,7 +17,8 @@ class KakaoAuthService {
       final String kakaoAccessToken = await _getKakaoAccessToken();
 
       // Step 2: Exchange Kakao token for Firebase custom token
-      final String firebaseCustomToken = await _exchangeKakaoTokenForFirebaseToken(kakaoAccessToken);
+      final String firebaseCustomToken =
+          await _exchangeKakaoTokenForFirebaseToken(kakaoAccessToken);
 
       return firebaseCustomToken;
     } catch (e) {
@@ -56,7 +58,9 @@ class KakaoAuthService {
   }
 
   /// Exchange Kakao access token for Firebase custom token via Auth Server
-  Future<String> _exchangeKakaoTokenForFirebaseToken(String kakaoAccessToken) async {
+  Future<String> _exchangeKakaoTokenForFirebaseToken(
+    String kakaoAccessToken,
+  ) async {
     try {
       if (_authServerUrl.isEmpty) {
         throw Exception('AUTH_SERVER_URL is not configured in .env file');
@@ -66,20 +70,19 @@ class KakaoAuthService {
       final Uri url = Uri.parse('$_authServerUrl/auth/kakao');
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'kakaoAccessToken': kakaoAccessToken,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'kakaoAccessToken': kakaoAccessToken}),
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Auth server returned status ${response.statusCode}: ${response.body}');
+        throw Exception(
+          'Auth server returned status ${response.statusCode}: ${response.body}',
+        );
       }
 
       // Parse response
-      final Map<String, dynamic> responseData = jsonDecode(response.body) as Map<String, dynamic>;
+      final Map<String, dynamic> responseData =
+          jsonDecode(response.body) as Map<String, dynamic>;
       final String? customToken = responseData['customToken'] as String?;
 
       if (customToken == null) {

@@ -9,10 +9,7 @@ import 'package:ddalgguk/features/auth/widgets/animated_login_transition.dart';
 
 /// Login Screen with social login options
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({
-    super.key,
-    this.animate = true,
-  });
+  const LoginScreen({super.key, this.animate = true});
 
   final bool animate;
 
@@ -206,10 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFFFF8080),
-                              Color(0xFFDA4444),
-                            ],
+                            colors: [Color(0xFFFF8080), Color(0xFFDA4444)],
                           ),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
@@ -223,10 +217,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(24),
                           child: Center(
-                            child: Image.asset(
-                              'assets/logo.png',
-                              width: 80,
-                            ),
+                            child: Image.asset('assets/logo.png', width: 80),
                           ),
                         ),
                       ),

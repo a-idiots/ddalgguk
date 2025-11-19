@@ -475,7 +475,8 @@ class _NonLinearSlider extends StatelessWidget {
             // 실제 사용 가능한 트랙 너비 (padding 제외)
             final trackWidth = constraints.maxWidth;
             // Thumb의 중심 위치 (thumbRadius ~ trackWidth - thumbRadius 범위)
-            final thumbCenterPosition = thumbRadius + (trackWidth - 2 * thumbRadius) * visualPosition;
+            final thumbCenterPosition =
+                thumbRadius + (trackWidth - 2 * thumbRadius) * visualPosition;
 
             return Stack(
               alignment: Alignment.centerLeft,
