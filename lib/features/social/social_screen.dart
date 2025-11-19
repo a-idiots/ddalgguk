@@ -46,7 +46,6 @@ class SocialScreen extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: const DailyStatusFAB(),
     );
   }
 
@@ -234,25 +233,6 @@ class SocialScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// 플로팅 액션 버튼 - 일일 상태 추가
-class DailyStatusFAB extends ConsumerWidget {
-  const DailyStatusFAB({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return FloatingActionButton(
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (context) => const DailyStatusDialog(),
-        );
-      },
-      backgroundColor: AppColors.primaryPink,
-      child: const Icon(Icons.edit, color: Colors.white),
     );
   }
 }
