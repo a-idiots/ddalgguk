@@ -8,10 +8,25 @@ final friendServiceProvider = Provider<FriendService>((ref) {
   return FriendService();
 });
 
-/// 친구 목록 프로바이더 (탭 로드 시에만 fetch)
+/// 친구 목록 프로바이더 (나 + 친구들)
 final friendsProvider = FutureProvider.autoDispose<List<Friend>>((ref) async {
   final friendService = ref.watch(friendServiceProvider);
-  return friendService.getFriends();
+
+  // 나의 프로필과 친구 목록을 동시에 가져오기
+  final results = await Future.wait([
+    friendService.getMyProfile(),
+    friendService.getFriends(),
+  ]);
+
+  final myProfile = results[0] as Friend?;
+  final friends = results[1] as List<Friend>;
+
+  // 나를 첫 번째로, 나머지 친구들을 뒤에 배치
+  if (myProfile != null) {
+    return [myProfile, ...friends];
+  }
+
+  return friends;
 });
 
 /// 받은 친구 요청 프로바이더 (필요할 때만 fetch)

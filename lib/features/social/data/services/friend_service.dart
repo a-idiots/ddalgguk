@@ -235,6 +235,57 @@ class FriendService {
     return null;
   }
 
+  // ==================== 나의 프로필 ====================
+
+  /// 나의 프로필을 Friend 형식으로 가져오기
+  Future<Friend?> getMyProfile() async {
+    debugPrint('=== getMyProfile ===');
+    debugPrint('Current User ID: $_currentUserId');
+
+    if (_currentUserId == null) {
+      debugPrint('❌ User not authenticated');
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      final doc = await _firestore.collection('users').doc(_currentUserId).get();
+      debugPrint('Document exists: ${doc.exists}');
+
+      if (!doc.exists) {
+        debugPrint('❌ User document does not exist');
+        return null;
+      }
+
+      final data = doc.data()!;
+      debugPrint('User data: $data');
+
+      final currentUser = _auth.currentUser!;
+
+      final profile = Friend(
+        userId: _currentUserId!,
+        name: data['name'] as String? ?? currentUser.displayName ?? 'Me',
+        photoURL: data['photoURL'] as String? ?? currentUser.photoURL,
+        createdAt: DateTime.now(),
+        dailyStatus: data['dailyStatus'] != null
+            ? DailyStatus.fromFirestore(
+                data['dailyStatus'] as Map<String, dynamic>,
+              )
+            : null,
+        currentDrunkLevel: data['currentDrunkLevel'] as int?,
+        lastDrinkDate: data['lastDrinkDate'] != null
+            ? (data['lastDrinkDate'] as Timestamp).toDate()
+            : null,
+        daysSinceLastDrink: data['daysSinceLastDrink'] as int?,
+      );
+
+      debugPrint('✅ My profile loaded: ${profile.name}, drunkLevel: ${profile.currentDrunkLevel}');
+      return profile;
+    } catch (e) {
+      debugPrint('❌ Error getting my profile: $e');
+      return null;
+    }
+  }
+
   // ==================== 음주 데이터 ====================
 
   /// 나의 음주 데이터 업데이트
