@@ -248,7 +248,10 @@ class FriendService {
     }
 
     try {
-      final doc = await _firestore.collection('users').doc(_currentUserId).get();
+      final doc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       debugPrint('Document exists: ${doc.exists}');
 
       if (!doc.exists) {
@@ -272,7 +275,9 @@ class FriendService {
 
       debugPrint('lastDrinkDate from Firestore: $lastDrinkDate');
       debugPrint('Calculated daysSinceLastDrink: $daysSinceLastDrink');
-      debugPrint('daysSinceLastDrink from Firestore: ${data['daysSinceLastDrink']}');
+      debugPrint(
+        'daysSinceLastDrink from Firestore: ${data['daysSinceLastDrink']}',
+      );
 
       final profile = Friend(
         userId: _currentUserId!,
@@ -289,7 +294,9 @@ class FriendService {
         daysSinceLastDrink: daysSinceLastDrink,
       );
 
-      debugPrint('✅ My profile loaded: ${profile.name}, drunkLevel: ${profile.currentDrunkLevel}, daysSince: ${profile.daysSinceLastDrink}');
+      debugPrint(
+        '✅ My profile loaded: ${profile.name}, drunkLevel: ${profile.currentDrunkLevel}, daysSince: ${profile.daysSinceLastDrink}',
+      );
       return profile;
     } catch (e) {
       debugPrint('❌ Error getting my profile: $e');
@@ -574,7 +581,10 @@ class FriendService {
   }
 
   /// ID prefix로 사용자 목록 검색 (자동완성용)
-  Future<List<AppUser>> searchUsersByIdPrefix(String prefix, {int limit = 10}) async {
+  Future<List<AppUser>> searchUsersByIdPrefix(
+    String prefix, {
+    int limit = 10,
+  }) async {
     if (prefix.isEmpty) {
       return [];
     }
@@ -582,7 +592,8 @@ class FriendService {
     try {
       // Firestore의 범위 쿼리를 사용하여 prefix 검색
       // prefix로 시작하는 모든 문서를 찾기 위해 '>=' 와 '<' 사용
-      final String endPrefix = prefix.substring(0, prefix.length - 1) +
+      final String endPrefix =
+          prefix.substring(0, prefix.length - 1) +
           String.fromCharCode(prefix.codeUnitAt(prefix.length - 1) + 1);
 
       final snapshot = await _firestore
@@ -601,22 +612,24 @@ class FriendService {
           continue;
         }
 
-        users.add(AppUser(
-          uid: doc.id,
-          email: data['email'] as String?,
-          displayName: data['name'] as String?,
-          photoURL: data['photoURL'] as String?,
-          provider:
-              LoginProvider.fromString(data['provider'] as String?) ??
-              LoginProvider.google,
-          createdAt: data['createdAt'] != null
-              ? DateTime.parse(data['createdAt'] as String)
-              : DateTime.now(),
-          hasCompletedProfileSetup:
-              data['hasCompletedProfileSetup'] as bool? ?? false,
-          id: data['id'] as String?,
-          name: data['name'] as String?,
-        ));
+        users.add(
+          AppUser(
+            uid: doc.id,
+            email: data['email'] as String?,
+            displayName: data['name'] as String?,
+            photoURL: data['photoURL'] as String?,
+            provider:
+                LoginProvider.fromString(data['provider'] as String?) ??
+                LoginProvider.google,
+            createdAt: data['createdAt'] != null
+                ? DateTime.parse(data['createdAt'] as String)
+                : DateTime.now(),
+            hasCompletedProfileSetup:
+                data['hasCompletedProfileSetup'] as bool? ?? false,
+            id: data['id'] as String?,
+            name: data['name'] as String?,
+          ),
+        );
       }
 
       return users;

@@ -62,7 +62,10 @@ class FriendCard extends StatelessWidget {
                           // 캐릭터 바디
                           Image.asset(bodyImagePath, fit: BoxFit.contain),
                           // 눈 오버레이
-                          Image.asset('assets/saku/eyes.png', fit: BoxFit.contain),
+                          Image.asset(
+                            'assets/saku/eyes.png',
+                            fit: BoxFit.contain,
+                          ),
                         ],
                       ),
                     ),
@@ -70,10 +73,16 @@ class FriendCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   // 최근 음주 정보
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     child: Text(
                       daysSinceText,
-                      style: const TextStyle(fontSize: 9, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Colors.black54,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

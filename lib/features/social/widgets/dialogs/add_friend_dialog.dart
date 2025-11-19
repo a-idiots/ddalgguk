@@ -107,7 +107,10 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
     try {
       final friendService = ref.read(friendServiceProvider);
-      final users = await friendService.searchUsersByIdPrefix(prefix, limit: 10);
+      final users = await friendService.searchUsersByIdPrefix(
+        prefix,
+        limit: 10,
+      );
 
       if (mounted) {
         setState(() {
@@ -332,10 +335,8 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                         shrinkWrap: true,
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         itemCount: _suggestions.length,
-                        separatorBuilder: (context, index) => Divider(
-                          height: 1,
-                          color: Colors.grey[200],
-                        ),
+                        separatorBuilder: (context, index) =>
+                            Divider(height: 1, color: Colors.grey[200]),
                         itemBuilder: (context, index) {
                           final user = _suggestions[index];
                           return ListTile(
@@ -343,7 +344,9 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                             onTap: () => _selectSuggestion(user),
                             leading: CircleAvatar(
                               radius: 16,
-                              backgroundColor: AppColors.primaryPink.withValues(alpha: 0.2),
+                              backgroundColor: AppColors.primaryPink.withValues(
+                                alpha: 0.2,
+                              ),
                               child: Text(
                                 (user.id ?? '@')[0].toUpperCase(),
                                 style: TextStyle(
