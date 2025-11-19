@@ -41,7 +41,7 @@ class FriendCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // 상태 메시지 말풍선
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: SpeechBubble(
                       text: status,
                       backgroundColor: Colors.white,
@@ -54,7 +54,7 @@ class FriendCard extends StatelessWidget {
                   // 캐릭터 이미지
                   Expanded(
                     child: FractionallySizedBox(
-                      widthFactor: 0.75,
+                      widthFactor: 0.95,
                       heightFactor: 0.75,
                       child: Stack(
                         alignment: Alignment.center,

@@ -120,11 +120,11 @@ class SocialScreen extends ConsumerWidget {
       onRefresh: () => _onRefresh(ref),
       color: AppColors.primaryPink,
       child: GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 3열
           childAspectRatio: 0.58, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
-          crossAxisSpacing: 10,
+          crossAxisSpacing: 4, // 카드 간 간격 최소화
           mainAxisSpacing: 16,
         ),
         itemCount: friends.length,
