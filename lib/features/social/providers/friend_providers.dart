@@ -1,4 +1,4 @@
-import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/social/data/services/friend_service.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
@@ -7,11 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// FriendService 프로바이더
 final friendServiceProvider = Provider<FriendService>((ref) {
   return FriendService();
-});
-
-/// DrinkingRecordService 프로바이더
-final drinkingRecordServiceProvider = Provider<DrinkingRecordService>((ref) {
-  return DrinkingRecordService();
 });
 
 /// 특정 사용자의 어제 평균 음주 레벨 계산

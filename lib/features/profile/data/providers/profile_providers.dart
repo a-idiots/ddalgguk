@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ddalgguk/features/calendar/calendar_screen.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
@@ -44,10 +44,55 @@ final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
 });
 
 /// Monthly spending provider
-final monthlySpendingProvider = FutureProvider.family<int, DateTime>((
+/// Calculates total spending from monthly drinking records
+final monthlySpendingProvider = Provider.family<AsyncValue<int>, DateTime>((
   ref,
   date,
-) async {
-  final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateMonthlySpending(date.year, date.month);
+) {
+  final recordsAsync = ref.watch(monthRecordsProvider(date));
+  return recordsAsync.whenData((records) {
+    return records.fold<int>(0, (sum, record) => sum + record.cost);
+  });
 });
+
+/// Monthly spending comparison provider
+/// Returns the difference between previous month and current month spending
+/// Positive value means saved money (spent less than last month)
+/// Negative value means spent more (spent more than last month)
+final monthlySpendingComparisonProvider =
+    Provider.family<AsyncValue<int>, DateTime>((ref, date) {
+      final currentAsync = ref.watch(monthRecordsProvider(date));
+
+      // Calculate previous month correctly (handle January -> December)
+      final prevMonth = date.month == 1 ? 12 : date.month - 1;
+      final prevYear = date.month == 1 ? date.year - 1 : date.year;
+      final prevDate = DateTime(prevYear, prevMonth);
+
+      final prevAsync = ref.watch(monthRecordsProvider(prevDate));
+
+      if (currentAsync.isLoading || prevAsync.isLoading) {
+        return const AsyncValue.loading();
+      }
+
+      if (currentAsync.hasError) {
+        return AsyncValue.error(currentAsync.error!, currentAsync.stackTrace!);
+      }
+      if (prevAsync.hasError) {
+        return AsyncValue.error(prevAsync.error!, prevAsync.stackTrace!);
+      }
+
+      final currentSum =
+          currentAsync.valueOrNull?.fold<int>(
+            0,
+            (sum, record) => sum + record.cost,
+          ) ??
+          0;
+      final prevSum =
+          prevAsync.valueOrNull?.fold<int>(
+            0,
+            (sum, record) => sum + record.cost,
+          ) ??
+          0;
+
+      return AsyncValue.data(prevSum - currentSum);
+    });

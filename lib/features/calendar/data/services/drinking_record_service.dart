@@ -231,6 +231,12 @@ class DrinkingRecordService {
 
   /// 실시간 음주 기록 스트림 (특정 월)
   Stream<List<DrinkingRecord>> streamRecordsByMonth(int year, int month) {
+    // 사용자가 로그인하지 않았으면 빈 스트림 반환
+    if (_currentUserId == null) {
+      debugPrint('ERROR: User not logged in - returning empty stream');
+      return Stream.value([]);
+    }
+
     final startDate = DateTime(year, month, 1);
     final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
 
@@ -240,6 +246,9 @@ class DrinkingRecordService {
         .orderBy('date')
         .orderBy('sessionNumber')
         .snapshots()
+        .handleError((error) {
+          debugPrint('ERROR in streamRecordsByMonth: $error');
+        })
         .map(
           (snapshot) => snapshot.docs
               .map((doc) => DrinkingRecord.fromFirestore(doc))

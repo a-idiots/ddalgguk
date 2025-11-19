@@ -1,5 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/dialogs/add_record_dialog.dart';
 import 'package:ddalgguk/features/calendar/dialogs/edit_record_dialog.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
@@ -10,18 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-// Provider for DrinkingRecordService
-final drinkingRecordServiceProvider = Provider<DrinkingRecordService>((ref) {
-  return DrinkingRecordService();
-});
-
-// Provider for selected month's records
-final monthRecordsProvider =
-    StreamProvider.family<List<DrinkingRecord>, DateTime>((ref, date) {
-      final service = ref.watch(drinkingRecordServiceProvider);
-      return service.streamRecordsByMonth(date.year, date.month);
-    });
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});

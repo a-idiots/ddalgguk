@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/features/calendar/calendar_screen.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
@@ -53,11 +53,14 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   @override
   Widget build(BuildContext context) {
+    // Normalize DateTime to prevent infinite rebuilds
     final now = DateTime.now();
+    final normalizedDate = DateTime(now.year, now.month);
+
     final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
-    final monthRecordsAsync = ref.watch(monthRecordsProvider(now));
+    final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -261,7 +264,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   Widget _buildMaxSpendingCard(AsyncValue<List<DrinkingRecord>> recordsAsync) {
     return recordsAsync.when(
       data: (records) {
-        if (records.isEmpty) return _EmptyCard(label: '지갑 털린 날');
+        if (records.isEmpty) {
+          return _EmptyCard(label: '지갑 털린 날');
+        }
         final maxRecord = records.reduce(
           (curr, next) => curr.cost > next.cost ? curr : next,
         );
@@ -354,7 +359,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   Widget _buildMostDrunkCard(AsyncValue<List<DrinkingRecord>> recordsAsync) {
     return recordsAsync.when(
       data: (records) {
-        if (records.isEmpty) return _EmptyCard(label: '가장 취한 날');
+        if (records.isEmpty) {
+          return _EmptyCard(label: '가장 취한 날');
+        }
         final maxRecord = records.reduce(
           (curr, next) => curr.drunkLevel > next.drunkLevel ? curr : next,
         );
