@@ -40,9 +40,10 @@ class AppColors {
   };
 
   /// 술 레벨에 따른 배경색 반환
-  /// [drunkLevel] 0-10 사이의 술 레벨
+  /// [drunkLevel] 0-100 사이의 술 레벨 (혈중 알콜 농도%)
   /// 10단위로 반올림하여 색상 반환
   static Color getSakuBackgroundColor(int drunkLevel) {
+    // 0-100 범위를 10단위로 반올림 (예: 45 -> 40, 23 -> 20)
     final level = (drunkLevel ~/ 10) * 10;
     return sakuGradientColors[level] ?? sakuGradientColors[0]!;
   }

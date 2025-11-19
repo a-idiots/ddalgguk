@@ -126,6 +126,34 @@ class DrinkingRecordService {
     }
   }
 
+  /// 특정 사용자의 특정 날짜 음주 기록 가져오기
+  Future<List<DrinkingRecord>> getRecordsByDateForUser(
+    String userId,
+    DateTime date,
+  ) async {
+    try {
+      final dateStart = DateTime(date.year, date.month, date.day);
+      final dateEnd = dateStart.add(const Duration(days: 1));
+
+      final querySnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('drinkingRecords')
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+          .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+          .orderBy('date')
+          .orderBy('sessionNumber')
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => DrinkingRecord.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting records by date for user $userId: $e');
+      return []; // 에러 발생 시 빈 리스트 반환
+    }
+  }
+
   /// 특정 기간의 모든 음주 기록 가져오기
   Future<List<DrinkingRecord>> getRecordsByDateRange(
     DateTime startDate,

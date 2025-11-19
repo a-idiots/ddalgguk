@@ -15,45 +15,68 @@ class SocialScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final friendsAsync = ref.watch(friendsProvider);
     final hasFriendRequests = ref.watch(hasFriendRequestsProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final postboxSize = screenWidth / 3; // 화면 가로의 1/3
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 헤더
-            _buildHeader(context, ref, hasFriendRequests),
-            // 친구 목록
-            Expanded(
-              child: friendsAsync.when(
-                data: (friends) {
-                  // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
-                  if (friends.isEmpty) {
-                    return _buildEmptyStateWithRefresh(context, ref);
-                  }
-                  // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
-                  return _buildFriendsGridWithRefresh(ref, friends);
-                },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryPink,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
+                // 헤더 (우체통 아이콘 제거, 친구 추가 버튼만)
+                _buildHeader(context, ref),
+                // 친구 목록
+                Expanded(
+                  child: friendsAsync.when(
+                    data: (friends) {
+                      // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
+                      if (friends.isEmpty) {
+                        return _buildEmptyStateWithRefresh(context, ref);
+                      }
+                      // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
+                      return _buildFriendsGridWithRefresh(ref, friends);
+                    },
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryPink,
+                      ),
+                    ),
+                    error: (error, stack) =>
+                        _buildErrorStateWithRefresh(ref, error),
                   ),
                 ),
-                error: (error, stack) =>
-                    _buildErrorStateWithRefresh(ref, error),
+              ],
+            ),
+          ),
+          // 우체통 아이콘 - 네비게이션 바 바로 위 우측 하단
+          Positioned(
+            bottom: 0, // 네비게이션 바 바로 위
+            right: 0,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const PostboxScreen(),
+                  ),
+                );
+              },
+              child: Image.asset(
+                hasFriendRequests
+                    ? 'assets/socials/alarm_postbox.png'
+                    : 'assets/socials/empty_postbox.png',
+                width: postboxSize,
+                height: postboxSize,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context,
-    WidgetRef ref,
-    bool hasFriendRequests,
-  ) {
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -68,37 +91,15 @@ class SocialScreen extends ConsumerWidget {
               color: Colors.black,
             ),
           ),
-          Row(
-            children: [
-              // 우편함 아이콘 (친구 요청)
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const PostboxScreen(),
-                    ),
-                  );
-                },
-                child: Image.asset(
-                  hasFriendRequests
-                      ? 'assets/socials/alarm_postbox.png'
-                      : 'assets/socials/empty_postbox.png',
-                  width: 32,
-                  height: 32,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // 친구 추가 버튼
-              GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => const AddFriendDialog(),
-                  );
-                },
-                child: const Icon(Icons.add, size: 32, color: Colors.black),
-              ),
-            ],
+          // 친구 추가 버튼
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => const AddFriendDialog(),
+              );
+            },
+            child: const Icon(Icons.add, size: 32, color: Colors.black),
           ),
         ],
       ),
