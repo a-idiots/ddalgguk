@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/social/data/services/friend_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
@@ -9,11 +10,14 @@ class DrinkingRecordService {
   DrinkingRecordService({
     FirebaseFirestore? firestore,
     FirebaseAuth? firebaseAuth,
+    FriendService? friendService,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _auth = firebaseAuth ?? FirebaseAuth.instance;
+       _auth = firebaseAuth ?? FirebaseAuth.instance,
+       _friendService = friendService ?? FriendService();
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final FriendService _friendService;
 
   /// 현재 로그인한 사용자 ID 가져오기
   String? get _currentUserId => _auth.currentUser?.uid;
@@ -66,6 +70,19 @@ class DrinkingRecordService {
       );
       debugPrint('Created drinking record: ${docRef.id}');
       debugPrint('전체 경로: ${docRef.path}');
+
+      // 친구들에게 음주 데이터 업데이트
+      try {
+        await _friendService.updateMyDrinkingData(
+          drunkLevel: record.drunkLevel,
+          lastDrinkDate: record.date,
+        );
+        debugPrint('Updated friend drinking data');
+      } catch (e) {
+        // 친구 데이터 업데이트 실패해도 기록 생성은 성공으로 처리
+        debugPrint('Failed to update friend drinking data: $e');
+      }
+
       return docRef.id;
     } catch (e) {
       debugPrint('Error creating drinking record: $e');
