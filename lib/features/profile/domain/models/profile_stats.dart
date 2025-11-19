@@ -31,7 +31,7 @@ class ProfileStats {
     AlcoholBreakdown? breakdown,
   }) {
     return ProfileStats(
-      thisMonthDrunkDays: currentDrunkLevel ?? this.thisMonthDrunkDays,
+      thisMonthDrunkDays: currentDrunkLevel ?? thisMonthDrunkDays,
       currentAlcoholInBody: currentAlcoholInBody ?? this.currentAlcoholInBody,
       timeToSober: timeToSober ?? this.timeToSober,
       statusMessage: statusMessage ?? this.statusMessage,

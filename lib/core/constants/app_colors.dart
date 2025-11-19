@@ -21,4 +21,29 @@ class AppColors {
 
   /// 배경 흰색
   static const Color white = Colors.white;
+
+  /// Saku gradient 10 단계별 중간 색상
+  /// - 친구 카드 배경색으로 사용
+  /// - 술 레벨(0-100)에 따른 색상 매핑
+  static const Map<int, Color> sakuGradientColors = {
+    0: Color(0xFFF1FCEC), // Light green
+    10: Color(0xFFFFCDC2), // Light peach
+    20: Color(0xFFFBB5AB), // Peachy pink
+    30: Color(0xFFFBA99E), // Coral pink
+    40: Color(0xFFFF978C), // Salmon
+    50: Color(0xFFFF93B3), // Pink
+    60: Color(0xFFE6B5FF), // Light purple
+    70: Color(0xFFAF8BFA), // Medium purple
+    80: Color(0xFFBC6DF4), // Violet
+    90: Color(0xFFAE3995), // Deep pink-purple
+    100: Color(0xFF2C6270), // Dark teal
+  };
+
+  /// 술 레벨에 따른 배경색 반환
+  /// [drunkLevel] 0-10 사이의 술 레벨
+  /// 10단위로 반올림하여 색상 반환
+  static Color getSakuBackgroundColor(int drunkLevel) {
+    final level = (drunkLevel ~/ 10) * 10;
+    return sakuGradientColors[level] ?? sakuGradientColors[0]!;
+  }
 }

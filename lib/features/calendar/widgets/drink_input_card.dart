@@ -124,16 +124,6 @@ class DrinkInputCard extends StatelessWidget {
                       const SizedBox(width: 2),
                       PopupMenuButton<String>(
                         initialValue: inputData.selectedUnit,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              inputData.selectedUnit,
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            const Icon(Icons.arrow_drop_down, size: 16),
-                          ],
-                        ),
                         onSelected: onUnitChange,
                         itemBuilder: (BuildContext context) =>
                             <PopupMenuEntry<String>>[
@@ -150,6 +140,16 @@ class DrinkInputCard extends StatelessWidget {
                                 child: Text('ml'),
                               ),
                             ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              inputData.selectedUnit,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            const Icon(Icons.arrow_drop_down, size: 16),
+                          ],
+                        ),
                       ),
                     ],
                   ),
