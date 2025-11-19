@@ -572,4 +572,57 @@ class FriendService {
     }
     return null;
   }
+
+  /// ID prefix로 사용자 목록 검색 (자동완성용)
+  Future<List<AppUser>> searchUsersByIdPrefix(String prefix, {int limit = 10}) async {
+    if (prefix.isEmpty) {
+      return [];
+    }
+
+    try {
+      // Firestore의 범위 쿼리를 사용하여 prefix 검색
+      // prefix로 시작하는 모든 문서를 찾기 위해 '>=' 와 '<' 사용
+      final String endPrefix = prefix.substring(0, prefix.length - 1) +
+          String.fromCharCode(prefix.codeUnitAt(prefix.length - 1) + 1);
+
+      final snapshot = await _firestore
+          .collection('users')
+          .where('id', isGreaterThanOrEqualTo: prefix)
+          .where('id', isLessThan: endPrefix)
+          .orderBy('id')
+          .limit(limit)
+          .get();
+
+      final users = <AppUser>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        // 현재 사용자는 제외
+        if (doc.id == _currentUserId) {
+          continue;
+        }
+
+        users.add(AppUser(
+          uid: doc.id,
+          email: data['email'] as String?,
+          displayName: data['name'] as String?,
+          photoURL: data['photoURL'] as String?,
+          provider:
+              LoginProvider.fromString(data['provider'] as String?) ??
+              LoginProvider.google,
+          createdAt: data['createdAt'] != null
+              ? DateTime.parse(data['createdAt'] as String)
+              : DateTime.now(),
+          hasCompletedProfileSetup:
+              data['hasCompletedProfileSetup'] as bool? ?? false,
+          id: data['id'] as String?,
+          name: data['name'] as String?,
+        ));
+      }
+
+      return users;
+    } catch (e) {
+      debugPrint('Error searching users by prefix: $e');
+      return [];
+    }
+  }
 }
