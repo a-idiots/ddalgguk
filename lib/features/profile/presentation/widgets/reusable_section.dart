@@ -94,7 +94,7 @@ class ProfileSection extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -102,7 +102,6 @@ class ProfileSection extends StatelessWidget {
               if (subtitle != null) subtitle!,
             ],
           ),
-          const SizedBox(height: 16),
           // Content
           content,
         ],
