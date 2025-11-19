@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class ProfileGradientBackground extends StatelessWidget {
   const ProfileGradientBackground({
     super.key,
-    required this.drunkLevel,
+    required this.drunkenDays,
     required this.child,
   });
 
-  final int drunkLevel; // 0-100
+  final int drunkenDays; // >=0
   final Widget child;
 
   @override
@@ -17,7 +17,7 @@ class ProfileGradientBackground extends StatelessWidget {
     // Mid level (31-60): Yellow/Orange gradient
     // High level (61-100): Red/Pink gradient
 
-    final colors = _getGradientColors(drunkLevel);
+    final colors = _getGradientColors(drunkenDays);
 
     return Container(
       decoration: BoxDecoration(
@@ -32,18 +32,12 @@ class ProfileGradientBackground extends StatelessWidget {
     );
   }
 
-  List<Color> _getGradientColors(int level) {
-    if (level <= 30) {
+  List<Color> _getGradientColors(int days) {
+    if (days == 0) {
       // Green gradient for low/sober state
       return const [
-        Color(0xFFA3FFB3), // Light green
-        Color(0xFF52E370), // Green
-      ];
-    } else if (level <= 60) {
-      // Orange/Yellow gradient for moderate state
-      return const [
-        Color(0xFFFFCBA3), // Light orange
-        Color(0xFFFFA552), // Orange
+        Color(0xFFFFFFFF), // Light green
+        Color(0xFFD3FBE8), // Green
       ];
     } else {
       // Red/Pink gradient for high drunk level (matches original design)

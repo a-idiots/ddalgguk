@@ -10,7 +10,14 @@ import 'package:ddalgguk/features/profile/presentation/widgets/alcohol_breakdown
 import 'package:ddalgguk/features/profile/presentation/widgets/report_card_section.dart';
 
 class ProfileDetailScreen extends ConsumerStatefulWidget {
-  const ProfileDetailScreen({super.key});
+  const ProfileDetailScreen({
+    super.key,
+    this.onBack,
+    this.onNavigateToAnalytics,
+  });
+
+  final VoidCallback? onBack;
+  final VoidCallback? onNavigateToAnalytics;
 
   @override
   ConsumerState<ProfileDetailScreen> createState() => _ProfileDetailScreenState();
@@ -19,6 +26,7 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
 class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isHeaderExpanded = true;
+  double _overscrollDistance = 0;
 
   @override
   void initState() {
@@ -34,13 +42,48 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
   }
 
   void _onScroll() {
-    // Check scroll position to determine if header should be expanded
     final isExpanded = _scrollController.hasClients && _scrollController.offset < 50;
     if (_isHeaderExpanded != isExpanded) {
       setState(() {
         _isHeaderExpanded = isExpanded;
       });
     }
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification is OverscrollNotification) {
+      // Only handle overscroll at the top (negative overscroll)
+      if (notification.overscroll < 0) {
+        setState(() {
+          _overscrollDistance += notification.overscroll.abs();
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      // Check if should navigate back
+      final screenHeight = MediaQuery.of(context).size.height;
+      final threshold = screenHeight * 0.15;
+
+      if (_overscrollDistance > threshold) {
+        if (widget.onBack != null) {
+          widget.onBack!();
+        } else {
+          Navigator.of(context).pop();
+        }
+      }
+
+      setState(() {
+        _overscrollDistance = 0;
+      });
+    } else if (notification is ScrollUpdateNotification) {
+      // Reset if user starts scrolling down
+      if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
+        setState(() {
+          _overscrollDistance = 0;
+        });
+      }
+    }
+
+    return false;
   }
 
   @override
@@ -50,98 +93,112 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
     final achievementsAsync = ref.watch(achievementsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: currentUserAsync.when(
-        data: (user) {
-          if (user == null) {
-            return const Center(child: Text('Please log in'));
-          }
+    return currentUserAsync.when(
+      data: (user) {
+        if (user == null) {
+          return const Scaffold(
+            body: Center(child: Text('Please log in')),
+          );
+        }
 
-          return currentStatsAsync.when(
-            data: (currentStats) {
-              return CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  // Sticky Header
-                  SliverAppBar(
-                    pinned: true,
-                    backgroundColor: Colors.white,
-                    elevation: 2,
-                    expandedHeight: 100,
-                    collapsedHeight: 70,
-                    flexibleSpace: ProfileHeader(
-                      user: user,
-                      drunkLevel: currentStats.currentDrunkLevel,
-                      isExpanded: _isHeaderExpanded,
+        return currentStatsAsync.when(
+          data: (currentStats) {
+            return Scaffold(
+              backgroundColor: Colors.grey[50],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _handleScrollNotification,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // Sticky Header
+                    SliverAppBar(
+                      pinned: true,
+                      backgroundColor: Colors.white,
+                      elevation: 2,
+                      expandedHeight: 100,
+                      collapsedHeight: 70,
+                      flexibleSpace: ProfileHeader(
+                        user: user,
+                        drunkLevel: currentStats.currentDrunkLevel,
+                        isExpanded: _isHeaderExpanded,
+                      ),
+                      automaticallyImplyLeading: false,
                     ),
-                    automaticallyImplyLeading: true,
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  // Content
-                  SliverList(
-                    delegate: SliverChildListDelegate([
-                      const SizedBox(height: 16),
-                      // Section 2-1: Weekly Saku
-                      weeklyStatsAsync.when(
-                        data: (weeklyStats) => WeeklySakuSection(
-                          weeklyStats: weeklyStats,
-                        ),
-                        loading: () => const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: CircularProgressIndicator(),
+                    // Content
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        const SizedBox(height: 16),
+                        // Section 2-1: Weekly Saku
+                        weeklyStatsAsync.when(
+                          data: (weeklyStats) => WeeklySakuSection(
+                            weeklyStats: weeklyStats,
                           ),
-                        ),
-                        error: (error, stack) => const SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 8),
-                      // Section 2-2: Achievements
-                      achievementsAsync.when(
-                        data: (achievements) => AchievementsSection(
-                          achievements: achievements,
-                        ),
-                        loading: () => const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                        error: (error, stack) => const SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 8),
-                      // Section 2-3: Alcohol Breakdown
-                      AlcoholBreakdownSection(
-                        stats: currentStats,
-                      ),
-                      const SizedBox(height: 8),
-                      // Section 2-4: Report Card
-                      ReportCardSection(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const AnalyticsScreen(),
+                          loading: () => const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: CircularProgressIndicator(),
                             ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 32),
-                    ]),
-                  ),
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
+                          ),
+                          error: (error, stack) => const SizedBox.shrink(),
+                        ),
+                        const SizedBox(height: 8),
+                        // Section 2-2: Achievements
+                        achievementsAsync.when(
+                          data: (achievements) => AchievementsSection(
+                            achievements: achievements,
+                          ),
+                          loading: () => const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          error: (error, stack) => const SizedBox.shrink(),
+                        ),
+                        const SizedBox(height: 8),
+                        // Section 2-3: Alcohol Breakdown
+                        AlcoholBreakdownSection(
+                          stats: currentStats,
+                        ),
+                        const SizedBox(height: 8),
+                        // Section 2-4: Report Card
+                        ReportCardSection(
+                          onTap: () {
+                            if (widget.onNavigateToAnalytics != null) {
+                              widget.onNavigateToAnalytics!();
+                            } else {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const AnalyticsScreen(),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 32),
+                      ]),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          loading: () => const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => Scaffold(
+            body: Center(
               child: Text('Error loading profile: $error'),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
+          ),
+        );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        body: Center(
           child: Text('Error: $error'),
         ),
       ),
