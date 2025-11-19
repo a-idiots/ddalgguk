@@ -7,11 +7,15 @@ class SpeechBubble extends StatelessWidget {
     required this.text,
     this.backgroundColor = Colors.white,
     this.textColor = Colors.black87,
+    this.fontSize = 14,
+    this.maxLines,
   });
 
   final String text;
   final Color backgroundColor;
   final Color textColor;
+  final double fontSize;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +32,12 @@ class SpeechBubble extends StatelessWidget {
           text,
           style: TextStyle(
             color: textColor,
-            fontSize: 14,
+            fontSize: fontSize,
             fontWeight: FontWeight.w300,
           ),
           textAlign: TextAlign.center,
+          maxLines: maxLines,
+          overflow: maxLines != null ? TextOverflow.ellipsis : null,
         ),
       ),
     );

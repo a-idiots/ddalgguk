@@ -71,12 +71,7 @@ class SecureStorageService {
   /// Save user cache (entire AppUser object as JSON)
   Future<void> saveUserCache(AppUser user) async {
     final json = user.toJson();
-    print('SecureStorage: Saving user cache');
-    print('  - hasCompletedProfileSetup: ${json['hasCompletedProfileSetup']}');
-    print('  - name: ${json['name']}');
-    print('  - id: ${json['id']}');
     final jsonString = jsonEncode(json);
-    print('SecureStorage: JSON string: $jsonString');
     await _secureStorage.write(key: StorageKeys.userCache, value: jsonString);
   }
 
@@ -85,20 +80,13 @@ class SecureStorageService {
     try {
       final jsonString = await _secureStorage.read(key: StorageKeys.userCache);
       if (jsonString == null) {
-        print('SecureStorage: No cached user found');
         return null;
       }
-      print('SecureStorage: Raw cached JSON: $jsonString');
       final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
-      print('SecureStorage: Decoded JSON: $jsonMap');
       final user = AppUser.fromJson(jsonMap);
-      print(
-        'SecureStorage: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}',
-      );
       return user;
     } catch (e) {
       // If parsing fails, return null
-      print('SecureStorage: Error parsing cache - $e');
       return null;
     }
   }
