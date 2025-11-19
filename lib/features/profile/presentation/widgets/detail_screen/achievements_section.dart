@@ -18,6 +18,7 @@ class AchievementsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProfileSection(
       title: '나의 업적',
+      titleOutside: true,
       subtitle: SectionSubtitleButton(
         text: '더 많은 뱃지 확인하기',
         onTap: () {

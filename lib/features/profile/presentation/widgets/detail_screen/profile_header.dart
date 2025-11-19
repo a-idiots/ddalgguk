@@ -18,7 +18,7 @@ class ProfileHeader extends StatelessWidget {
     final userMaxAlcohol = user.maxAlcohol ?? 0;
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 28),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -30,16 +30,21 @@ class ProfileHeader extends StatelessWidget {
                 Text(
                   userName,
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
+                    height: 0.9,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   '@$userId',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                    height: 0.9,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

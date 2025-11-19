@@ -20,11 +20,7 @@ class ReportCardSection extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         height: 200,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [theme.primaryColor, theme.secondaryColor],
-          ),
+          color: theme.secondaryColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -47,7 +43,7 @@ class ReportCardSection extends StatelessWidget {
                     'Your',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,
                     ),
@@ -56,7 +52,7 @@ class ReportCardSection extends StatelessWidget {
                     'Report',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,
                     ),

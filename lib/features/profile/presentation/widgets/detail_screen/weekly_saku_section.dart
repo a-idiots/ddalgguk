@@ -20,6 +20,7 @@ class WeeklySakuSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProfileSection(
       title: '지난 일주일',
+      titleOutside: true,
       subtitle: null,
       content: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
