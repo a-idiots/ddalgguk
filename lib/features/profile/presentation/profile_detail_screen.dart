@@ -26,29 +26,12 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
 
 class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
   final ScrollController _scrollController = ScrollController();
-  bool _isHeaderExpanded = true;
   double _overscrollDistance = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    final isExpanded = _scrollController.hasClients && _scrollController.offset < 50;
-    if (_isHeaderExpanded != isExpanded) {
-      setState(() {
-        _isHeaderExpanded = isExpanded;
-      });
-    }
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
@@ -116,24 +99,17 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                       controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
-                        // Sticky Header
-                        SliverAppBar(
-                          pinned: true,
-                          backgroundColor: Colors.white,
-                          elevation: 2,
-                          expandedHeight: 100,
-                          collapsedHeight: 70,
-                          flexibleSpace: ProfileHeader(
+                        // Header (scrollable, not sticky)
+                        SliverToBoxAdapter(
+                          child: ProfileHeader(
                             user: user,
                             drunkLevel: currentStats.thisMonthDrunkDays,
-                            isExpanded: _isHeaderExpanded,
                           ),
-                          automaticallyImplyLeading: false,
                         ),
                         // Content
                         SliverList(
                           delegate: SliverChildListDelegate([
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
                             // Section 2-1: Weekly Saku
                             weeklyStatsAsync.when(
                               data: (weeklyStats) => WeeklySakuSection(

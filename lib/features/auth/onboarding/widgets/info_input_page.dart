@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/speech_bubble.dart';
+import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 
 /// Reusable info input page for name and ID entry
 class InfoInputPage extends StatefulWidget {
