@@ -46,7 +46,7 @@ class ProfileSection extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             // Content Container
             Container(
               width: double.infinity,

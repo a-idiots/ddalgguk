@@ -109,7 +109,6 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                         // Content
                         SliverList(
                           delegate: SliverChildListDelegate([
-                            const SizedBox(height: 8),
                             // Section 2-1: Weekly Saku
                             weeklyStatsAsync.when(
                               data: (weeklyStats) => WeeklySakuSection(

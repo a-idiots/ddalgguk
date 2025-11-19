@@ -33,7 +33,7 @@ class ProfileHeader extends StatelessWidget {
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
-                    height: 0.9,
+                    height: 1.0,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -43,7 +43,7 @@ class ProfileHeader extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
-                    height: 0.9,
+                    height: 1.0,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
