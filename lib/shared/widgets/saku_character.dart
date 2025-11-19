@@ -16,14 +16,19 @@ class SakuCharacter extends StatefulWidget {
 }
 
 class _SakuCharacterState extends State<SakuCharacter>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _eyeController;
+  late AnimationController _sizeController;
+  late Animation<double> _sizeAnimation;
   Offset _currentEyePosition = Offset.zero;
   Offset _targetEyePosition = Offset.zero;
+  double _animatedSize = 200;
 
   @override
   void initState() {
     super.initState();
+    _animatedSize = widget.size;
+
     _eyeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -38,6 +43,22 @@ class _SakuCharacterState extends State<SakuCharacter>
         )!;
       });
     });
+
+    _sizeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+
+    _sizeAnimation = Tween<double>(begin: widget.size, end: widget.size)
+        .animate(
+          CurvedAnimation(parent: _sizeController, curve: Curves.easeInOut),
+        );
+
+    _sizeAnimation.addListener(() {
+      setState(() {
+        _animatedSize = _sizeAnimation.value;
+      });
+    });
   }
 
   @override
@@ -46,6 +67,18 @@ class _SakuCharacterState extends State<SakuCharacter>
     if (widget.cursorOffset != oldWidget.cursorOffset) {
       _updateEyePosition();
     }
+    if (widget.size != oldWidget.size) {
+      _updateSize(oldWidget.size);
+    }
+  }
+
+  void _updateSize(double oldSize) {
+    _sizeAnimation = Tween<double>(begin: oldSize, end: widget.size).animate(
+      CurvedAnimation(parent: _sizeController, curve: Curves.easeInOut),
+    );
+
+    _sizeController.reset();
+    _sizeController.forward();
   }
 
   void _updateEyePosition() {
@@ -87,22 +120,23 @@ class _SakuCharacterState extends State<SakuCharacter>
   @override
   void dispose() {
     _eyeController.dispose();
+    _sizeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widget.size,
-      height: widget.size,
+      width: _animatedSize,
+      height: _animatedSize,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // Body
           Image.asset(
             'assets/saku/body.png',
-            width: widget.size,
-            height: widget.size,
+            width: _animatedSize,
+            height: _animatedSize,
             fit: BoxFit.contain,
           ),
           // Eyes with tracking
@@ -110,8 +144,8 @@ class _SakuCharacterState extends State<SakuCharacter>
             offset: _currentEyePosition,
             child: Image.asset(
               'assets/saku/eyes.png',
-              width: widget.size * 0.3, // Eyes are smaller relative to body
-              height: widget.size * 0.3,
+              width: _animatedSize * 0.3, // Eyes are smaller relative to body
+              height: _animatedSize * 0.3,
               fit: BoxFit.contain,
             ),
           ),

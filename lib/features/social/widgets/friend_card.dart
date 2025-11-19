@@ -1,5 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/speech_bubble.dart';
+import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:flutter/material.dart';

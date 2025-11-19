@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 
@@ -35,7 +38,7 @@ class SecureStorageService {
 
   /// Get Firebase ID token
   Future<String?> getFirebaseIdToken() async {
-    return await _secureStorage.read(key: StorageKeys.firebaseIdToken);
+    return _secureStorage.read(key: StorageKeys.firebaseIdToken);
   }
 
   /// Save access token securely
@@ -45,7 +48,7 @@ class SecureStorageService {
 
   /// Get access token
   Future<String?> getAccessToken() async {
-    return await _secureStorage.read(key: StorageKeys.accessToken);
+    return _secureStorage.read(key: StorageKeys.accessToken);
   }
 
   /// Save refresh token securely
@@ -55,7 +58,7 @@ class SecureStorageService {
 
   /// Get refresh token
   Future<String?> getRefreshToken() async {
-    return await _secureStorage.read(key: StorageKeys.refreshToken);
+    return _secureStorage.read(key: StorageKeys.refreshToken);
   }
 
   /// Save user ID securely
@@ -65,7 +68,7 @@ class SecureStorageService {
 
   /// Get user ID
   Future<String?> getUserId() async {
-    return await _secureStorage.read(key: StorageKeys.userId);
+    return _secureStorage.read(key: StorageKeys.userId);
   }
 
   /// Save user cache (entire AppUser object as JSON)
