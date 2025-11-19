@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({
-    super.key,
-    required this.user,
-    required this.drunkLevel,
-  });
+  const ProfileHeader({super.key, required this.user, required this.theme});
 
   final AppUser user;
-  final int drunkLevel;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {

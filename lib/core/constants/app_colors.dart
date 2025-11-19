@@ -46,4 +46,23 @@ class AppColors {
     final level = (drunkLevel ~/ 10) * 10;
     return sakuGradientColors[level] ?? sakuGradientColors[0]!;
   }
+
+  /// 현재 음주 상태에 따른 테마 반환
+  static AppTheme getTheme(int drunkDays) {
+    if (drunkDays == 0) {
+      return AppTheme(
+        primaryColor: primaryGreen,
+        secondaryColor: secondaryGreen,
+      );
+    } else {
+      return AppTheme(primaryColor: primaryPink, secondaryColor: secondaryPink);
+    }
+  }
+}
+
+class AppTheme {
+  const AppTheme({required this.primaryColor, required this.secondaryColor});
+
+  final Color primaryColor;
+  final Color secondaryColor;
 }

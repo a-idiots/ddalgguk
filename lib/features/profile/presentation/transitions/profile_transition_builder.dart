@@ -47,7 +47,7 @@ class ProfileTransitionBuilder extends StatelessWidget {
                   child: Opacity(
                     opacity: gradientOpacity,
                     child: ProfileGradientBackground(
-                      drunkenDays: transitionData.drunkLevel,
+                      theme: transitionData.theme,
                       child: const SizedBox.expand(),
                     ),
                   ),

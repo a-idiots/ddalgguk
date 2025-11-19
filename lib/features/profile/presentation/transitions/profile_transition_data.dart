@@ -1,3 +1,4 @@
+import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 
@@ -8,10 +9,12 @@ class ProfileTransitionData {
     required this.drunkLevel,
     required this.stats,
     required this.sakuImagePath,
+    required this.theme,
   });
 
   final AppUser user;
   final int drunkLevel;
   final ProfileStats stats;
   final String sakuImagePath;
+  final AppTheme theme;
 }

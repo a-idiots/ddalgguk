@@ -120,13 +120,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return currentStatsAsync.when(
           data: (stats) {
             final thisMonthDrunkDays = stats.thisMonthDrunkDays;
+            final theme = AppColors.getTheme(thisMonthDrunkDays);
 
             return GestureDetector(
               onVerticalDragStart: _handleVerticalDragStart,
               onVerticalDragUpdate: _handleVerticalDragUpdate,
               onVerticalDragEnd: _handleVerticalDragEnd,
               child: ProfileGradientBackground(
-                drunkenDays: thisMonthDrunkDays,
+                theme: theme,
                 child: SafeArea(
                   child: Stack(
                     children: [
@@ -160,16 +161,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       if (thisMonthDrunkDays == 0) ...[
                                         TextSpan(
                                           text: '$thisMonthDrunkDays일째',
-                                          style: const TextStyle(
-                                            color: AppColors.secondaryGreen,
+                                          style: TextStyle(
+                                            color: theme.secondaryColor,
                                           ),
                                         ),
                                         const TextSpan(text: ' 금주 중이네요!'),
                                       ] else ...[
                                         TextSpan(
                                           text: '$thisMonthDrunkDays번째',
-                                          style: const TextStyle(
-                                            color: AppColors.secondaryPink,
+                                          style: TextStyle(
+                                            color: theme.secondaryColor,
                                           ),
                                         ),
                                         const TextSpan(text: ' 음주네요!'),
@@ -201,13 +202,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             );
           },
           loading: () => ProfileGradientBackground(
-            drunkenDays: 0,
+            theme: AppColors.getTheme(0),
             child: const Center(
               child: CircularProgressIndicator(color: Colors.white),
             ),
           ),
           error: (error, stack) => ProfileGradientBackground(
-            drunkenDays: 0,
+            theme: AppColors.getTheme(0),
             child: Center(
               child: Text(
                 'Error loading stats',

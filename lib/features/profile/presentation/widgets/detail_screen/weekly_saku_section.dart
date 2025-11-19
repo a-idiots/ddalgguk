@@ -4,10 +4,17 @@ import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class WeeklySakuSection extends StatelessWidget {
-  const WeeklySakuSection({super.key, required this.weeklyStats});
+  const WeeklySakuSection({
+    super.key,
+    required this.weeklyStats,
+    required this.theme,
+  });
 
   final WeeklyStats weeklyStats;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +28,7 @@ class WeeklySakuSection extends StatelessWidget {
             date: dailyData.date,
             drunkLevel: dailyData.drunkLevel,
             hasRecords: dailyData.hasRecords,
+            theme: theme,
           );
         }).toList(),
       ),
@@ -33,11 +41,13 @@ class _WeeklySakuItem extends StatelessWidget {
     required this.date,
     required this.drunkLevel,
     required this.hasRecords,
+    required this.theme,
   });
 
   final DateTime date;
   final int drunkLevel;
   final bool hasRecords;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +64,7 @@ class _WeeklySakuItem extends StatelessWidget {
           _getKoreanDayOfWeek(date.weekday),
           style: TextStyle(
             fontSize: 11,
-            color: isToday ? const Color(0xFFF27B7B) : Colors.grey,
+            color: isToday ? theme.primaryColor : Colors.grey,
             fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -67,7 +77,7 @@ class _WeeklySakuItem extends StatelessWidget {
             shape: BoxShape.circle,
             color: Colors.grey[100],
             border: isToday
-                ? Border.all(color: const Color(0xFFF27B7B), width: 2)
+                ? Border.all(color: theme.primaryColor, width: 2)
                 : null,
           ),
           child: ClipOval(
@@ -91,7 +101,7 @@ class _WeeklySakuItem extends StatelessWidget {
           DateFormat('d').format(date),
           style: TextStyle(
             fontSize: 11,
-            color: isToday ? const Color(0xFFF27B7B) : Colors.grey[600],
+            color: isToday ? theme.primaryColor : Colors.grey[600],
             fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
           ),
         ),

@@ -4,10 +4,17 @@ import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alcohol_break_chart/semicircular_chart.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class AlcoholBreakdownSection extends StatelessWidget {
-  const AlcoholBreakdownSection({super.key, required this.stats});
+  const AlcoholBreakdownSection({
+    super.key,
+    required this.stats,
+    required this.theme,
+  });
 
   final ProfileStats stats;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +51,9 @@ class AlcoholBreakdownSection extends StatelessWidget {
                     color: Color(0xFFFFF0F0),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.chat_bubble_outline,
-                    color: Color(0xFFF27B7B),
+                    color: theme.primaryColor,
                     size: 20,
                   ),
                 ),

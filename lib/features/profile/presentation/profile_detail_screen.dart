@@ -10,6 +10,8 @@ import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alc
 import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/report_card_section.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class ProfileDetailScreen extends ConsumerStatefulWidget {
   const ProfileDetailScreen({
     super.key,
@@ -86,10 +88,12 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
 
         return currentStatsAsync.when(
           data: (currentStats) {
+            final theme = AppColors.getTheme(currentStats.thisMonthDrunkDays);
+
             return Scaffold(
               backgroundColor: Colors.transparent,
               body: ProfileGradientBackground(
-                drunkenDays: currentStats.thisMonthDrunkDays,
+                theme: theme,
                 reversed: true,
                 child: SafeArea(
                   child: NotificationListener<ScrollNotification>(
@@ -100,10 +104,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                       slivers: [
                         // Header (scrollable, not sticky)
                         SliverToBoxAdapter(
-                          child: ProfileHeader(
-                            user: user,
-                            drunkLevel: currentStats.thisMonthDrunkDays,
-                          ),
+                          child: ProfileHeader(user: user, theme: theme),
                         ),
                         // Content
                         SliverList(
@@ -111,8 +112,10 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             const SizedBox(height: 8),
                             // Section 2-1: Weekly Saku
                             weeklyStatsAsync.when(
-                              data: (weeklyStats) =>
-                                  WeeklySakuSection(weeklyStats: weeklyStats),
+                              data: (weeklyStats) => WeeklySakuSection(
+                                weeklyStats: weeklyStats,
+                                theme: theme,
+                              ),
                               loading: () => const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
@@ -126,6 +129,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             achievementsAsync.when(
                               data: (achievements) => AchievementsSection(
                                 achievements: achievements,
+                                theme: theme,
                               ),
                               loading: () => const Center(
                                 child: Padding(
@@ -137,10 +141,14 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Section 2-3: Alcohol Breakdown
-                            AlcoholBreakdownSection(stats: currentStats),
+                            AlcoholBreakdownSection(
+                              stats: currentStats,
+                              theme: theme,
+                            ),
                             const SizedBox(height: 8),
                             // Section 2-4: Report Card
                             ReportCardSection(
+                              theme: theme,
                               onTap: () {
                                 if (widget.onNavigateToAnalytics != null) {
                                   widget.onNavigateToAnalytics!();

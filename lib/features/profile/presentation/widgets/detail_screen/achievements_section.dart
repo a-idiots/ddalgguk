@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class AchievementsSection extends StatelessWidget {
-  const AchievementsSection({super.key, required this.achievements});
+  const AchievementsSection({
+    super.key,
+    required this.achievements,
+    required this.theme,
+  });
 
   final List<Achievement> achievements;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {
