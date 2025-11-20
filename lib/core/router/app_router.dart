@@ -29,22 +29,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   // 라우터 생성 시점을 기록 → 스플래시 최소 표시 시간 계산에 사용
   final routerBootTime = DateTime.now();
 
-  // 인증된 경우에만 프로필 설정 완료 여부 확인
-  Future<bool> hasCompletedProfileSetup() async {
-    try {
-      final cachedUser = await SecureStorageService.instance.getUserCache();
-      if (cachedUser != null) {
-        return cachedUser.hasCompletedProfileSetup;
-      }
-
-      final authRepository = ref.read(authRepositoryProvider);
-      final currentUser = await authRepository.getCurrentUser();
-      return currentUser?.hasCompletedProfileSetup ?? false;
-    } catch (_) {
-      return false; // 오류시 미완료로 간주
-    }
-  }
-
   // redirect 재평가를 트리거할 수 있는 리스너(아래 클래스 참고)
   final refresh = GoRouterRefreshStream(
     ref.read(firebaseAuthProvider).authStateChanges(),
@@ -60,19 +44,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final current = state.matchedLocation;
 
       // 0) auth provider가 아직 로딩이면 그대로 두고 그려지게 함
-      final isLoading = authState.maybeWhen(
-        loading: () => true,
-        orElse: () => false,
-      );
+      final isLoading = authState.isLoading;
       if (isLoading) {
         return null;
       }
 
-      // 1) 인증 여부
-      final isAuthed = authState.maybeWhen(
-        data: (user) => user != null,
-        orElse: () => false,
-      );
+      // 1) 인증 여부 및 사용자 정보
+      final appUser = authState.valueOrNull;
+      final isAuthed = appUser != null;
 
       // 2) 현재 스플래시라면 분기
       if (current == Routes.splash) {
@@ -80,14 +59,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           // ✅ 비인증이면 스플래시 최소 표시 시간 보장
           final elapsed = DateTime.now().difference(routerBootTime);
           if (elapsed < kSplashMinDisplay) {
-            // 아직은 스플래시에 머문다(안드로이드에서도 확실히 한 프레임 이상 노출)
+            // 아직은 스플래시에 머문다
             return null;
           }
-          // 표시 시간이 지났으면 로그인으로 이동(아래 /login 전환 애니메이션 적용)
+          // 표시 시간이 지났으면 로그인으로 이동
           return Routes.login;
         } else {
           // ✅ 인증됐다면 애니메이션 없이 바로 목적지
-          final done = await hasCompletedProfileSetup();
+          final done = appUser.hasCompletedProfileSetup;
           return done ? Routes.home : Routes.profileSetup;
         }
       }
@@ -99,7 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 인증된 상태 → 프로필 설정 여부로 분기
-      final done = await hasCompletedProfileSetup();
+      final done = appUser.hasCompletedProfileSetup;
       if (done) {
         return current == Routes.home ? null : Routes.home;
       } else {

@@ -48,14 +48,14 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
+    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           // User Info Section
-          authState.when(
+          currentUser.when(
             data: (user) {
               if (user == null) {
                 return const SizedBox.shrink();
@@ -69,8 +69,8 @@ class SettingsScreen extends ConsumerWidget {
                       ? const Icon(Icons.person)
                       : null,
                 ),
-                title: Text(user.displayName ?? 'Unknown User'),
-                subtitle: Text(user.email ?? ''),
+                title: Text(user.name ?? 'Unknown User'),
+                subtitle: Text(user.id ?? ''),
               );
             },
             loading: () => const ListTile(

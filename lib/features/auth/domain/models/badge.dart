@@ -7,10 +7,6 @@ class Badge extends Equatable {
     required this.achievedDay,
   });
 
-  final String group; // 'drinking' or 'sobriety'
-  final int idx;
-  final DateTime achievedDay;
-
   factory Badge.fromJson(Map<String, dynamic> json) {
     return Badge(
       group: json['group'] as String,
@@ -18,6 +14,10 @@ class Badge extends Equatable {
       achievedDay: DateTime.parse(json['achievedDay'] as String),
     );
   }
+
+  final String group; // 'drinking' or 'sobriety'
+  final int idx;
+  final DateTime achievedDay;
 
   Map<String, dynamic> toJson() {
     return {

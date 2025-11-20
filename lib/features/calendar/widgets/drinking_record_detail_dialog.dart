@@ -93,7 +93,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                         _buildDashedDivider(),
                         const SizedBox(height: 24),
                         // 음주량
-                        if (record.drinkAmounts.isNotEmpty) ...[
+                        if (record.drinkAmount.isNotEmpty) ...[
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
@@ -106,7 +106,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          ...record.drinkAmounts.map((drink) {
+                          ...record.drinkAmount.map((drink) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Row(

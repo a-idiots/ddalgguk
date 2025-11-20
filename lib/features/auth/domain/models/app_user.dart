@@ -1,157 +1,146 @@
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
+import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
 
 /// Application user model
 class AppUser {
   const AppUser({
     required this.uid,
-    this.email,
-    this.displayName,
-    this.photoURL,
     required this.provider,
-    required this.createdAt,
-    this.lastLoginAt,
+    this.photoURL,
+    this.hasCompletedProfileSetup = false,
     this.id,
     this.name,
     this.goal,
     this.favoriteDrink,
     this.maxAlcohol,
-
-    this.hasCompletedProfileSetup = false,
+    this.frequencyDrinks,
+    this.dailyStatus,
     this.badges = const [],
+    this.stats = const {},
   });
 
   /// Create AppUser from Firebase User
   factory AppUser.fromFirebaseUser({
     required String uid,
-    required String? email,
-    required String? displayName,
     required String? photoURL,
     required LoginProvider provider,
   }) {
-    return AppUser(
-      uid: uid,
-      email: email,
-      displayName: displayName,
-      photoURL: photoURL,
-      provider: provider,
-      createdAt: DateTime.now(),
-      lastLoginAt: DateTime.now(),
-    );
+    return AppUser(uid: uid, photoURL: photoURL, provider: provider);
   }
 
   /// Create AppUser from JSON (Firestore)
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
       uid: json['uid'] as String,
-      email: json['email'] as String?,
-      displayName: json['displayName'] as String?,
-      photoURL: json['photoURL'] as String?,
       provider:
           LoginProvider.fromString(json['provider'] as String?) ??
           LoginProvider.google,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      lastLoginAt: json['lastLoginAt'] != null
-          ? DateTime.parse(json['lastLoginAt'] as String)
-          : null,
+      photoURL: json['photoURL'] as String?,
+      hasCompletedProfileSetup:
+          json['hasCompletedProfileSetup'] as bool? ?? false,
       id: json['id'] as String?,
       name: json['name'] as String?,
       goal: json['goal'] as bool?,
-      favoriteDrink: json['favoriteDrink'] != null
-          ? List<int>.from(json['favoriteDrink'] as List)
-          : null,
+      favoriteDrink: json['favoriteDrink'] as int?,
       maxAlcohol: json['maxAlcohol'] != null
           ? (json['maxAlcohol'] as num).toDouble()
           : null,
-      hasCompletedProfileSetup:
-          json['hasCompletedProfileSetup'] as bool? ?? false,
-      badges: json['badges'] != null
-          ? (json['badges'] as List)
+      frequencyDrinks: json['frequencyDrinks'] as int?,
+      dailyStatus: json['dailyStatus'] != null
+          ? DailyStatus.fromFirestore(
+              json['dailyStatus'] as Map<String, dynamic>,
+            )
+          : null,
+      badges: json['badge'] != null
+          ? (json['badge'] as List)
                 .map((e) => Badge.fromJson(e as Map<String, dynamic>))
                 .toList()
           : const [],
+      stats: json['stats'] != null
+          ? Map<String, dynamic>.from(json['stats'] as Map)
+          : const {},
     );
   }
 
   final String uid;
-  final String? email;
-  final String? displayName;
-  final String? photoURL;
   final LoginProvider provider;
-  final DateTime createdAt;
-  final DateTime? lastLoginAt;
+  final String? photoURL;
+  final bool hasCompletedProfileSetup;
 
-  // Profile setup fields
-  final String? id; // User ID (Instagram-like username)
-  final String? name; // User's name
-  final bool?
-  goal; // true = 즐거운 음주 (enjoyable drinking), false = 건강한 금주 (healthy abstinence)
-  final List<int>? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
-  final double? maxAlcohol; // Maximum alcohol consumption
+  // Basic Info
+  final String? id;
+  final String? name;
+  final bool? goal; // true=즐거운 음주, false=건강한 금주
+  final int? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
+  final double? maxAlcohol;
+  final int? frequencyDrinks;
 
-  final bool hasCompletedProfileSetup; // Whether profile setup is completed
+  // Memo/Status
+  final DailyStatus? dailyStatus;
+
+  // Achievements
   final List<Badge> badges;
+
+  // Stats
+  final Map<String, dynamic> stats;
 
   /// Convert AppUser to JSON (for Firestore)
   Map<String, dynamic> toJson() {
     return {
       'uid': uid,
-      'email': email,
-      'displayName': displayName,
-      'photoURL': photoURL,
       'provider': provider.value,
-      'createdAt': createdAt.toIso8601String(),
-      'lastLoginAt': lastLoginAt?.toIso8601String(),
+      'photoURL': photoURL,
+      'hasCompletedProfileSetup': hasCompletedProfileSetup,
       'id': id,
       'name': name,
       'goal': goal,
       'favoriteDrink': favoriteDrink,
       'maxAlcohol': maxAlcohol,
-      'hasCompletedProfileSetup': hasCompletedProfileSetup,
-      'badges': badges.map((e) => e.toJson()).toList(),
+      'frequencyDrinks': frequencyDrinks,
+      'dailyStatus': dailyStatus?.toMap(),
+      'badge': badges.map((e) => e.toJson()).toList(),
+      'stats': stats,
     };
   }
 
   /// Create a copy with updated fields
   AppUser copyWith({
     String? uid,
-    String? email,
-    String? displayName,
-    String? photoURL,
     LoginProvider? provider,
-    DateTime? createdAt,
-    DateTime? lastLoginAt,
+    String? photoURL,
+    bool? hasCompletedProfileSetup,
     String? id,
     String? name,
     bool? goal,
-    List<int>? favoriteDrink,
+    int? favoriteDrink,
     double? maxAlcohol,
-
-    bool? hasCompletedProfileSetup,
+    int? frequencyDrinks,
+    DailyStatus? dailyStatus,
     List<Badge>? badges,
+    Map<String, dynamic>? stats,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
-      email: email ?? this.email,
-      displayName: displayName ?? this.displayName,
-      photoURL: photoURL ?? this.photoURL,
       provider: provider ?? this.provider,
-      createdAt: createdAt ?? this.createdAt,
-      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      photoURL: photoURL ?? this.photoURL,
+      hasCompletedProfileSetup:
+          hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
       id: id ?? this.id,
       name: name ?? this.name,
       goal: goal ?? this.goal,
       favoriteDrink: favoriteDrink ?? this.favoriteDrink,
       maxAlcohol: maxAlcohol ?? this.maxAlcohol,
-      hasCompletedProfileSetup:
-          hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
+      frequencyDrinks: frequencyDrinks ?? this.frequencyDrinks,
+      dailyStatus: dailyStatus ?? this.dailyStatus,
       badges: badges ?? this.badges,
+      stats: stats ?? this.stats,
     );
   }
 
   @override
   String toString() {
-    return 'AppUser(uid: $uid, email: $email, displayName: $displayName, provider: ${provider.value})';
+    return 'AppUser(uid: $uid, provider: ${provider.value}, name: $name)';
   }
 
   @override
@@ -162,37 +151,35 @@ class AppUser {
 
     return other is AppUser &&
         other.uid == uid &&
-        other.email == email &&
-        other.displayName == displayName &&
-        other.photoURL == photoURL &&
         other.provider == provider &&
-        other.createdAt == createdAt &&
-        other.lastLoginAt == lastLoginAt &&
+        other.photoURL == photoURL &&
+        other.hasCompletedProfileSetup == hasCompletedProfileSetup &&
         other.id == id &&
         other.name == name &&
         other.goal == goal &&
-        _listEquals(other.favoriteDrink, favoriteDrink) &&
+        other.favoriteDrink == favoriteDrink &&
         other.maxAlcohol == maxAlcohol &&
-        other.hasCompletedProfileSetup == hasCompletedProfileSetup &&
-        _listEquals(other.badges, badges);
+        other.frequencyDrinks == frequencyDrinks &&
+        other.dailyStatus == dailyStatus &&
+        _listEquals(other.badges, badges) &&
+        other.stats.toString() == stats.toString();
   }
 
   @override
   int get hashCode {
     return uid.hashCode ^
-        email.hashCode ^
-        displayName.hashCode ^
-        photoURL.hashCode ^
         provider.hashCode ^
-        createdAt.hashCode ^
-        lastLoginAt.hashCode ^
+        photoURL.hashCode ^
+        hasCompletedProfileSetup.hashCode ^
         id.hashCode ^
         name.hashCode ^
         goal.hashCode ^
         favoriteDrink.hashCode ^
         maxAlcohol.hashCode ^
-        hasCompletedProfileSetup.hashCode ^
-        badges.hashCode;
+        frequencyDrinks.hashCode ^
+        dailyStatus.hashCode ^
+        badges.hashCode ^
+        stats.hashCode;
   }
 
   /// Helper method to compare lists

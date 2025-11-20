@@ -130,7 +130,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
   void _selectSuggestion(AppUser user) {
     setState(() {
       _userIdController.text = '@${user.id ?? ''}';
-      _foundUserName = user.name ?? user.displayName ?? 'Unknown';
+      _foundUserName = user.name ?? 'Unknown';
       _foundUserId = user.uid;
       _showSuggestions = false;
       _suggestions = [];
@@ -160,7 +160,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
       if (user != null) {
         setState(() {
-          _foundUserName = user.name ?? user.displayName ?? 'Unknown';
+          _foundUserName = user.name ?? 'Unknown';
           _foundUserId = user.uid;
           _showSuggestions = false;
         });
@@ -348,7 +348,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                                 alpha: 0.2,
                               ),
                               child: Text(
-                                (user.id ?? '@')[0].toUpperCase(),
+                                (user.name ?? 'Unknown')[0].toUpperCase(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,

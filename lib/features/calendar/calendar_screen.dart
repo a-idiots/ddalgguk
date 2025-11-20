@@ -389,8 +389,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                   const SizedBox(height: 8),
                   // 음주량
-                  if (record.drinkAmounts.isNotEmpty) ...[
-                    ...record.drinkAmounts.map((drink) {
+                  if (record.drinkAmount.isNotEmpty) ...[
+                    ...record.drinkAmount.map((drink) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Row(
@@ -511,7 +511,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         sessionNumber: 0, // 서비스에서 자동 계산
         meetingName: '금주',
         drunkLevel: 0,
-        drinkAmounts: [],
+        yearMonth: DateFormat('yyyy-MM').format(_selectedDay!),
+        drinkAmount: [],
         memo: {'text': '술을 한방울도 안마셨어요!'},
         cost: 0,
       );

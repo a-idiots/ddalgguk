@@ -49,8 +49,8 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
     _drunkLevel = widget.record.drunkLevel.toDouble();
 
     // 기존 음주량 데이터를 DrinkInputData 리스트로 변환
-    _drinkInputs = widget.record.drinkAmounts.isNotEmpty
-        ? widget.record.drinkAmounts.map((drink) {
+    _drinkInputs = widget.record.drinkAmount.isNotEmpty
+        ? widget.record.drinkAmount.map((drink) {
             // ml을 단위에 맞게 변환
             String unit;
             double amount;
@@ -169,7 +169,8 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
         sessionNumber: widget.record.sessionNumber, // 회차 유지
         meetingName: _meetingNameController.text,
         drunkLevel: _drunkLevel.toInt(),
-        drinkAmounts: drinkAmounts,
+        yearMonth: widget.record.yearMonth, // 기존 yearMonth 유지
+        drinkAmount: drinkAmounts,
         memo: {'text': _memoController.text},
         cost: _costController.text.isEmpty
             ? 0

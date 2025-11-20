@@ -64,7 +64,7 @@ class ProfileStatsService {
         totalCost += record.cost;
         totalDrunkLevel += record.drunkLevel;
 
-        for (final drink in record.drinkAmounts) {
+        for (final drink in record.drinkAmount) {
           // Calculate pure alcohol in ml
           totalAlcoholMl += drink.amount * (drink.alcoholContent / 100);
         }
@@ -108,7 +108,7 @@ class ProfileStatsService {
 
       // Calculate total alcohol consumed today
       double totalAlcoholGrams = 0;
-      for (final drink in latestRecord.drinkAmounts) {
+      for (final drink in latestRecord.drinkAmount) {
         // Alcohol density: 0.789 g/ml
         // Pure alcohol ml = amount * alcoholContent / 100
         // Alcohol in grams = pure alcohol ml * 0.789

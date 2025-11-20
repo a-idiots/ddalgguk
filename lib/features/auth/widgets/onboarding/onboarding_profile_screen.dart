@@ -27,7 +27,7 @@ class _OnboardingProfileScreenState
   String? _name;
   String? _id;
   bool? _goal;
-  List<int>? _favoriteDrinks;
+  int? _favoriteDrink;
   double? _maxAlcohol;
 
   static const String _pageIndexKey = 'onboarding_profile_page_index';
@@ -112,7 +112,7 @@ class _OnboardingProfileScreenState
 
   Future<void> _handleComplete({
     required bool goal,
-    required List<int> favoriteDrinks,
+    required int favoriteDrink,
     required double maxAlcohol,
   }) async {
     if (_name == null || _id == null) {
@@ -122,7 +122,7 @@ class _OnboardingProfileScreenState
     setState(() {
       _isLoading = true;
       _goal = goal;
-      _favoriteDrinks = favoriteDrinks;
+      _favoriteDrink = favoriteDrink;
       _maxAlcohol = maxAlcohol;
     });
 
@@ -134,7 +134,7 @@ class _OnboardingProfileScreenState
         id: _id!,
         name: _name!,
         goal: goal,
-        favoriteDrink: favoriteDrinks,
+        favoriteDrink: favoriteDrink,
         maxAlcohol: maxAlcohol,
       );
 
@@ -257,7 +257,7 @@ class _OnboardingProfileScreenState
                     GoalSettingPage(
                       onComplete: _handleComplete,
                       initialGoal: _goal,
-                      initialFavoriteDrinks: _favoriteDrinks,
+                      initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
                     ),
                   ],
