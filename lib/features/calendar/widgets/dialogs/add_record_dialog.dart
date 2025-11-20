@@ -1,14 +1,15 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
-import 'package:ddalgguk/features/calendar/dialogs/drink_type_selector.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/drink_type_selector.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
-import 'package:ddalgguk/features/calendar/models/drink_input_data.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
 import 'package:ddalgguk/features/calendar/widgets/receipt_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 /// 기록 추가 다이얼로그
 class AddRecordDialog extends ConsumerStatefulWidget {
@@ -135,7 +136,10 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
         sessionNumber: 0, // 서비스에서 자동 계산
         meetingName: _meetingNameController.text,
         drunkLevel: _drunkLevel.toInt(),
-        drinkAmounts: drinkAmounts,
+        yearMonth: DateFormat(
+          'yyyy-MM',
+        ).format(widget.selectedDate), // Added yearMonth
+        drinkAmount: drinkAmounts, // Renamed from drinkAmounts
         memo: {'text': _memoController.text},
         cost: _costController.text.isEmpty
             ? 0
@@ -145,7 +149,7 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       debugPrint('=== 기록 추가 시작 ===');
       debugPrint('모임명: ${record.meetingName}');
       debugPrint('날짜: ${record.date}');
-      debugPrint('음주량 개수: ${record.drinkAmounts.length}');
+      debugPrint('음주량 개수: ${record.drinkAmount.length}');
 
       final service = DrinkingRecordService();
       final recordId = await service.createRecord(record);

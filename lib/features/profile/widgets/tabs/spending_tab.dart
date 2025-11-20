@@ -333,7 +333,7 @@ class _DrinkingRecordItem extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                _formatDrinkAmounts(record.drinkAmounts),
+                _formatDrinkAmounts(record.drinkAmount),
                 style: const TextStyle(fontSize: 12, color: Colors.black87),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -496,7 +496,7 @@ class _MaxSpendingCard extends StatelessWidget {
                         child: Text(
                           _DrinkingRecordItem(
                             record: maxRecord,
-                          )._formatDrinkAmounts(maxRecord.drinkAmounts),
+                          )._formatDrinkAmounts(maxRecord.drinkAmount),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,

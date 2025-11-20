@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/profile/presentation/tabs/alcohol_intake_tab.dart';
-import 'package:ddalgguk/features/profile/presentation/tabs/recap_tab.dart';
-import 'package:ddalgguk/features/profile/presentation/tabs/spending_tab.dart';
+import 'package:ddalgguk/features/profile/widgets/tabs/alcohol_intake_tab.dart';
+import 'package:ddalgguk/features/profile/widgets/tabs/recap_tab.dart';
+import 'package:ddalgguk/features/profile/widgets/tabs/spending_tab.dart';
 
 import 'package:go_router/go_router.dart';
 

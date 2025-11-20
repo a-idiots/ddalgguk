@@ -69,8 +69,6 @@ class AuthRepository {
         // New user - create with basic info
         appUser = AppUser.fromFirebaseUser(
           uid: uid,
-          email: userCredential.user!.email,
-          displayName: userCredential.user!.displayName,
           photoURL: userCredential.user!.photoURL,
           provider: LoginProvider.google,
         );
@@ -126,8 +124,6 @@ class AuthRepository {
         // New user - create with basic info
         appUser = AppUser.fromFirebaseUser(
           uid: uid,
-          email: userCredential.user!.email,
-          displayName: userCredential.user!.displayName,
           photoURL: userCredential.user!.photoURL,
           provider: LoginProvider.apple,
         );
@@ -187,8 +183,6 @@ class AuthRepository {
         // New user - create with basic info from Kakao
         appUser = AppUser.fromFirebaseUser(
           uid: uid,
-          email: kakaoUser.kakaoAccount?.email,
-          displayName: kakaoUser.kakaoAccount?.profile?.nickname,
           photoURL: kakaoUser.kakaoAccount?.profile?.profileImageUrl,
           provider: LoginProvider.kakao,
         );
@@ -325,10 +319,7 @@ class AuthRepository {
   }
 
   /// Update user profile in Firestore
-  Future<void> updateUserProfile({
-    String? displayName,
-    String? photoURL,
-  }) async {
+  Future<void> updateUserProfile({String? name, String? photoURL}) async {
     try {
       final uid = _firebaseAuthService.userId;
       if (uid == null) {
@@ -336,8 +327,8 @@ class AuthRepository {
       }
 
       final updates = <String, dynamic>{};
-      if (displayName != null) {
-        updates['displayName'] = displayName;
+      if (name != null) {
+        updates['name'] = name;
       }
       if (photoURL != null) {
         updates['photoURL'] = photoURL;
@@ -357,7 +348,7 @@ class AuthRepository {
     required String id,
     required String name,
     required bool goal,
-    required List<int> favoriteDrink,
+    required int favoriteDrink,
     required double maxAlcohol,
   }) async {
     try {
@@ -381,7 +372,6 @@ class AuthRepository {
           favoriteDrink: favoriteDrink,
           maxAlcohol: maxAlcohol,
           hasCompletedProfileSetup: true,
-          lastLoginAt: DateTime.now(),
         );
       } else {
         // User doesn't exist in Firestore, create new AppUser
@@ -391,8 +381,6 @@ class AuthRepository {
         updatedUser =
             AppUser.fromFirebaseUser(
               uid: uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
               photoURL: firebaseUser.photoURL,
               provider: lastProvider ?? LoginProvider.google,
             ).copyWith(
@@ -402,7 +390,6 @@ class AuthRepository {
               favoriteDrink: favoriteDrink,
               maxAlcohol: maxAlcohol,
               hasCompletedProfileSetup: true,
-              lastLoginAt: DateTime.now(),
             );
       }
 
@@ -454,4 +441,33 @@ class AuthRepository {
 
   /// Get auth state changes stream
   Stream<User?> get authStateChanges => _firebaseAuthService.authStateChanges;
+
+  /// Get AppUser stream
+  Stream<AppUser?> get appUserChanges {
+    return _firebaseAuthService.authStateChanges.asyncMap((firebaseUser) async {
+      if (firebaseUser == null) {
+        return null;
+      }
+
+      // Try to get from cache first
+      final cachedUser = await _storageService.getUserCache();
+      if (cachedUser != null && cachedUser.uid == firebaseUser.uid) {
+        return cachedUser;
+      }
+
+      // If not in cache, fetch from Firestore
+      final doc = await _usersCollection.doc(firebaseUser.uid).get();
+      if (!doc.exists) {
+        return null;
+      }
+
+      final data = doc.data() as Map<String, dynamic>;
+      final user = AppUser.fromJson(data);
+
+      // Update cache
+      await _storageService.saveUserCache(user);
+
+      return user;
+    });
+  }
 }

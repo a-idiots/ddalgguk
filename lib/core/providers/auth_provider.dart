@@ -14,30 +14,17 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 /// StreamProvider for auth state changes
-/// Returns the Firebase User when authenticated, null when not authenticated
-final authStateProvider = StreamProvider<User?>((ref) {
-  final firebaseAuth = ref.watch(firebaseAuthProvider);
-  return firebaseAuth.authStateChanges();
+/// Returns the AppUser when authenticated, null when not authenticated
+final authStateProvider = StreamProvider<AppUser?>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return authRepository.appUserChanges;
 });
 
 /// Provider for current AppUser
 /// Returns AppUser when authenticated, null when not authenticated
 final currentUserProvider = FutureProvider<AppUser?>((ref) async {
-  final authState = ref.watch(authStateProvider);
-
-  return authState.when(
-    data: (user) async {
-      if (user == null) {
-        return null;
-      }
-
-      // Get the full user data from repository (cache or Firestore)
-      final authRepository = ref.read(authRepositoryProvider);
-      return authRepository.getCurrentUser();
-    },
-    loading: () => null,
-    error: (_, __) => null,
-  );
+  final authState = await ref.watch(authStateProvider.future);
+  return authState;
 });
 
 /// Provider to check if user is authenticated

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/page_indicator.dart';
+import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/page_indicator.dart';
 
 /// Goal setting page for profile setup (Page 3)
 class GoalSettingPage extends StatefulWidget {
@@ -7,19 +7,19 @@ class GoalSettingPage extends StatefulWidget {
     super.key,
     required this.onComplete,
     this.initialGoal,
-    this.initialFavoriteDrinks,
+    this.initialFavoriteDrink,
     this.initialMaxAlcohol,
   });
 
   final void Function({
     required bool goal,
-    required List<int> favoriteDrinks,
+    required int favoriteDrink,
     required double maxAlcohol,
   })
   onComplete;
 
   final bool? initialGoal;
-  final List<int>? initialFavoriteDrinks;
+  final int? initialFavoriteDrink;
   final double? initialMaxAlcohol;
 
   @override
@@ -35,9 +35,8 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
   void initState() {
     super.initState();
     _selectedGoal = widget.initialGoal;
-    if (widget.initialFavoriteDrinks != null &&
-        widget.initialFavoriteDrinks!.isNotEmpty) {
-      _selectedDrink = widget.initialFavoriteDrinks!.first;
+    if (widget.initialFavoriteDrink != null) {
+      _selectedDrink = widget.initialFavoriteDrink;
     }
     if (widget.initialMaxAlcohol != null) {
       _sliderIndex = _alcoholToSliderIndex(widget.initialMaxAlcohol!);
@@ -114,7 +113,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
 
     widget.onComplete(
       goal: _selectedGoal!,
-      favoriteDrinks: [_selectedDrink!],
+      favoriteDrink: _selectedDrink!,
       maxAlcohol: _maxAlcohol,
     );
   }

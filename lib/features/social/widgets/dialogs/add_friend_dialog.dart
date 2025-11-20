@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
-import 'package:ddalgguk/features/social/providers/friend_providers.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -130,7 +130,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
   void _selectSuggestion(AppUser user) {
     setState(() {
       _userIdController.text = '@${user.id ?? ''}';
-      _foundUserName = user.name ?? user.displayName ?? 'Unknown';
+      _foundUserName = user.name ?? 'Unknown';
       _foundUserId = user.uid;
       _showSuggestions = false;
       _suggestions = [];
@@ -160,7 +160,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
       if (user != null) {
         setState(() {
-          _foundUserName = user.name ?? user.displayName ?? 'Unknown';
+          _foundUserName = user.name ?? 'Unknown';
           _foundUserId = user.uid;
           _showSuggestions = false;
         });
@@ -348,7 +348,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                                 alpha: 0.2,
                               ),
                               child: Text(
-                                (user.id ?? '@')[0].toUpperCase(),
+                                (user.name ?? 'Unknown')[0].toUpperCase(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,

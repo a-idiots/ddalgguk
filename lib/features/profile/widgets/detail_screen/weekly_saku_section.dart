@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
+import 'package:ddalgguk/features/profile/widgets/reusable_section.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';

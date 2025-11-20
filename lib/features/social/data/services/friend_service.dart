@@ -94,7 +94,7 @@ class FriendService {
 
       batch.set(myFriendRef, {
         'userId': friendUserId,
-        'name': friendUser.name ?? friendUser.displayName ?? 'Unknown',
+        'name': friendUser.name ?? 'Unknown',
         'photoURL': friendUser.photoURL,
         'createdAt': Timestamp.fromDate(now),
         'dailyStatus': null,
@@ -496,14 +496,11 @@ class FriendService {
       final friendData = friendDoc.data()!;
       final friendUser = AppUser(
         uid: request.fromUserId,
-        displayName: friendData['name'] as String?,
+        name: friendData['name'] as String?,
         photoURL: friendData['photoURL'] as String?,
         provider:
             LoginProvider.fromString(friendData['provider'] as String?) ??
             LoginProvider.google,
-        createdAt: friendData['createdAt'] != null
-            ? DateTime.parse(friendData['createdAt'] as String)
-            : DateTime.now(),
         hasCompletedProfileSetup: true,
       );
 
@@ -559,19 +556,14 @@ class FriendService {
         final data = doc.data();
         return AppUser(
           uid: doc.id,
-          email: data['email'] as String?,
-          displayName: data['name'] as String?,
+          name: data['name'] as String?,
           photoURL: data['photoURL'] as String?,
           provider:
               LoginProvider.fromString(data['provider'] as String?) ??
               LoginProvider.google,
-          createdAt: data['createdAt'] != null
-              ? DateTime.parse(data['createdAt'] as String)
-              : DateTime.now(),
           hasCompletedProfileSetup:
               data['hasCompletedProfileSetup'] as bool? ?? false,
           id: data['id'] as String?,
-          name: data['name'] as String?,
         );
       }
     } catch (e) {
@@ -615,19 +607,14 @@ class FriendService {
         users.add(
           AppUser(
             uid: doc.id,
-            email: data['email'] as String?,
-            displayName: data['name'] as String?,
+            name: data['name'] as String?,
             photoURL: data['photoURL'] as String?,
             provider:
                 LoginProvider.fromString(data['provider'] as String?) ??
                 LoginProvider.google,
-            createdAt: data['createdAt'] != null
-                ? DateTime.parse(data['createdAt'] as String)
-                : DateTime.now(),
             hasCompletedProfileSetup:
                 data['hasCompletedProfileSetup'] as bool? ?? false,
             id: data['id'] as String?,
-            name: data['name'] as String?,
           ),
         );
       }

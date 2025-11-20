@@ -1,10 +1,10 @@
 import 'dart:ui';
 
-import 'package:ddalgguk/features/profile/presentation/widgets/profile_main_view.dart';
+import 'package:ddalgguk/features/profile/widgets/profile_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ddalgguk/features/profile/presentation/profile_detail_screen.dart';
-import 'package:ddalgguk/features/profile/presentation/analytics_screen.dart';
+import 'package:ddalgguk/features/profile/widgets/profile_detail_screen.dart';
+import 'package:ddalgguk/features/profile/widgets/analytics_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {

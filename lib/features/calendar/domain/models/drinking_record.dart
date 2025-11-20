@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 /// 음주량 정보를 담는 클래스
 /// [drinkType] - 술 종류 (int)
@@ -38,10 +39,11 @@ class DrinkingRecord {
   DrinkingRecord({
     required this.id,
     required this.date,
+    required this.yearMonth,
     required this.sessionNumber,
     required this.meetingName,
     required this.drunkLevel,
-    required this.drinkAmounts,
+    required this.drinkAmount,
     required this.memo,
     required this.cost,
   });
@@ -53,11 +55,12 @@ class DrinkingRecord {
     final data = snapshot.data()!;
     return DrinkingRecord(
       id: snapshot.id,
-      date: (data['date'] as Timestamp).toDate(),
+      date: DateTime.parse(data['date'] as String),
+      yearMonth: data['yearMonth'] as String,
       sessionNumber: data['sessionNumber'] as int,
       meetingName: data['meetingName'] as String,
       drunkLevel: data['drunkLevel'] as int,
-      drinkAmounts: (data['drinkAmounts'] as List<dynamic>)
+      drinkAmount: (data['drinkAmount'] as List<dynamic>)
           .map((drink) => DrinkAmount.fromMap(drink as Map<String, dynamic>))
           .toList(),
       memo: Map<String, dynamic>.from(data['memo'] as Map),
@@ -65,22 +68,24 @@ class DrinkingRecord {
     );
   }
   final String id; // Firestore document ID
-  final DateTime date; // 날짜
+  final DateTime date; // 날짜 (DB: String YYYY-MM-DD)
+  final String yearMonth; // YYYY-MM
   final int sessionNumber; // 기록 회차 (날짜별로)
   final String meetingName; // 모임명
   final int drunkLevel; // 취함 정도
-  final List<DrinkAmount> drinkAmounts; // 음주량 리스트
+  final List<DrinkAmount> drinkAmount; // 음주량 리스트
   final Map<String, dynamic> memo; // 메모
   final int cost;
 
   /// Firestore에 저장할 Map으로 변환
   Map<String, dynamic> toMap() {
     return {
-      'date': Timestamp.fromDate(date),
+      'date': DateFormat('yyyy-MM-dd').format(date),
+      'yearMonth': yearMonth,
       'sessionNumber': sessionNumber,
       'meetingName': meetingName,
       'drunkLevel': drunkLevel,
-      'drinkAmounts': drinkAmounts.map((drink) => drink.toMap()).toList(),
+      'drinkAmount': drinkAmount.map((drink) => drink.toMap()).toList(),
       'memo': memo,
       'cost': cost,
     };
@@ -90,20 +95,22 @@ class DrinkingRecord {
   DrinkingRecord copyWith({
     String? id,
     DateTime? date,
+    String? yearMonth,
     int? sessionNumber,
     String? meetingName,
     int? drunkLevel,
-    List<DrinkAmount>? drinkAmounts,
+    List<DrinkAmount>? drinkAmount,
     Map<String, dynamic>? memo,
     int? cost,
   }) {
     return DrinkingRecord(
       id: id ?? this.id,
       date: date ?? this.date,
+      yearMonth: yearMonth ?? this.yearMonth,
       sessionNumber: sessionNumber ?? this.sessionNumber,
       meetingName: meetingName ?? this.meetingName,
       drunkLevel: drunkLevel ?? this.drunkLevel,
-      drinkAmounts: drinkAmounts ?? this.drinkAmounts,
+      drinkAmount: drinkAmount ?? this.drinkAmount,
       memo: memo ?? this.memo,
       cost: cost ?? this.cost,
     );

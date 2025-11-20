@@ -1,5 +1,5 @@
-import 'package:ddalgguk/features/calendar/models/drink_input_data.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 
 /// 음주량 입력 카드 빌더 (텍스트 입력 방식)

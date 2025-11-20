@@ -385,7 +385,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     ),
                   ),
                   Text(
-                    '${NumberFormat('#,###').format(stats.totalAlcoholMl)}',
+                    NumberFormat('#,###').format(stats.totalAlcoholMl),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
