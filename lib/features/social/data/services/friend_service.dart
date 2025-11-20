@@ -79,8 +79,14 @@ class FriendService {
     }
 
     try {
-      final currentUser = _auth.currentUser!;
       final now = DateTime.now();
+
+      // 현재 사용자의 Firestore 데이터 가져오기 (name 필드 사용)
+      final currentUserDoc =
+          await _firestore.collection('users').doc(_currentUserId).get();
+      final currentUserData = currentUserDoc.data();
+      final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
+      final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
 
       // Batch write로 양방향 관계 생성
       final batch = _firestore.batch();
@@ -94,7 +100,7 @@ class FriendService {
 
       batch.set(myFriendRef, {
         'userId': friendUserId,
-        'name': friendUser.name ?? friendUser.displayName ?? 'Unknown',
+        'name': friendUser.name ?? 'Unknown',
         'photoURL': friendUser.photoURL,
         'createdAt': Timestamp.fromDate(now),
         'dailyStatus': null,
@@ -112,8 +118,8 @@ class FriendService {
 
       batch.set(theirFriendRef, {
         'userId': _currentUserId,
-        'name': currentUser.displayName ?? 'Unknown',
-        'photoURL': currentUser.photoURL,
+        'name': currentUserName,
+        'photoURL': currentUserPhotoURL,
         'createdAt': Timestamp.fromDate(now),
         'dailyStatus': null,
         'currentDrunkLevel': null,
@@ -281,7 +287,7 @@ class FriendService {
 
       final profile = Friend(
         userId: _currentUserId!,
-        name: data['name'] as String? ?? currentUser.displayName ?? 'Me',
+        name: data['name'] as String? ?? 'Me',
         photoURL: data['photoURL'] as String? ?? currentUser.photoURL,
         createdAt: DateTime.now(),
         dailyStatus: data['dailyStatus'] != null
@@ -415,10 +421,15 @@ class FriendService {
     }
 
     try {
-      final currentUser = _auth.currentUser!;
+      // 현재 사용자의 Firestore 데이터 가져오기 (name 필드 사용)
+      final currentUserDoc =
+          await _firestore.collection('users').doc(_currentUserId).get();
+      final currentUserData = currentUserDoc.data();
+      final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
+      final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
 
       debugPrint('=== sendFriendRequest ===');
-      debugPrint('From: $_currentUserId (${currentUser.displayName})');
+      debugPrint('From: $_currentUserId ($currentUserName)');
       debugPrint('To: $toUserId ($toUserName)');
 
       // 자기 자신에게 요청 보내는지 확인
@@ -448,8 +459,8 @@ class FriendService {
       // 상대방의 friendRequests 컬렉션에 요청 추가
       final request = {
         'fromUserId': _currentUserId,
-        'fromUserName': currentUser.displayName ?? 'Unknown',
-        'fromUserPhoto': currentUser.photoURL,
+        'fromUserName': currentUserName,
+        'fromUserPhoto': currentUserPhotoURL,
         'toUserId': toUserId,
         'message': message,
         'createdAt': Timestamp.now(),
