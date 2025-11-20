@@ -1,9 +1,9 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
-import 'package:ddalgguk/features/calendar/dialogs/add_record_dialog.dart';
-import 'package:ddalgguk/features/calendar/dialogs/edit_record_dialog.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/add_record_dialog.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/edit_record_dialog.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';

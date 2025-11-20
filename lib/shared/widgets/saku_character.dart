@@ -1,4 +1,4 @@
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 
 /// Saku character widget with eye tracking capability

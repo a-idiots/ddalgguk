@@ -1,6 +1,6 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
-import 'package:ddalgguk/features/social/providers/friend_providers.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/add_friend_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/friend_card.dart';

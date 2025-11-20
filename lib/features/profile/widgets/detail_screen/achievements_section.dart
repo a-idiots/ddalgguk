@@ -4,7 +4,7 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/badge_data.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
+import 'package:ddalgguk/features/profile/widgets/reusable_section.dart';
 
 class AchievementsSection extends ConsumerWidget {
   const AchievementsSection({super.key, required this.theme});

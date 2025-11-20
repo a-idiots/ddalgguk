@@ -1,87 +1,53 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
-import 'package:ddalgguk/features/calendar/dialogs/drink_type_selector.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/drink_type_selector.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
-import 'package:ddalgguk/features/calendar/models/drink_input_data.dart';
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
 import 'package:ddalgguk/features/calendar/widgets/receipt_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// 기록 수정 다이얼로그
-class EditRecordDialog extends ConsumerStatefulWidget {
-  const EditRecordDialog({
-    required this.record,
-    required this.onRecordUpdated,
+/// 기록 추가 다이얼로그
+class AddRecordDialog extends ConsumerStatefulWidget {
+  const AddRecordDialog({
+    required this.selectedDate,
+    required this.sessionNumber,
+    required this.onRecordAdded,
     super.key,
   });
 
-  final DrinkingRecord record;
-  final VoidCallback onRecordUpdated;
+  final DateTime selectedDate;
+  final int sessionNumber;
+  final VoidCallback onRecordAdded;
 
   @override
-  ConsumerState<EditRecordDialog> createState() => _EditRecordDialogState();
+  ConsumerState<AddRecordDialog> createState() => _AddRecordDialogState();
 }
 
-class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
+class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
   late final TextEditingController _meetingNameController;
   late final TextEditingController _costController;
   late final TextEditingController _memoController;
-  late double _drunkLevel;
+  double _drunkLevel = 5.0;
   late List<DrinkInputData> _drinkInputs;
 
   @override
   void initState() {
     super.initState();
-
-    // 기존 데이터로 초기화
-    _meetingNameController = TextEditingController(
-      text: widget.record.meetingName,
-    );
-    _costController = TextEditingController(
-      text: widget.record.cost > 0 ? widget.record.cost.toString() : '',
-    );
-    _memoController = TextEditingController(
-      text: widget.record.memo['text'] as String? ?? '',
-    );
-    _drunkLevel = widget.record.drunkLevel.toDouble();
-
-    // 기존 음주량 데이터를 DrinkInputData 리스트로 변환
-    _drinkInputs = widget.record.drinkAmounts.isNotEmpty
-        ? widget.record.drinkAmounts.map((drink) {
-            // ml을 단위에 맞게 변환
-            String unit;
-            double amount;
-            if (drink.amount >= 1000) {
-              unit = '병';
-              amount = drink.amount / 500;
-            } else if (drink.amount >= 150) {
-              unit = '잔';
-              amount = drink.amount / 150;
-            } else {
-              unit = 'ml';
-              amount = drink.amount;
-            }
-
-            return DrinkInputData(
-              drinkType: drink.drinkType,
-              alcoholController: TextEditingController(
-                text: drink.alcoholContent.toString(),
-              ),
-              amountController: TextEditingController(text: amount.toString()),
-              selectedUnit: unit,
-            );
-          }).toList()
-        : [
-            DrinkInputData(
-              drinkType: 0, // 미정
-              alcoholController: TextEditingController(text: '0.0'),
-              amountController: TextEditingController(text: '1.0'),
-              selectedUnit: '병',
-            ),
-          ];
+    _meetingNameController = TextEditingController();
+    _costController = TextEditingController();
+    _memoController = TextEditingController();
+    _drinkInputs = [
+      DrinkInputData(
+        drinkType: 0, // 미정
+        alcoholController: TextEditingController(text: '0.0'),
+        amountController: TextEditingController(text: '1.0'),
+        selectedUnit: '병',
+      ),
+    ];
   }
 
   @override
@@ -163,10 +129,10 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
     }
 
     try {
-      final updatedRecord = DrinkingRecord(
-        id: widget.record.id, // 기존 ID 유지
-        date: widget.record.date, // 날짜는 변경하지 않음
-        sessionNumber: widget.record.sessionNumber, // 회차 유지
+      final record = DrinkingRecord(
+        id: '', // Firestore에서 자동 생성
+        date: widget.selectedDate,
+        sessionNumber: 0, // 서비스에서 자동 계산
         meetingName: _meetingNameController.text,
         drunkLevel: _drunkLevel.toInt(),
         drinkAmounts: drinkAmounts,
@@ -176,26 +142,38 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
             : int.parse(_costController.text),
       );
 
-      final service = DrinkingRecordService();
-      await service.updateRecord(updatedRecord);
+      debugPrint('=== 기록 추가 시작 ===');
+      debugPrint('모임명: ${record.meetingName}');
+      debugPrint('날짜: ${record.date}');
+      debugPrint('음주량 개수: ${record.drinkAmounts.length}');
 
-      widget.onRecordUpdated();
+      final service = DrinkingRecordService();
+      final recordId = await service.createRecord(record);
+
+      debugPrint('기록 ID: $recordId');
+      debugPrint('=== 기록 추가 완료 ===');
+
+      widget.onRecordAdded();
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('기록이 수정되었습니다'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text('기록이 추가되었습니다 (ID: $recordId)'),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('=== 기록 추가 실패 ===');
+      debugPrint('에러: $e');
+      debugPrint('스택트레이스: $stackTrace');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('수정 실패: $e'),
-            duration: const Duration(seconds: 3),
+            content: Text('추가 실패: $e'),
+            duration: const Duration(seconds: 5),
             backgroundColor: Colors.red,
           ),
         );
@@ -244,7 +222,7 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                       ),
                       const Spacer(),
                       Text(
-                        '${widget.record.sessionNumber}차',
+                        '${widget.sessionNumber}차',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -510,7 +488,7 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: _handleSubmit,
-                  child: const Text('수정'),
+                  child: const Text('추가'),
                 ),
               ],
             ),

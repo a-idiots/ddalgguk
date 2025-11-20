@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/info_input_page.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/goal_setting_page.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/page_indicator.dart';
+import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/info_input_page.dart';
+import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/goal_setting_page.dart';
+import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 
 /// Main onboarding profile screen with PageView

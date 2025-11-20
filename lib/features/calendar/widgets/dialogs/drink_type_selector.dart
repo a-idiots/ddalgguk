@@ -1,4 +1,4 @@
-import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 
 /// 술 종류 선택기 (하단 말풍선 형태)

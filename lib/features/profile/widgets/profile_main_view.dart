@@ -1,8 +1,8 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/scroll_indicator.dart';
+import 'package:ddalgguk/features/profile/widgets/gradient_background.dart';
+import 'package:ddalgguk/features/profile/widgets/scroll_indicator.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,6 +1,6 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
-import 'package:ddalgguk/features/social/providers/friend_providers.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

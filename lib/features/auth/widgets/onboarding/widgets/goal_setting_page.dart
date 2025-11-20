@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ddalgguk/features/auth/onboarding/widgets/page_indicator.dart';
+import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/page_indicator.dart';
 
 /// Goal setting page for profile setup (Page 3)
 class GoalSettingPage extends StatefulWidget {
