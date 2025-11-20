@@ -75,20 +75,26 @@ class DrinkingRecordService {
       try {
         // 해당 날짜의 모든 기록을 다시 조회 (방금 추가한 기록 포함)
         final allRecordsForDate = await _getRecordsCollection()
-            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+            .where(
+              'date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart),
+            )
             .where('date', isLessThan: Timestamp.fromDate(dateEnd))
             .get();
 
         // 평균 drunkLevel 계산
-        final records =
-            allRecordsForDate.docs.map((doc) => DrinkingRecord.fromFirestore(doc)).toList();
+        final records = allRecordsForDate.docs
+            .map((doc) => DrinkingRecord.fromFirestore(doc))
+            .toList();
         final totalDrunkLevel = records.fold<int>(
           0,
           (total, r) => total + r.drunkLevel,
         );
         final avgDrunkLevel = (totalDrunkLevel / records.length).round();
 
-        debugPrint('Records for date: ${records.length}, Average drunk level: $avgDrunkLevel');
+        debugPrint(
+          'Records for date: ${records.length}, Average drunk level: $avgDrunkLevel',
+        );
 
         await _friendService.updateMyDrinkingData(
           drunkLevel: avgDrunkLevel,
@@ -223,13 +229,17 @@ class DrinkingRecordService {
 
         // 해당 날짜의 모든 기록 조회
         final allRecordsForDate = await _getRecordsCollection()
-            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+            .where(
+              'date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart),
+            )
             .where('date', isLessThan: Timestamp.fromDate(dateEnd))
             .get();
 
         // 평균 drunkLevel 계산
-        final records =
-            allRecordsForDate.docs.map((doc) => DrinkingRecord.fromFirestore(doc)).toList();
+        final records = allRecordsForDate.docs
+            .map((doc) => DrinkingRecord.fromFirestore(doc))
+            .toList();
         final totalDrunkLevel = records.fold<int>(
           0,
           (total, r) => total + r.drunkLevel,
@@ -280,7 +290,10 @@ class DrinkingRecordService {
 
         // 삭제 후 남은 기록 조회
         final remainingRecords = await _getRecordsCollection()
-            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart))
+            .where(
+              'date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart),
+            )
             .where('date', isLessThan: Timestamp.fromDate(dateEnd))
             .get();
 
