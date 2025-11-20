@@ -82,8 +82,10 @@ class FriendService {
       final now = DateTime.now();
 
       // 현재 사용자의 Firestore 데이터 가져오기 (name 필드 사용)
-      final currentUserDoc =
-          await _firestore.collection('users').doc(_currentUserId).get();
+      final currentUserDoc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
       final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
@@ -422,8 +424,10 @@ class FriendService {
 
     try {
       // 현재 사용자의 Firestore 데이터 가져오기 (name 필드 사용)
-      final currentUserDoc =
-          await _firestore.collection('users').doc(_currentUserId).get();
+      final currentUserDoc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
       final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
