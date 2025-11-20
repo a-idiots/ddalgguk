@@ -1,26 +1,15 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/dialogs/add_record_dialog.dart';
 import 'package:ddalgguk/features/calendar/dialogs/edit_record_dialog.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-// Provider for DrinkingRecordService
-final drinkingRecordServiceProvider = Provider<DrinkingRecordService>((ref) {
-  return DrinkingRecordService();
-});
-
-// Provider for selected month's records
-final monthRecordsProvider =
-    StreamProvider.family<List<DrinkingRecord>, DateTime>((ref, date) {
-      final service = ref.watch(drinkingRecordServiceProvider);
-      return service.streamRecordsByMonth(date.year, date.month);
-    });
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -225,7 +214,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         : 0;
 
     const sakuSize = 44.0;
-    const eyesScale = 0.35;
 
     return Center(
       child: SizedBox(
@@ -259,26 +247,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 fit: BoxFit.contain,
               ),
             ),
-            // 기록이 있을 때만 사쿠 이미지를 위에 겹침
+            // 기록이 있을 때만 사쿠 캐릭터를 위에 겹침
             if (hasRecord)
               Opacity(
                 opacity: isOutsideMonth ? 0.35 : 1,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Image.asset(
-                      getBodyImagePath(avgDrunkLevel * 10),
-                      width: sakuSize,
-                      height: sakuSize,
-                      fit: BoxFit.contain,
-                    ),
-                    Image.asset(
-                      'assets/saku/eyes.png',
-                      width: sakuSize * eyesScale,
-                      height: sakuSize * eyesScale,
-                      fit: BoxFit.contain,
-                    ),
-                  ],
+                child: SakuCharacter(
+                  size: sakuSize,
+                  drunkLevel: avgDrunkLevel * 10,
                 ),
               ),
             Positioned(
@@ -365,7 +340,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   /// 기록 카드 빌드
   Widget _buildRecordCard(DrinkingRecord record, int index) {
     const sakuSize = 60.0;
-    const eyesScale = 0.35;
 
     return GestureDetector(
       onTap: () => _showRecordDetail(context, record),
@@ -388,27 +362,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 왼쪽: 사쿠 캐릭터
-            SizedBox(
-              width: sakuSize,
-              height: sakuSize,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    getBodyImagePath(record.drunkLevel * 10),
-                    width: sakuSize,
-                    height: sakuSize,
-                    fit: BoxFit.contain,
-                  ),
-                  Image.asset(
-                    'assets/saku/eyes.png',
-                    width: sakuSize * eyesScale,
-                    height: sakuSize * eyesScale,
-                    fit: BoxFit.contain,
-                  ),
-                ],
-              ),
-            ),
+            SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
             const SizedBox(width: 16),
             // 중앙: 정보
             Expanded(

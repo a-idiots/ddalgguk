@@ -4,10 +4,17 @@ import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alcohol_break_chart/semicircular_chart.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class AlcoholBreakdownSection extends StatelessWidget {
-  const AlcoholBreakdownSection({super.key, required this.stats});
+  const AlcoholBreakdownSection({
+    super.key,
+    required this.stats,
+    required this.theme,
+  });
 
   final ProfileStats stats;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -23,43 +30,50 @@ class AlcoholBreakdownSection extends StatelessWidget {
           SemicircularChart(
             progress: breakdown.progressPercentage / 100,
             centerText: _getTimeText(stats.timeToSober),
+            activeColor: theme.primaryColor,
             size: 280,
           ),
           const SizedBox(height: 24),
           // Message box
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey[200]!, width: 1),
+              color: Colors.transparent, // No background
+              borderRadius: BorderRadius.circular(30), // More rounded
+              border: Border.all(color: Colors.grey[300]!, width: 1),
             ),
             child: Row(
               children: [
                 // Message icon
                 Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFFF0F0),
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: theme.secondaryColor, // Theme color background
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.chat_bubble_outline,
-                    color: Color(0xFFF27B7B),
+                    Icons
+                        .sentiment_very_satisfied_rounded, // Changed icon to match image roughly
+                    color: Colors.white,
                     size: 20,
                   ),
                 ),
                 const SizedBox(width: 12),
                 // Message text
                 Expanded(
-                  child: Text(
-                    stats.statusMessage,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[800],
-                      height: 1.4,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '간 회복은 훨씬 오래 걸려요!',
+                        style: TextStyle(fontSize: 11, color: Colors.black87),
+                      ),
+                      Text(
+                        '72시간 이상 금주하면 간 효소 정상화에 도움이 돼요.',
+                        style: TextStyle(fontSize: 11, color: Colors.black87),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -72,7 +86,7 @@ class AlcoholBreakdownSection extends StatelessWidget {
 
   String _getTimeText(double hours) {
     if (hours <= 0) {
-      return '0시간';
+      return '간 회복 완료';
     } else if (hours < 1) {
       final minutes = (hours * 60).round();
       return '$minutes분';

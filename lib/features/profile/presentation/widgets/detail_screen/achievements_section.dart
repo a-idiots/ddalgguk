@@ -1,190 +1,309 @@
-import 'package:flutter/material.dart';
-import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
+import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart';
+import 'package:ddalgguk/features/profile/domain/models/badge_data.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/reusable_section.dart';
 
-class AchievementsSection extends StatelessWidget {
-  const AchievementsSection({super.key, required this.achievements});
+class AchievementsSection extends ConsumerWidget {
+  const AchievementsSection({super.key, required this.theme});
 
-  final List<Achievement> achievements;
+  final AppTheme theme;
 
   @override
-  Widget build(BuildContext context) {
-    return ProfileSection(
-      title: '나의 업적',
-      subtitle: SectionSubtitleButton(
-        text: '더 많은 뱃지 확인하기',
-        onTap: () {
-          _showAllAchievements(context);
-        },
-      ),
-      content: SizedBox(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+
+    return userAsync.when(
+      data: (user) {
+        if (user == null) {
+          return const SizedBox.shrink();
+        }
+
+        final badges = List<Badge>.from(user.badges);
+        // Sort by date descending (newest first)
+        badges.sort((a, b) => b.achievedDay.compareTo(a.achievedDay));
+
+        return ProfileSection(
+          title: '나의 업적',
+          titleOutside: true,
+          subtitle: GestureDetector(
+            onTap: () {
+              _showAllAchievements(context, user.badges);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.secondaryGreen.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                '더 많은 뱃지 확인하기',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.secondaryGreen.withValues(alpha: 1),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: SizedBox(
+              height: 110,
+              child: badges.isEmpty
+                  ? const Center(
+                      child: Text(
+                        '아직 획득한 뱃지가 없습니다.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: badges.length,
+                      itemBuilder: (context, index) {
+                        final badge = badges[index];
+                        final badgeData = badge.group == 'drinking'
+                            ? drinkingBadges[badge.idx]
+                            : sobrietyBadges[badge.idx];
+
+                        if (badgeData == null) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: AchievementItem(
+                            data: badgeData,
+                            isUnlocked: true,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox(
         height: 130,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: achievements.length,
-          itemBuilder: (context, index) {
-            return _AchievementCard(achievement: achievements[index]);
-          },
-        ),
+        child: Center(child: CircularProgressIndicator()),
       ),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
-  void _showAllAchievements(BuildContext context) {
+  void _showAllAchievements(BuildContext context, List<Badge> userBadges) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '나의 업적',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Flexible(
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.8,
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  const SizedBox(width: double.infinity),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 2,
+                      horizontal: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFDA4444)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      '음주 뱃지',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFFDA4444),
+                      ),
+                    ),
                   ),
-                  itemCount: achievements.length,
-                  itemBuilder: (context, index) {
-                    return _AchievementCard(
-                      achievement: achievements[index],
-                      compact: false,
-                    );
-                  },
+                  Positioned(
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(Icons.close, color: Colors.grey),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              _buildBadgeGrid(drinkingBadges, userBadges, 'drinking'),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 2,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF11BC6A)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  '금주 뱃지',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF11BC6A),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('닫기'),
-              ),
+              const SizedBox(height: 10),
+              _buildBadgeGrid(sobrietyBadges, userBadges, 'sobriety'),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildBadgeGrid(
+    Map<int, BadgeData> badgeMap,
+    List<Badge> userBadges,
+    String group,
+  ) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 8,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: badgeMap.length,
+      itemBuilder: (context, index) {
+        final badgeData = badgeMap[index]!;
+        final isUnlocked = userBadges.any(
+          (b) => b.group == group && b.idx == index,
+        );
+
+        return AchievementItem(
+          data: badgeData,
+          isUnlocked: isUnlocked,
+          compact: true,
+        );
+      },
+    );
+  }
 }
 
-class _AchievementCard extends StatelessWidget {
-  const _AchievementCard({required this.achievement, this.compact = true});
+class AchievementItem extends StatelessWidget {
+  const AchievementItem({
+    super.key,
+    required this.data,
+    required this.isUnlocked,
+    this.compact = false,
+  });
 
-  final Achievement achievement;
+  final BadgeData data;
+  final bool isUnlocked;
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    final isLocked = !achievement.isUnlocked;
-
-    return Container(
-      width: compact ? 100 : null,
-      margin: EdgeInsets.only(right: compact ? 12 : 0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Achievement icon/badge
-          Container(
-            width: compact ? 60 : 50,
-            height: compact ? 60 : 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: isLocked
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Colors.grey[300]!, Colors.grey[400]!],
-                    )
-                  : LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: _getAchievementGradient(achievement.type),
-                    ),
-              boxShadow: [
-                if (!isLocked)
-                  BoxShadow(
-                    color: _getAchievementGradient(
-                      achievement.type,
-                    )[0].withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-              ],
-            ),
-            child: Center(
-              child: Icon(
-                _getAchievementIcon(achievement.type),
-                color: Colors.white,
-                size: compact ? 30 : 24,
-              ),
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AchievementIcon(
+          text1: data.iconText1,
+          text2: data.iconText2,
+          color: isUnlocked ? data.color : Colors.grey[300]!,
+          size: compact ? 50 : 60,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          data.title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: compact ? 10 : 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
-          const SizedBox(height: 8),
-          // Title
-          Text(
-            achievement.title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: compact ? 12 : 11,
-              fontWeight: FontWeight.bold,
-              color: isLocked ? Colors.grey : Colors.black,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          // Description
-          Text(
-            achievement.description,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: compact ? 10 : 9,
-              color: Colors.grey[600],
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
+          maxLines: 1,
+          overflow: TextOverflow.visible,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          data.subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: compact ? 8 : 9, color: Colors.grey[600]),
+          maxLines: 1,
+          overflow: TextOverflow.visible,
+        ),
+      ],
     );
   }
+}
 
-  List<Color> _getAchievementGradient(AchievementType type) {
-    switch (type) {
-      case AchievementType.drinking:
-        return [const Color(0xFFF27B7B), const Color(0xFFE35252)];
-      case AchievementType.sober:
-        return [const Color(0xFF52E370), const Color(0xFF3BC95B)];
-      case AchievementType.tracking:
-        return [const Color(0xFF5B9FFF), const Color(0xFF3D7FE0)];
-      case AchievementType.social:
-        return [const Color(0xFFFFB347), const Color(0xFFFF9F1C)];
-      case AchievementType.special:
-        return [const Color(0xFFB47BFF), const Color(0xFF9B5DE5)];
-    }
-  }
+class AchievementIcon extends StatelessWidget {
+  const AchievementIcon({
+    super.key,
+    required this.text1,
+    this.text2,
+    required this.color,
+    this.size = 60,
+  });
 
-  IconData _getAchievementIcon(AchievementType type) {
-    switch (type) {
-      case AchievementType.drinking:
-        return Icons.local_bar;
-      case AchievementType.sober:
-        return Icons.favorite;
-      case AchievementType.tracking:
-        return Icons.emoji_events;
-      case AchievementType.social:
-        return Icons.people;
-      case AchievementType.special:
-        return Icons.star;
-    }
+  final String text1;
+  final String? text2;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    // Check if text1 is 2 characters
+    final bool isTwoChars = text1.length == 2;
+    // If text2 is present, we force standard size for text1 to match text2
+    final bool hasSubtitle = text2 != null;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              text1,
+              style: TextStyle(
+                color: Colors.white,
+                // Use large font only if 2 chars AND no subtitle
+                fontSize: (isTwoChars && !hasSubtitle)
+                    ? size * 0.4
+                    : size * 0.3,
+                fontWeight: (isTwoChars && !hasSubtitle)
+                    ? FontWeight.w300
+                    : FontWeight.w400,
+                height: 1.0,
+              ),
+            ),
+            if (text2 != null)
+              Text(
+                text2!,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: size * 0.3,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

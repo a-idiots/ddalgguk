@@ -11,9 +11,9 @@ class ProfileStatsService {
 
   final DrinkingRecordService _drinkingRecordService;
 
-  /// Calculate weekly stats for the last 7 days
-  Future<WeeklyStats> calculateWeeklyStats() async {
-    final now = DateTime.now();
+  /// Calculate weekly stats for the last 7 days ending on [referenceDate] (default: today)
+  Future<WeeklyStats> calculateWeeklyStats([DateTime? referenceDate]) async {
+    final now = referenceDate ?? DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final startDate = today.subtract(const Duration(days: 6));
 

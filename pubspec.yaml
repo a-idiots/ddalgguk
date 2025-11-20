@@ -63,6 +63,7 @@ dependencies:
   http: ^1.2.2
   flutter_svg: ^2.0.0
   fl_chart: ^0.68.0
+  gal: ^2.3.0
 
 dev_dependencies:
   flutter_test:

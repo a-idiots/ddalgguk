@@ -12,6 +12,7 @@ class Friend {
     this.currentDrunkLevel,
     this.lastDrinkDate,
     this.daysSinceLastDrink,
+    this.yesterdayAvgDrunkLevel,
   });
 
   /// Firestore에서 불러오기
@@ -40,6 +41,7 @@ class Friend {
       currentDrunkLevel: data['currentDrunkLevel'] as int?,
       lastDrinkDate: lastDrinkDate,
       daysSinceLastDrink: daysSinceLastDrink,
+      yesterdayAvgDrunkLevel: null, // Provider에서 계산하여 설정
     );
   }
 
@@ -51,6 +53,7 @@ class Friend {
   final int? currentDrunkLevel; // 현재 술 레벨 (0-10)
   final DateTime? lastDrinkDate; // 마지막 음주 날짜
   final int? daysSinceLastDrink; // 마지막 음주 이후 일수
+  final int? yesterdayAvgDrunkLevel; // 어제의 평균 음주 레벨 (0-10)
 
   /// Firestore에 저장하기
   Map<String, dynamic> toMap() {
@@ -76,8 +79,8 @@ class Friend {
     return dailyStatus!.message;
   }
 
-  /// 음주 레벨 반환 (없으면 0)
-  int get displayDrunkLevel => currentDrunkLevel ?? 0;
+  /// 음주 레벨 반환 (어제 기록 우선, 없으면 0)
+  int get displayDrunkLevel => yesterdayAvgDrunkLevel ?? 0;
 
   Friend copyWith({
     String? userId,
@@ -88,6 +91,7 @@ class Friend {
     int? currentDrunkLevel,
     DateTime? lastDrinkDate,
     int? daysSinceLastDrink,
+    int? yesterdayAvgDrunkLevel,
   }) {
     return Friend(
       userId: userId ?? this.userId,
@@ -98,6 +102,8 @@ class Friend {
       currentDrunkLevel: currentDrunkLevel ?? this.currentDrunkLevel,
       lastDrinkDate: lastDrinkDate ?? this.lastDrinkDate,
       daysSinceLastDrink: daysSinceLastDrink ?? this.daysSinceLastDrink,
+      yesterdayAvgDrunkLevel:
+          yesterdayAvgDrunkLevel ?? this.yesterdayAvgDrunkLevel,
     );
   }
 }

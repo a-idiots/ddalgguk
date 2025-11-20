@@ -1,14 +1,10 @@
+import 'dart:ui';
+
+import 'package:ddalgguk/features/profile/presentation/widgets/profile_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/core/providers/auth_provider.dart';
-
-import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/presentation/profile_detail_screen.dart';
 import 'package:ddalgguk/features/profile/presentation/analytics_screen.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
-import 'package:ddalgguk/features/profile/presentation/widgets/scroll_indicator.dart';
-
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -18,207 +14,152 @@ class ProfileScreen extends ConsumerStatefulWidget {
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-enum _ProfileView { main, detail, analytics }
-
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  _ProfileView _currentView = _ProfileView.main;
-  double _dragDistance = 0;
-  bool _isDragging = false;
+  final PageController _pageController = PageController();
+  final GlobalKey _mainCharacterKey = GlobalKey();
 
-  void _handleVerticalDragStart(DragStartDetails details) {
-    setState(() {
-      _isDragging = true;
-      _dragDistance = 0;
+  // Animation state
+  double _currentPage = 0.0;
+  bool _isAnalyticsVisible = false;
+
+  // Layout state
+  Offset? _mainCharacterPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(_onPageScroll);
+
+    // Calculate initial position after layout
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateMainCharacterPosition();
     });
   }
 
-  void _handleVerticalDragUpdate(DragUpdateDetails details) {
-    if (!_isDragging) {
-      return;
-    }
+  @override
+  void dispose() {
+    _pageController.removeListener(_onPageScroll);
+    _pageController.dispose();
+    super.dispose();
+  }
 
+  void _onPageScroll() {
     setState(() {
-      // Only track upward drag (negative delta.dy)
-      if (details.delta.dy < 0) {
-        _dragDistance += details.delta.dy.abs();
-      } else {
-        _dragDistance = (_dragDistance - details.delta.dy).clamp(
-          0.0,
-          double.infinity,
-        );
-      }
+      _currentPage = _pageController.page ?? 0.0;
     });
   }
 
-  void _handleVerticalDragEnd(DragEndDetails details) {
-    if (!_isDragging) {
-      return;
-    }
-
-    final screenHeight = MediaQuery.of(context).size.height;
-    final threshold = screenHeight * 0.2;
-    final velocity = details.velocity.pixelsPerSecond.dy;
-
-    // Check if should navigate to detail screen
-    final shouldNavigate = _dragDistance > threshold || velocity < -500;
-
-    if (shouldNavigate) {
+  void _updateMainCharacterPosition() {
+    final renderBox =
+        _mainCharacterKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final position = renderBox.localToGlobal(Offset.zero);
+      // Adjust for SafeArea if needed, but localToGlobal gives screen coordinates
+      // We need coordinates relative to the Stack (which is usually full screen here)
       setState(() {
-        _currentView = _ProfileView.detail;
+        _mainCharacterPosition = position;
       });
     }
-
-    setState(() {
-      _isDragging = false;
-      _dragDistance = 0;
-    });
-  }
-
-  void _handleBackToMain() {
-    setState(() {
-      _currentView = _ProfileView.main;
-    });
   }
 
   void _handleNavigateToAnalytics() {
     setState(() {
-      _currentView = _ProfileView.analytics;
+      _isAnalyticsVisible = true;
     });
   }
 
-  void _handleBackToDetail() {
+  void _handleBackFromAnalytics() {
     setState(() {
-      _currentView = _ProfileView.detail;
+      _isAnalyticsVisible = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show different views based on current state
-    switch (_currentView) {
-      case _ProfileView.detail:
-        return ProfileDetailScreen(
-          onBack: _handleBackToMain,
-          onNavigateToAnalytics: _handleNavigateToAnalytics,
-        );
-      case _ProfileView.analytics:
-        return AnalyticsScreen(onBack: _handleBackToDetail);
-      case _ProfileView.main:
-        break;
+    if (_isAnalyticsVisible) {
+      return AnalyticsScreen(onBack: _handleBackFromAnalytics);
     }
 
-    // Main profile view
-    final currentUserAsync = ref.watch(currentUserProvider);
-    final currentStatsAsync = ref.watch(currentProfileStatsProvider);
+    final screenSize = MediaQuery.of(context).size;
+    final padding = MediaQuery.of(context).padding;
 
-    return currentUserAsync.when(
-      data: (user) {
-        if (user == null) {
-          return const Center(child: Text('Please log in'));
-        }
+    // Target position (Detail Screen)
+    // Top: SafeArea + 16
+    // Right: 28 -> Left: Width - 28 - 60
+    final targetTop = padding.top + 16;
+    final targetLeft = screenSize.width - 28 - 60;
+    const targetSize = 60.0;
 
-        return currentStatsAsync.when(
-          data: (stats) {
-            final thisMonthDrunkDays = stats.thisMonthDrunkDays;
+    // Start position (Main Screen)
+    // Use calculated position or fallback to center
+    // Fallback: Center vertically approx (45% down), Center horizontally
+    final startTop = _mainCharacterPosition?.dy ?? (screenSize.height * 0.45);
+    final startLeft = _mainCharacterPosition?.dx ?? (screenSize.width / 2 - 75);
+    const startSize = 150.0;
 
-            return GestureDetector(
-              onVerticalDragStart: _handleVerticalDragStart,
-              onVerticalDragUpdate: _handleVerticalDragUpdate,
-              onVerticalDragEnd: _handleVerticalDragEnd,
-              child: ProfileGradientBackground(
-                drunkenDays: thisMonthDrunkDays,
-                child: SafeArea(
-                  child: Stack(
-                    children: [
-                      // Main content
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Spacer(flex: 1),
-                            // User info and status at top
-                            Column(
-                              children: [
-                                Text(
-                                  user.name ?? 'User',
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                RichText(
-                                  text: TextSpan(
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                    children: [
-                                      const TextSpan(text: '이번 달 '),
-                                      if (thisMonthDrunkDays == 0) ...[
-                                        TextSpan(
-                                          text: '$thisMonthDrunkDays일째',
-                                          style: const TextStyle(
-                                            color: AppColors.secondaryGreen,
-                                          ),
-                                        ),
-                                        const TextSpan(text: ' 금주 중이네요!'),
-                                      ] else ...[
-                                        TextSpan(
-                                          text: '$thisMonthDrunkDays번째',
-                                          style: const TextStyle(
-                                            color: AppColors.secondaryPink,
-                                          ),
-                                        ),
-                                        const TextSpan(text: ' 음주네요!'),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(flex: 1),
-                            // Saku character image
-                            SakuCharacter(size: 150),
+    // Interpolate
+    // We want the animation to happen as we scroll from page 0 to 1
+    // _currentPage goes from 0.0 to 1.0
+    final progress = _currentPage.clamp(0.0, 1.0);
 
-                            const Spacer(flex: 2),
-                          ],
-                        ),
-                      ),
-                      // Scroll indicator at bottom
-                      const Positioned(
-                        bottom: 50,
-                        left: 0,
-                        right: 0,
-                        child: AnimatedScrollIndicator(),
-                      ),
-                    ],
-                  ),
-                ),
+    final currentTop = lerpDouble(startTop, targetTop, progress)!;
+    final currentLeft = lerpDouble(startLeft, targetLeft, progress)!;
+    final currentSize = lerpDouble(startSize, targetSize, progress)!;
+
+    // Visibility logic
+    // Show floating character when:
+    // 1. We are scrolling (progress > 0 && progress < 1)
+    // 2. OR we haven't calculated the main position yet (fallback)
+    // 3. Actually, for smoothness, let's ALWAYS show floating character
+    //    and hide the static ones in the pages.
+    //    BUT, the static ones are part of the page layout (scrolling content).
+    //    So, when settled at 0, show Main static. When settled at 1, show Detail static.
+    //    When moving, show Floating.
+
+    final showMainStatic = progress <= 0.01;
+    final showDetailStatic = progress >= 0.99;
+    final showFloating = !showMainStatic && !showDetailStatic;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // PageView for vertical navigation
+          PageView(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            physics: const ClampingScrollPhysics(), // Or BouncingScrollPhysics
+            children: [
+              // Page 0: Main View
+              ProfileMainView(
+                showCharacter: showMainStatic,
+                characterKey: _mainCharacterKey,
               ),
-            );
-          },
-          loading: () => ProfileGradientBackground(
-            drunkenDays: 0,
-            child: const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-          ),
-          error: (error, stack) => ProfileGradientBackground(
-            drunkenDays: 0,
-            child: Center(
-              child: Text(
-                'Error loading stats',
-                style: const TextStyle(color: Colors.white),
+              // Page 1: Detail View
+              ProfileDetailScreen(
+                onBack: () {
+                  _pageController.animateToPage(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                onNavigateToAnalytics: _handleNavigateToAnalytics,
+                showCharacter: showDetailStatic,
               ),
-            ),
+            ],
           ),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+
+          // Floating Character
+          if (showFloating)
+            Positioned(
+              top: currentTop,
+              left: currentLeft,
+              width: currentSize,
+              height: currentSize,
+              child: IgnorePointer(child: SakuCharacter(size: currentSize)),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -10,15 +10,19 @@ import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/alc
 import 'package:ddalgguk/features/profile/presentation/widgets/detail_screen/report_card_section.dart';
 import 'package:ddalgguk/features/profile/presentation/widgets/gradient_background.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class ProfileDetailScreen extends ConsumerStatefulWidget {
   const ProfileDetailScreen({
     super.key,
     this.onBack,
     this.onNavigateToAnalytics,
+    this.showCharacter = true,
   });
 
   final VoidCallback? onBack;
   final VoidCallback? onNavigateToAnalytics;
+  final bool showCharacter;
 
   @override
   ConsumerState<ProfileDetailScreen> createState() =>
@@ -52,7 +56,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
         if (widget.onBack != null) {
           widget.onBack!();
         } else {
-          Navigator.of(context).pop();
+          // If inside PageView, this might not be needed, but keeping for safety
+          // Navigator.of(context).pop();
         }
       }
 
@@ -76,7 +81,6 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     final currentUserAsync = ref.watch(currentUserProvider);
     final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
-    final achievementsAsync = ref.watch(achievementsProvider);
 
     return currentUserAsync.when(
       data: (user) {
@@ -86,10 +90,12 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
 
         return currentStatsAsync.when(
           data: (currentStats) {
+            final theme = AppColors.getTheme(currentStats.thisMonthDrunkDays);
+
             return Scaffold(
               backgroundColor: Colors.transparent,
               body: ProfileGradientBackground(
-                drunkenDays: currentStats.thisMonthDrunkDays,
+                theme: theme,
                 reversed: true,
                 child: SafeArea(
                   child: NotificationListener<ScrollNotification>(
@@ -102,17 +108,19 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                         SliverToBoxAdapter(
                           child: ProfileHeader(
                             user: user,
-                            drunkLevel: currentStats.thisMonthDrunkDays,
+                            theme: theme,
+                            showCharacter: widget.showCharacter,
                           ),
                         ),
                         // Content
                         SliverList(
                           delegate: SliverChildListDelegate([
-                            const SizedBox(height: 8),
                             // Section 2-1: Weekly Saku
                             weeklyStatsAsync.when(
-                              data: (weeklyStats) =>
-                                  WeeklySakuSection(weeklyStats: weeklyStats),
+                              data: (weeklyStats) => WeeklySakuSection(
+                                weeklyStats: weeklyStats,
+                                theme: theme,
+                              ),
                               loading: () => const Center(
                                 child: Padding(
                                   padding: EdgeInsets.all(32.0),
@@ -123,24 +131,18 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Section 2-2: Achievements
-                            achievementsAsync.when(
-                              data: (achievements) => AchievementsSection(
-                                achievements: achievements,
-                              ),
-                              loading: () => const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(32.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              error: (error, stack) => const SizedBox.shrink(),
-                            ),
+                            // Section 2-2: Achievements
+                            AchievementsSection(theme: theme),
                             const SizedBox(height: 8),
                             // Section 2-3: Alcohol Breakdown
-                            AlcoholBreakdownSection(stats: currentStats),
+                            AlcoholBreakdownSection(
+                              stats: currentStats,
+                              theme: theme,
+                            ),
                             const SizedBox(height: 8),
                             // Section 2-4: Report Card
                             ReportCardSection(
+                              theme: theme,
                               onTap: () {
                                 if (widget.onNavigateToAnalytics != null) {
                                   widget.onNavigateToAnalytics!();

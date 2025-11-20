@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:ddalgguk/core/constants/app_colors.dart';
+
 class ReportCardSection extends StatelessWidget {
-  const ReportCardSection({super.key, required this.onTap});
+  const ReportCardSection({
+    super.key,
+    required this.onTap,
+    required this.theme,
+  });
 
   final VoidCallback onTap;
+  final AppTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -13,15 +20,11 @@ class ReportCardSection extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         height: 200,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFF27B7B), Color(0xFFE35252)],
-          ),
+          color: theme.secondaryColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFF27B7B).withValues(alpha: 0.3),
+              color: theme.primaryColor.withValues(alpha: 0.3),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -40,7 +43,7 @@ class ReportCardSection extends StatelessWidget {
                     'Your',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,
                     ),
@@ -49,7 +52,7 @@ class ReportCardSection extends StatelessWidget {
                     'Report',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,
                     ),
@@ -97,9 +100,9 @@ class ReportCardSection extends StatelessWidget {
                 ),
                 child: Transform.rotate(
                   angle: -45 * 3.141 / 180, // -45도 = 반시계 방향
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_forward,
-                    color: Color(0xFFF27B7B),
+                    color: theme.secondaryColor,
                     size: 24,
                   ),
                 ),
