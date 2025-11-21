@@ -350,31 +350,27 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 카드 빌드
   Widget _buildRecordCard(DrinkingRecord record, int index) {
-    const sakuSize = 60.0;
+    const sakuSize = 50.0;
 
     return GestureDetector(
       onTap: () => _showRecordDetail(context, record),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: Colors.grey[300]!, width: 1.0),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 왼쪽: 사쿠 캐릭터
-            SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
-            const SizedBox(width: 16),
+            // 왼쪽: 사쿠 캐릭터 (중앙정렬)
+            Align(
+              alignment: Alignment.center,
+              child: SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
+            ),
+            const SizedBox(width: 24),
             // 중앙: 정보
             Expanded(
               child: Column(
@@ -384,31 +380,31 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Text(
                     record.meetingName,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   // 혈중 알콜 농도
                   Text(
                     '혈중알콜농도 ${record.drunkLevel * 10}%',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: Colors.red[400],
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   // 음주량
                   if (record.drinkAmount.isNotEmpty) ...[
                     ...record.drinkAmount.map((drink) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                        padding: const EdgeInsets.only(bottom: 2),
                         child: Row(
                           children: [
                             Text(
                               '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(fontSize: 11),
                             ),
                             Expanded(
                               child: Padding(
@@ -419,25 +415,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   painter: _DottedLinePainter(
                                     color: Colors.grey[300]!,
                                   ),
-                                  child: const SizedBox(height: 13),
+                                  child: const SizedBox(height: 11),
                                 ),
                               ),
                             ),
                             Text(
                               formatDrinkAmount(drink.amount),
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(fontSize: 11),
                             ),
                           ],
                         ),
                       );
                     }),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                   ],
                   // 지출 금액
                   Text(
                     '${NumberFormat('#,###').format(record.cost)}원',
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -454,7 +450,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               child: Text(
                 '${record.sessionNumber}차',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.red[400],
                   fontWeight: FontWeight.bold,
                 ),
