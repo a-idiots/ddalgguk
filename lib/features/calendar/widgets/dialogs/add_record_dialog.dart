@@ -1,5 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/widgets/dialogs/drink_type_selector.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
@@ -146,32 +146,22 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
             : int.parse(_costController.text),
       );
 
-      debugPrint('=== 기록 추가 시작 ===');
-      debugPrint('모임명: ${record.meetingName}');
-      debugPrint('날짜: ${record.date}');
-      debugPrint('음주량 개수: ${record.drinkAmount.length}');
-
-      final service = DrinkingRecordService();
-      final recordId = await service.createRecord(record);
-
-      debugPrint('기록 ID: $recordId');
-      debugPrint('=== 기록 추가 완료 ===');
+      final service = ref.read(drinkingRecordServiceProvider);
+      await service.createRecord(record);
 
       widget.onRecordAdded();
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('기록이 추가되었습니다 (ID: $recordId)'),
-            duration: const Duration(seconds: 3),
+          const SnackBar(
+            content: Text('기록이 추가되었습니다'),
+            duration: Duration(seconds: 2),
           ),
         );
       }
-    } catch (e, stackTrace) {
-      debugPrint('=== 기록 추가 실패 ===');
-      debugPrint('에러: $e');
-      debugPrint('스택트레이스: $stackTrace');
+    } catch (e) {
+      debugPrint('기록 추가 실패: $e');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

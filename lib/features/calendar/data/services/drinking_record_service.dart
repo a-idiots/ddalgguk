@@ -352,22 +352,30 @@ class DrinkingRecordService {
       return Stream.value([]);
     }
 
-    final startDate = DateTime(year, month, 1);
-    final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+    // yearMonth 필드로 쿼리 (예: "2025-11")
+    final yearMonthStr = '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
 
     return _getRecordsCollection()
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('date')
-        .orderBy('sessionNumber')
+        .where('yearMonth', isEqualTo: yearMonthStr)
         .snapshots()
         .handleError((error) {
           debugPrint('ERROR in streamRecordsByMonth: $error');
         })
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final records = snapshot.docs
               .map((doc) => DrinkingRecord.fromFirestore(doc))
-              .toList(),
-        );
+              .toList();
+
+          // 메모리에서 정렬
+          records.sort((a, b) {
+            final dateCompare = a.date.compareTo(b.date);
+            if (dateCompare != 0) {
+              return dateCompare;
+            }
+            return a.sessionNumber.compareTo(b.sessionNumber);
+          });
+
+          return records;
+        });
   }
 }

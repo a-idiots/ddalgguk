@@ -29,6 +29,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _selectedDay = _focusedDay;
   }
 
+  void _updateRecordsMap(List<DrinkingRecord> records) {
+    final newMap = <DateTime, List<DrinkingRecord>>{};
+    for (final record in records) {
+      final normalizedDate = _normalizeDate(record.date);
+      if (!newMap.containsKey(normalizedDate)) {
+        newMap[normalizedDate] = [];
+      }
+      newMap[normalizedDate]!.add(record);
+    }
+
+    if (mounted) {
+      setState(() {
+        _recordsMap = newMap;
+      });
+    }
+  }
+
   /// 날짜를 키로 사용하기 위해 시간 정보를 제거
   DateTime _normalizeDate(DateTime date) {
     return DateTime(date.year, date.month, date.day);
@@ -42,24 +59,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final recordsAsync = ref.watch(monthRecordsProvider(_focusedDay));
+    // Provider를 구독하기 위해 watch 필요
+    ref.watch(monthRecordsProvider(_focusedDay));
 
-    // 월별 기록이 변경되면 맵 업데이트
-    recordsAsync.whenData((records) {
-      final newMap = <DateTime, List<DrinkingRecord>>{};
-      for (final record in records) {
-        final normalizedDate = _normalizeDate(record.date);
-        if (!newMap.containsKey(normalizedDate)) {
-          newMap[normalizedDate] = [];
-        }
-        newMap[normalizedDate]!.add(record);
-      }
-      if (mounted) {
-        setState(() {
-          _recordsMap = newMap;
+    // 월별 기록 변경 감지
+    ref.listen(
+      monthRecordsProvider(_focusedDay),
+      (previous, next) {
+        next.whenData((records) {
+          _updateRecordsMap(records);
         });
-      }
-    });
+      },
+    );
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
