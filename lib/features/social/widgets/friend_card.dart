@@ -14,16 +14,23 @@ class FriendCard extends StatelessWidget {
   void _showFullStatus(BuildContext context, String status) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 280),
-            child: SpeechBubble(
-              text: status,
-              backgroundColor: Colors.white,
-              textColor: Colors.black87,
-              fontSize: 14,
+      barrierDismissible: true,
+      builder: (context) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Material(
+          color: Colors.black54,
+          child: Center(
+            child: GestureDetector(
+              onTap: () {}, // 말풍선 탭 시 이벤트 전파 방지
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: SpeechBubble(
+                  text: status,
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black87,
+                  fontSize: 14,
+                ),
+              ),
             ),
           ),
         ),
