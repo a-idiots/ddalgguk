@@ -64,14 +64,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     ref.watch(monthRecordsProvider(_focusedDay));
 
     // 월별 기록 변경 감지
-    ref.listen(
-      monthRecordsProvider(_focusedDay),
-      (previous, next) {
-        next.whenData((records) {
-          _updateRecordsMap(records);
-        });
-      },
-    );
+    ref.listen(monthRecordsProvider(_focusedDay), (previous, next) {
+      next.whenData((records) {
+        _updateRecordsMap(records);
+      });
+    });
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -260,7 +257,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Opacity(
               opacity: isOutsideMonth ? 0.25 : 0.5,
               child: Image.asset(
-                isFutureDate ? 'assets/calendar/future_date.png' : 'assets/calendar/empty_date.png',
+                isFutureDate
+                    ? 'assets/calendar/future_date.png'
+                    : 'assets/calendar/empty_date.png',
                 width: sakuSize,
                 height: sakuSize,
                 fit: BoxFit.contain,
@@ -376,7 +375,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             // 왼쪽: 사쿠 캐릭터 (중앙정렬)
             Align(
               alignment: Alignment.center,
-              child: SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
+              child: SakuCharacter(
+                size: sakuSize,
+                drunkLevel: record.drunkLevel * 10,
+              ),
             ),
             const SizedBox(width: 24),
             // 중앙: 정보

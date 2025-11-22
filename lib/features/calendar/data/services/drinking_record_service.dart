@@ -309,15 +309,21 @@ class DrinkingRecordService {
 
           if (latestRecord.docs.isNotEmpty) {
             // 다른 날짜에 기록이 있음
-            final latest = DrinkingRecord.fromFirestore(latestRecord.docs.first);
+            final latest = DrinkingRecord.fromFirestore(
+              latestRecord.docs.first,
+            );
             await _friendService.updateMyDrinkingData(
               drunkLevel: latest.drunkLevel,
               lastDrinkDate: latest.date,
             );
-            debugPrint('Updated weeklyDrunkLevels with latest record: ${latest.date}');
+            debugPrint(
+              'Updated weeklyDrunkLevels with latest record: ${latest.date}',
+            );
           } else {
             // 모든 기록이 삭제됨 - drunkLevel 0으로 초기화
-            debugPrint('All drinking records deleted - resetting to initial state');
+            debugPrint(
+              'All drinking records deleted - resetting to initial state',
+            );
             await _friendService.updateMyDrinkingData(
               drunkLevel: 0,
               lastDrinkDate: DateTime.now(),
@@ -376,7 +382,8 @@ class DrinkingRecordService {
     }
 
     // yearMonth 필드로 쿼리 (예: "2025-11")
-    final yearMonthStr = '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
+    final yearMonthStr =
+        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
 
     return _getRecordsCollection()
         .where('yearMonth', isEqualTo: yearMonthStr)
