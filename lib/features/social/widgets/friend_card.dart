@@ -33,7 +33,7 @@ class FriendCard extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: backgroundColor.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -41,28 +41,21 @@ class FriendCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // 상태 메시지 말풍선
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: SpeechBubble(
                       text: status,
                       backgroundColor: Colors.white,
                       textColor: Colors.black87,
                       fontSize: 11,
-                      maxLines: 2,
+                      maxLines: 1,
                     ),
                   ),
-                  const SizedBox(height: 4),
                   // 캐릭터 이미지
                   Expanded(
-                    child: FractionallySizedBox(
-                      widthFactor: 0.95,
-                      heightFactor: 0.75,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return SakuCharacter(
-                            size: constraints.maxHeight,
-                            drunkLevel: drunkLevelPercent,
-                          );
-                        },
+                    child: Center(
+                      child: SakuCharacter(
+                        size: 60,
+                        drunkLevel: drunkLevelPercent,
                       ),
                     ),
                   ),

@@ -79,27 +79,32 @@ class SocialScreen extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
         children: [
-          // 타이틀
-          const Text(
-            'SAKU Village',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          // 타이틀 (중앙)
+          Align(
+            alignment: Alignment.center,
+            child: const Text(
+              'SAKU Village',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
             ),
           ),
-          // 친구 추가 버튼
-          GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => const AddFriendDialog(),
-              );
-            },
-            child: const Icon(Icons.add, size: 32, color: Colors.black),
+          // 친구 추가 버튼 (우측)
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const AddFriendDialog(),
+                );
+              },
+              child: const Icon(Icons.add, size: 32, color: Colors.black),
+            ),
           ),
         ],
       ),
@@ -123,7 +128,7 @@ class SocialScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 3열
-          childAspectRatio: 0.58, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
+          childAspectRatio: 0.65, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
           crossAxisSpacing: 4, // 카드 간 간격 최소화
           mainAxisSpacing: 16,
         ),
