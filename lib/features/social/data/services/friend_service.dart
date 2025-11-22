@@ -49,11 +49,22 @@ class FriendService {
 
   /// 친구 목록 조회
   Future<List<Friend>> getFriends() async {
+    debugPrint('=== getFriends ===');
+    debugPrint('Current User ID: $_currentUserId');
+
     try {
       final snapshot = await _getFriendsCollection().orderBy('name').get();
-      return snapshot.docs.map((doc) => Friend.fromFirestore(doc)).toList();
+      debugPrint('Found ${snapshot.docs.length} friends');
+
+      final friends = snapshot.docs.map((doc) {
+        final friend = Friend.fromFirestore(doc);
+        debugPrint('Friend: ${friend.name}, status: ${friend.dailyStatus?.message}, drunkLevel: ${friend.currentDrunkLevel}, lastDrink: ${friend.lastDrinkDate}');
+        return friend;
+      }).toList();
+
+      return friends;
     } catch (e) {
-      debugPrint('Error getting friends: $e');
+      debugPrint('❌ Error getting friends: $e');
       return [];
     }
   }
@@ -74,6 +85,10 @@ class FriendService {
   /// 친구 추가 (양방향)
   /// 양쪽 사용자의 friends 컬렉션에 서로 추가
   Future<void> addFriend(String friendUserId, AppUser friendUser) async {
+    debugPrint('=== addFriend START ===');
+    debugPrint('Current User ID (me): $_currentUserId');
+    debugPrint('Friend User ID: $friendUserId');
+
     if (_currentUserId == null) {
       throw Exception('User not authenticated');
     }
@@ -90,6 +105,9 @@ class FriendService {
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
       final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
 
+      debugPrint('My name: $currentUserName');
+      debugPrint('Friend name: ${friendUser.name}');
+
       // Batch write로 양방향 관계 생성
       final batch = _firestore.batch();
 
@@ -99,6 +117,8 @@ class FriendService {
           .doc(_currentUserId)
           .collection('friends')
           .doc(friendUserId);
+
+      debugPrint('Adding to MY friends: users/$_currentUserId/friends/$friendUserId');
 
       batch.set(myFriendRef, {
         'userId': friendUserId,
@@ -118,6 +138,8 @@ class FriendService {
           .collection('friends')
           .doc(_currentUserId);
 
+      debugPrint('Adding to THEIR friends: users/$friendUserId/friends/$_currentUserId');
+
       batch.set(theirFriendRef, {
         'userId': _currentUserId,
         'name': currentUserName,
@@ -129,10 +151,13 @@ class FriendService {
         'daysSinceLastDrink': null,
       });
 
+      debugPrint('Committing batch...');
       await batch.commit();
-      debugPrint('Friend added successfully: $friendUserId');
+      debugPrint('✅ Friend added successfully (both sides): $friendUserId');
+      debugPrint('=== addFriend END ===');
     } catch (e) {
-      debugPrint('Error adding friend: $e');
+      debugPrint('❌ Error adding friend: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
@@ -186,20 +211,29 @@ class FriendService {
   /// 나의 일일 상태 업데이트
   /// 내 프로필과 모든 친구들의 friends 컬렉션에 반영
   Future<void> updateMyDailyStatus(String message) async {
+    debugPrint('=== updateMyDailyStatus START ===');
+    debugPrint('Current User ID: $_currentUserId');
+    debugPrint('Status Message: $message');
+
     if (_currentUserId == null) {
       throw Exception('User not authenticated');
     }
 
     try {
       final status = DailyStatus.create(message);
+      debugPrint('Created DailyStatus: ${status.toMap()}');
 
       // 내 프로필에 상태 저장
+      debugPrint('Updating my profile: users/$_currentUserId');
       await _firestore.collection('users').doc(_currentUserId).update({
         'dailyStatus': status.toMap(),
       });
+      debugPrint('✅ My profile status updated');
 
       // 모든 친구의 friends 컬렉션에서 나를 업데이트
       final myFriends = await getFriends();
+      debugPrint('Number of friends to update: ${myFriends.length}');
+
       final batch = _firestore.batch();
 
       for (final friend in myFriends) {
@@ -208,13 +242,17 @@ class FriendService {
             .doc(friend.userId)
             .collection('friends')
             .doc(_currentUserId);
+        debugPrint('Updating: users/${friend.userId}/friends/$_currentUserId');
         batch.update(friendRef, {'dailyStatus': status.toMap()});
       }
 
+      debugPrint('Committing batch update...');
       await batch.commit();
-      debugPrint('Daily status updated successfully');
+      debugPrint('✅ Daily status updated successfully for all friends');
+      debugPrint('=== updateMyDailyStatus END ===');
     } catch (e) {
-      debugPrint('Error updating daily status: $e');
+      debugPrint('❌ Error updating daily status: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
@@ -320,6 +358,11 @@ class FriendService {
     required int drunkLevel,
     required DateTime lastDrinkDate,
   }) async {
+    debugPrint('=== updateMyDrinkingData START ===');
+    debugPrint('Current User ID: $_currentUserId');
+    debugPrint('Drunk Level: $drunkLevel');
+    debugPrint('Last Drink Date: $lastDrinkDate');
+
     if (_currentUserId == null) {
       throw Exception('User not authenticated');
     }
@@ -329,15 +372,21 @@ class FriendService {
       final now = DateTime.now();
       final daysSince = now.difference(lastDrinkDate).inDays;
 
+      debugPrint('Days Since Last Drink: $daysSince');
+
       // 내 프로필에 음주 데이터 저장
+      debugPrint('Updating my profile: users/$_currentUserId');
       await _firestore.collection('users').doc(_currentUserId).update({
         'currentDrunkLevel': drunkLevel,
         'lastDrinkDate': Timestamp.fromDate(lastDrinkDate),
         'daysSinceLastDrink': daysSince,
       });
+      debugPrint('✅ My profile updated');
 
       // 모든 친구의 friends 컬렉션에서 나를 업데이트
       final myFriends = await getFriends();
+      debugPrint('Number of friends to update: ${myFriends.length}');
+
       final batch = _firestore.batch();
 
       for (final friend in myFriends) {
@@ -346,6 +395,7 @@ class FriendService {
             .doc(friend.userId)
             .collection('friends')
             .doc(_currentUserId);
+        debugPrint('Updating: users/${friend.userId}/friends/$_currentUserId');
         batch.update(friendRef, {
           'currentDrunkLevel': drunkLevel,
           'lastDrinkDate': Timestamp.fromDate(lastDrinkDate),
@@ -353,10 +403,13 @@ class FriendService {
         });
       }
 
+      debugPrint('Committing batch update...');
       await batch.commit();
-      debugPrint('Drinking data updated successfully');
+      debugPrint('✅ Drinking data updated successfully for all friends');
+      debugPrint('=== updateMyDrinkingData END ===');
     } catch (e) {
-      debugPrint('Error updating drinking data: $e');
+      debugPrint('❌ Error updating drinking data: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
@@ -494,11 +547,6 @@ class FriendService {
     }
 
     try {
-      // 요청 상태를 accepted로 변경
-      await _getFriendRequestsCollection().doc(request.id).update({
-        'status': FriendRequestStatus.accepted.name,
-      });
-
       // 요청 보낸 사용자 정보 조회
       final friendDoc = await _firestore
           .collection('users')
@@ -522,7 +570,10 @@ class FriendService {
       // 친구 관계 생성
       await addFriend(request.fromUserId, friendUser);
 
-      debugPrint('Friend request accepted: ${request.id}');
+      // 친구 관계가 생성되었으므로 요청을 삭제
+      await _getFriendRequestsCollection().doc(request.id).delete();
+
+      debugPrint('Friend request accepted and deleted: ${request.id}');
     } catch (e) {
       debugPrint('Error accepting friend request: $e');
       rethrow;
@@ -532,11 +583,10 @@ class FriendService {
   /// 친구 요청 거절
   Future<void> declineFriendRequest(String requestId) async {
     try {
-      await _getFriendRequestsCollection().doc(requestId).update({
-        'status': FriendRequestStatus.declined.name,
-      });
+      // 거절한 요청은 삭제
+      await _getFriendRequestsCollection().doc(requestId).delete();
 
-      debugPrint('Friend request declined: $requestId');
+      debugPrint('Friend request declined and deleted: $requestId');
     } catch (e) {
       debugPrint('Error declining friend request: $e');
       rethrow;

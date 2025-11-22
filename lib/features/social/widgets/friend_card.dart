@@ -11,6 +11,26 @@ class FriendCard extends StatelessWidget {
   final Friend friend;
   final VoidCallback? onTap;
 
+  void _showFullStatus(BuildContext context, String status) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 280),
+            child: SpeechBubble(
+              text: status,
+              backgroundColor: Colors.white,
+              textColor: Colors.black87,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final drunkLevel = friend.displayDrunkLevel; // 0-10 range
@@ -48,6 +68,7 @@ class FriendCard extends StatelessWidget {
                       textColor: Colors.black87,
                       fontSize: 11,
                       maxLines: 1,
+                      onTap: () => _showFullStatus(context, status),
                     ),
                   ),
                   // 캐릭터 이미지

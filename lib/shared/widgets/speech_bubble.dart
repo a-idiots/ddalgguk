@@ -13,6 +13,7 @@ class SpeechBubble extends StatelessWidget {
     this.tailPosition = TailPosition.bottom,
     this.fontSize = 14,
     this.maxLines,
+    this.onTap,
   });
 
   final String text;
@@ -21,6 +22,7 @@ class SpeechBubble extends StatelessWidget {
   final TailPosition tailPosition;
   final double fontSize;
   final int? maxLines;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +63,7 @@ class SpeechBubble extends StatelessWidget {
         break;
     }
 
-    return CustomPaint(
+    final bubble = CustomPaint(
       painter: _BubblePainter(backgroundColor, tailPosition),
       child: Container(
         padding: padding,
@@ -78,6 +80,15 @@ class SpeechBubble extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: bubble,
+      );
+    }
+
+    return bubble;
   }
 }
 
