@@ -279,7 +279,7 @@ class DrinkingRecordService {
       await _getRecordsCollection().doc(recordId).delete();
       debugPrint('Deleted drinking record: $recordId');
 
-      // 친구들에게 음주 데이터 업데이트 (해당 날짜의 평균 재계산)
+      // 친구들에게 음주 데이터 업데이트 (weeklyDrunkLevels 재계산)
       try {
         final dateStart = DateTime(
           recordDate.year,
@@ -298,8 +298,31 @@ class DrinkingRecordService {
             .get();
 
         if (remainingRecords.docs.isEmpty) {
-          // 해당 날짜의 기록이 모두 삭제됨 - 0으로 업데이트하지 않고 그냥 둠
+          // 해당 날짜의 기록이 모두 삭제됨
           debugPrint('No records left for date: $recordDate');
+
+          // 가장 최근 음주 기록을 찾아서 weeklyDrunkLevels 업데이트
+          final latestRecord = await _getRecordsCollection()
+              .orderBy('date', descending: true)
+              .limit(1)
+              .get();
+
+          if (latestRecord.docs.isNotEmpty) {
+            // 다른 날짜에 기록이 있음
+            final latest = DrinkingRecord.fromFirestore(latestRecord.docs.first);
+            await _friendService.updateMyDrinkingData(
+              drunkLevel: latest.drunkLevel,
+              lastDrinkDate: latest.date,
+            );
+            debugPrint('Updated weeklyDrunkLevels with latest record: ${latest.date}');
+          } else {
+            // 모든 기록이 삭제됨 - drunkLevel 0으로 초기화
+            debugPrint('All drinking records deleted - resetting to initial state');
+            await _friendService.updateMyDrinkingData(
+              drunkLevel: 0,
+              lastDrinkDate: DateTime.now(),
+            );
+          }
         } else {
           // 평균 drunkLevel 재계산
           final records = remainingRecords.docs
