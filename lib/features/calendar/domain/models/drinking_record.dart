@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
 /// 음주량 정보를 담는 클래스
 /// [drinkType] - 술 종류 (int)
@@ -53,9 +52,21 @@ class DrinkingRecord {
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
     final data = snapshot.data()!;
+
+    // date 필드가 Timestamp 또는 String일 수 있음
+    DateTime parsedDate;
+    final dateData = data['date'];
+    if (dateData is Timestamp) {
+      parsedDate = dateData.toDate();
+    } else if (dateData is String) {
+      parsedDate = DateTime.parse(dateData);
+    } else {
+      throw Exception('Invalid date format: $dateData');
+    }
+
     return DrinkingRecord(
       id: snapshot.id,
-      date: DateTime.parse(data['date'] as String),
+      date: parsedDate,
       yearMonth: data['yearMonth'] as String,
       sessionNumber: data['sessionNumber'] as int,
       meetingName: data['meetingName'] as String,
@@ -80,7 +91,7 @@ class DrinkingRecord {
   /// Firestore에 저장할 Map으로 변환
   Map<String, dynamic> toMap() {
     return {
-      'date': DateFormat('yyyy-MM-dd').format(date),
+      'date': Timestamp.fromDate(date),
       'yearMonth': yearMonth,
       'sessionNumber': sessionNumber,
       'meetingName': meetingName,

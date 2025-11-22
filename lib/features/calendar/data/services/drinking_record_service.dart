@@ -71,13 +71,36 @@ class DrinkingRecordService {
       debugPrint('Created drinking record: ${docRef.id}');
       debugPrint('전체 경로: ${docRef.path}');
 
-      // 친구들에게 음주 데이터 업데이트
+      // 친구들에게 음주 데이터 업데이트 (해당 날짜의 평균 계산)
       try {
+        // 해당 날짜의 모든 기록을 다시 조회 (방금 추가한 기록 포함)
+        final allRecordsForDate = await _getRecordsCollection()
+            .where(
+              'date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart),
+            )
+            .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+            .get();
+
+        // 평균 drunkLevel 계산
+        final records = allRecordsForDate.docs
+            .map((doc) => DrinkingRecord.fromFirestore(doc))
+            .toList();
+        final totalDrunkLevel = records.fold<int>(
+          0,
+          (total, r) => total + r.drunkLevel,
+        );
+        final avgDrunkLevel = (totalDrunkLevel / records.length).round();
+
+        debugPrint(
+          'Records for date: ${records.length}, Average drunk level: $avgDrunkLevel',
+        );
+
         await _friendService.updateMyDrinkingData(
-          drunkLevel: record.drunkLevel,
+          drunkLevel: avgDrunkLevel,
           lastDrinkDate: record.date,
         );
-        debugPrint('Updated friend drinking data');
+        debugPrint('Updated friend drinking data with average');
       } catch (e) {
         // 친구 데이터 업데이트 실패해도 기록 생성은 성공으로 처리
         debugPrint('Failed to update friend drinking data: $e');
@@ -194,6 +217,45 @@ class DrinkingRecordService {
     try {
       await _getRecordsCollection().doc(record.id).update(record.toMap());
       debugPrint('Updated drinking record: ${record.id}');
+
+      // 친구들에게 음주 데이터 업데이트 (해당 날짜의 평균 재계산)
+      try {
+        final dateStart = DateTime(
+          record.date.year,
+          record.date.month,
+          record.date.day,
+        );
+        final dateEnd = dateStart.add(const Duration(days: 1));
+
+        // 해당 날짜의 모든 기록 조회
+        final allRecordsForDate = await _getRecordsCollection()
+            .where(
+              'date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart),
+            )
+            .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+            .get();
+
+        // 평균 drunkLevel 계산
+        final records = allRecordsForDate.docs
+            .map((doc) => DrinkingRecord.fromFirestore(doc))
+            .toList();
+        final totalDrunkLevel = records.fold<int>(
+          0,
+          (total, r) => total + r.drunkLevel,
+        );
+        final avgDrunkLevel = records.isNotEmpty
+            ? (totalDrunkLevel / records.length).round()
+            : 0;
+
+        await _friendService.updateMyDrinkingData(
+          drunkLevel: avgDrunkLevel,
+          lastDrinkDate: record.date,
+        );
+        debugPrint('Updated friend drinking data after record update');
+      } catch (e) {
+        debugPrint('Failed to update friend drinking data: $e');
+      }
     } catch (e) {
       debugPrint('Error updating drinking record: $e');
       rethrow;
@@ -203,8 +265,90 @@ class DrinkingRecordService {
   /// 음주 기록 삭제
   Future<void> deleteRecord(String recordId) async {
     try {
+      // 삭제 전에 기록 조회 (날짜 정보 필요)
+      final recordDoc = await _getRecordsCollection().doc(recordId).get();
+      if (!recordDoc.exists) {
+        debugPrint('Record not found: $recordId');
+        return;
+      }
+
+      final recordToDelete = DrinkingRecord.fromFirestore(recordDoc);
+      final recordDate = recordToDelete.date;
+
+      // 기록 삭제
       await _getRecordsCollection().doc(recordId).delete();
       debugPrint('Deleted drinking record: $recordId');
+
+      // 친구들에게 음주 데이터 업데이트 (weeklyDrunkLevels 재계산)
+      try {
+        final dateStart = DateTime(
+          recordDate.year,
+          recordDate.month,
+          recordDate.day,
+        );
+        final dateEnd = dateStart.add(const Duration(days: 1));
+
+        // 삭제 후 남은 기록 조회
+        final remainingRecords = await _getRecordsCollection()
+            .where(
+              'date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(dateStart),
+            )
+            .where('date', isLessThan: Timestamp.fromDate(dateEnd))
+            .get();
+
+        if (remainingRecords.docs.isEmpty) {
+          // 해당 날짜의 기록이 모두 삭제됨
+          debugPrint('No records left for date: $recordDate');
+
+          // 가장 최근 음주 기록을 찾아서 weeklyDrunkLevels 업데이트
+          final latestRecord = await _getRecordsCollection()
+              .orderBy('date', descending: true)
+              .limit(1)
+              .get();
+
+          if (latestRecord.docs.isNotEmpty) {
+            // 다른 날짜에 기록이 있음
+            final latest = DrinkingRecord.fromFirestore(
+              latestRecord.docs.first,
+            );
+            await _friendService.updateMyDrinkingData(
+              drunkLevel: latest.drunkLevel,
+              lastDrinkDate: latest.date,
+            );
+            debugPrint(
+              'Updated weeklyDrunkLevels with latest record: ${latest.date}',
+            );
+          } else {
+            // 모든 기록이 삭제됨 - drunkLevel 0으로 초기화
+            debugPrint(
+              'All drinking records deleted - resetting to initial state',
+            );
+            await _friendService.updateMyDrinkingData(
+              drunkLevel: 0,
+              lastDrinkDate: DateTime.now(),
+            );
+          }
+        } else {
+          // 평균 drunkLevel 재계산
+          final records = remainingRecords.docs
+              .map((doc) => DrinkingRecord.fromFirestore(doc))
+              .toList();
+          final totalDrunkLevel = records.fold<int>(
+            0,
+            (total, r) => total + r.drunkLevel,
+          );
+          final avgDrunkLevel = (totalDrunkLevel / records.length).round();
+
+          await _friendService.updateMyDrinkingData(
+            drunkLevel: avgDrunkLevel,
+            lastDrinkDate: recordDate,
+          );
+          debugPrint('Updated friend drinking data after record deletion');
+        }
+      } catch (e) {
+        debugPrint('Failed to update friend drinking data: $e');
+      }
     } catch (e) {
       debugPrint('Error deleting drinking record: $e');
       rethrow;
@@ -237,22 +381,31 @@ class DrinkingRecordService {
       return Stream.value([]);
     }
 
-    final startDate = DateTime(year, month, 1);
-    final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+    // yearMonth 필드로 쿼리 (예: "2025-11")
+    final yearMonthStr =
+        '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
 
     return _getRecordsCollection()
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('date')
-        .orderBy('sessionNumber')
+        .where('yearMonth', isEqualTo: yearMonthStr)
         .snapshots()
         .handleError((error) {
           debugPrint('ERROR in streamRecordsByMonth: $error');
         })
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final records = snapshot.docs
               .map((doc) => DrinkingRecord.fromFirestore(doc))
-              .toList(),
-        );
+              .toList();
+
+          // 메모리에서 정렬
+          records.sort((a, b) {
+            final dateCompare = a.date.compareTo(b.date);
+            if (dateCompare != 0) {
+              return dateCompare;
+            }
+            return a.sessionNumber.compareTo(b.sessionNumber);
+          });
+
+          return records;
+        });
   }
 }

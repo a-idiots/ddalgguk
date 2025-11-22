@@ -7,6 +7,7 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
 import 'package:ddalgguk/features/calendar/widgets/receipt_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -179,6 +180,9 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
 
       final service = DrinkingRecordService();
       await service.updateRecord(updatedRecord);
+
+      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
+      ref.invalidate(friendsProvider);
 
       widget.onRecordUpdated();
 

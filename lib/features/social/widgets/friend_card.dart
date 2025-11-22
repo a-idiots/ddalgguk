@@ -11,11 +11,37 @@ class FriendCard extends StatelessWidget {
   final Friend friend;
   final VoidCallback? onTap;
 
+  void _showFullStatus(BuildContext context, String status) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Material(
+          color: Colors.black54,
+          child: Center(
+            child: GestureDetector(
+              onTap: () {}, // 말풍선 탭 시 이벤트 전파 방지
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: SpeechBubble(
+                  text: status,
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black87,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final drunkLevel = friend.displayDrunkLevel; // 0-10 range
-    final drunkLevelPercent = drunkLevel * 10; // Convert to 0-100 range
-    final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevelPercent);
+    final drunkLevel = friend.displayDrunkLevel; // 이미 0-100 범위
+    final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
     final status = friend.displayStatus;
 
     // 마지막 음주 이후 일수 계산
@@ -33,7 +59,7 @@ class FriendCard extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: backgroundColor.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -41,29 +67,20 @@ class FriendCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // 상태 메시지 말풍선
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: SpeechBubble(
                       text: status,
                       backgroundColor: Colors.white,
                       textColor: Colors.black87,
                       fontSize: 11,
-                      maxLines: 2,
+                      maxLines: 1,
+                      onTap: () => _showFullStatus(context, status),
                     ),
                   ),
-                  const SizedBox(height: 4),
                   // 캐릭터 이미지
                   Expanded(
-                    child: FractionallySizedBox(
-                      widthFactor: 0.95,
-                      heightFactor: 0.75,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return SakuCharacter(
-                            size: constraints.maxHeight,
-                            drunkLevel: drunkLevelPercent,
-                          );
-                        },
-                      ),
+                    child: Center(
+                      child: SakuCharacter(size: 60, drunkLevel: drunkLevel),
                     ),
                   ),
                   const SizedBox(height: 2),

@@ -42,7 +42,7 @@ class AppUser {
       id: json['id'] as String?,
       name: json['name'] as String?,
       goal: json['goal'] as bool?,
-      favoriteDrink: json['favoriteDrink'] as int?,
+      favoriteDrink: _parseFavoriteDrink(json['favoriteDrink']),
       maxAlcohol: json['maxAlcohol'] != null
           ? (json['maxAlcohol'] as num).toDouble()
           : null,
@@ -84,6 +84,20 @@ class AppUser {
 
   // Stats
   final Map<String, dynamic> stats;
+
+  /// Parse favoriteDrink from JSON - handles both int and List formats
+  static int? _parseFavoriteDrink(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is int) {
+      return value;
+    }
+    if (value is List && value.isNotEmpty) {
+      return value.first as int;
+    }
+    return null;
+  }
 
   /// Convert AppUser to JSON (for Firestore)
   Map<String, dynamic> toJson() {
