@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -529,6 +530,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
       // 캘린더 새로고침을 위해 provider invalidate
       ref.invalidate(monthRecordsProvider(_focusedDay));
+      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
+      ref.invalidate(friendsProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -674,6 +677,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
         // 캘린더 새로고침을 위해 provider invalidate
         ref.invalidate(monthRecordsProvider(_focusedDay));
+        // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
+        ref.invalidate(friendsProvider);
 
         if (mounted) {
           ScaffoldMessenger.of(
