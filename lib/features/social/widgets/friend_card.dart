@@ -80,10 +80,7 @@ class FriendCard extends StatelessWidget {
                   // 캐릭터 이미지
                   Expanded(
                     child: Center(
-                      child: SakuCharacter(
-                        size: 60,
-                        drunkLevel: drunkLevel,
-                      ),
+                      child: SakuCharacter(size: 60, drunkLevel: drunkLevel),
                     ),
                   ),
                   const SizedBox(height: 2),

@@ -58,7 +58,8 @@ class Friend {
   final DateTime? lastDrinkDate; // 마지막 음주 날짜
   final int? daysSinceLastDrink; // 마지막 음주 이후 일수
   final int? yesterdayAvgDrunkLevel; // 어제의 평균 음주 레벨 (0-10)
-  final List<int>? weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
+  final List<int>?
+  weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
 
   /// Firestore에 저장하기
   Map<String, dynamic> toMap() {

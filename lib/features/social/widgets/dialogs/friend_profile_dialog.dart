@@ -16,10 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 친구 프로필 미리보기 다이얼로그
 class FriendProfileDialog extends ConsumerStatefulWidget {
-  const FriendProfileDialog({
-    super.key,
-    required this.friend,
-  });
+  const FriendProfileDialog({super.key, required this.friend});
 
   final Friend friend;
 
@@ -59,10 +56,7 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
         return;
       }
 
-      final friendUser = AppUser.fromJson({
-        ...doc.data()!,
-        'uid': doc.id,
-      });
+      final friendUser = AppUser.fromJson({...doc.data()!, 'uid': doc.id});
 
       // Friend 데이터로 주간 통계 생성
       final weeklyStats = _createWeeklyStatsFromFriend();
@@ -129,7 +123,9 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
     final currentDrunkLevel = widget.friend.currentDrunkLevel;
 
     // 음주 기록이 없으면 빈 통계 반환
-    if (lastDrinkDate == null || currentDrunkLevel == null || currentDrunkLevel == 0) {
+    if (lastDrinkDate == null ||
+        currentDrunkLevel == null ||
+        currentDrunkLevel == 0) {
       return ProfileStats.empty();
     }
 
@@ -143,9 +139,13 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
 
     // 시간당 7g씩 분해
     final alcoholProcessed = hoursSinceLastDrink * 7;
-    final alcoholRemaining = (estimatedTotalAlcohol - alcoholProcessed).clamp(0.0, estimatedTotalAlcohol).toDouble();
+    final alcoholRemaining = (estimatedTotalAlcohol - alcoholProcessed)
+        .clamp(0.0, estimatedTotalAlcohol)
+        .toDouble();
     final progressPercentage = estimatedTotalAlcohol > 0
-        ? ((alcoholProcessed / estimatedTotalAlcohol) * 100).clamp(0.0, 100.0).toDouble()
+        ? ((alcoholProcessed / estimatedTotalAlcohol) * 100)
+              .clamp(0.0, 100.0)
+              .toDouble()
         : 100.0;
     final timeToSober = alcoholRemaining > 0 ? alcoholRemaining / 7 : 0.0;
 
@@ -170,11 +170,15 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
       breakdown: AlcoholBreakdown(
         totalAlcoholConsumed: estimatedTotalAlcohol,
         alcoholRemaining: alcoholRemaining,
-        alcoholProcessed: alcoholProcessed.clamp(0.0, estimatedTotalAlcohol).toDouble(),
+        alcoholProcessed: alcoholProcessed
+            .clamp(0.0, estimatedTotalAlcohol)
+            .toDouble(),
         progressPercentage: progressPercentage,
         lastDrinkTime: lastDrinkDate,
         estimatedSoberTime: timeToSober > 0
-            ? lastDrinkDate.add(Duration(hours: (hoursSinceLastDrink + timeToSober).ceil()))
+            ? lastDrinkDate.add(
+                Duration(hours: (hoursSinceLastDrink + timeToSober).ceil()),
+              )
             : lastDrinkDate,
       ),
     );
@@ -278,9 +282,9 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('친구 삭제 중 오류가 발생했습니다: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('친구 삭제 중 오류가 발생했습니다: $e')));
       }
     }
   }
@@ -299,9 +303,7 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
         child: Container(
           width: double.infinity,
           height: MediaQuery.of(context).size.height * 0.85,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
           child: ProfileGradientBackground(
             theme: theme,
             child: Stack(
@@ -315,20 +317,20 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
                           ),
                         )
                       : _errorMessage != null
-                          ? Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
                               ),
-                            )
-                          : _buildProfileContent(theme),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      : _buildProfileContent(theme),
                 ),
                 // X 닫기 버튼 (우측 상단)
                 Positioned(
@@ -362,9 +364,7 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
 
   Widget _buildProfileContent(AppTheme theme) {
     if (_friendUser == null) {
-      return const Center(
-        child: Text('프로필 정보를 불러올 수 없습니다.'),
-      );
+      return const Center(child: Text('프로필 정보를 불러올 수 없습니다.'));
     }
 
     return Column(
@@ -384,20 +384,14 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
                 const SizedBox(height: 16),
                 // 주간 사쿠 섹션
                 if (_weeklyStats != null)
-                  WeeklySakuSection(
-                    weeklyStats: _weeklyStats!,
-                    theme: theme,
-                  ),
+                  WeeklySakuSection(weeklyStats: _weeklyStats!, theme: theme),
                 const SizedBox(height: 8),
                 // 업적 섹션
                 AchievementsSection(theme: theme),
                 const SizedBox(height: 8),
                 // 알콜 분해 현황
                 if (_profileStats != null)
-                  AlcoholBreakdownSection(
-                    stats: _profileStats!,
-                    theme: theme,
-                  ),
+                  AlcoholBreakdownSection(stats: _profileStats!, theme: theme),
                 const SizedBox(height: 32),
               ],
             ),
@@ -409,9 +403,7 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.9),
-            border: Border(
-              top: BorderSide(color: Colors.grey[300]!),
-            ),
+            border: Border(top: BorderSide(color: Colors.grey[300]!)),
           ),
           child: TextButton(
             onPressed: _showDeleteConfirmation,

@@ -58,7 +58,9 @@ class FriendService {
 
       final friends = snapshot.docs.map((doc) {
         final friend = Friend.fromFirestore(doc);
-        debugPrint('Friend: ${friend.name}, status: ${friend.dailyStatus?.message}, drunkLevel: ${friend.currentDrunkLevel}, lastDrink: ${friend.lastDrinkDate}');
+        debugPrint(
+          'Friend: ${friend.name}, status: ${friend.dailyStatus?.message}, drunkLevel: ${friend.currentDrunkLevel}, lastDrink: ${friend.lastDrinkDate}',
+        );
         return friend;
       }).toList();
 
@@ -118,7 +120,9 @@ class FriendService {
           .collection('friends')
           .doc(friendUserId);
 
-      debugPrint('Adding to MY friends: users/$_currentUserId/friends/$friendUserId');
+      debugPrint(
+        'Adding to MY friends: users/$_currentUserId/friends/$friendUserId',
+      );
 
       batch.set(myFriendRef, {
         'userId': friendUserId,
@@ -139,7 +143,9 @@ class FriendService {
           .collection('friends')
           .doc(_currentUserId);
 
-      debugPrint('Adding to THEIR friends: users/$friendUserId/friends/$_currentUserId');
+      debugPrint(
+        'Adding to THEIR friends: users/$friendUserId/friends/$_currentUserId',
+      );
 
       batch.set(theirFriendRef, {
         'userId': _currentUserId,
@@ -439,7 +445,10 @@ class FriendService {
           .doc(_currentUserId)
           .collection('drinkingRecords')
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('date', isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))))
+          .where(
+            'date',
+            isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
+          )
           .get();
 
       // 날짜별로 그룹화

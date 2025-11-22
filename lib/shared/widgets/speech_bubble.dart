@@ -82,10 +82,7 @@ class SpeechBubble extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: bubble,
-      );
+      return GestureDetector(onTap: onTap, child: bubble);
     }
 
     return bubble;
