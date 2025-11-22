@@ -210,6 +210,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (isOutsideMonth) {
       return const SizedBox.shrink();
     }
+
+    // 미래 날짜 체크
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+    final isFutureDate = normalizedDate.isAfter(normalizedToday);
+
     final textColor = isOutsideMonth
         ? Colors.grey
         : isToday
@@ -253,7 +260,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Opacity(
               opacity: isOutsideMonth ? 0.25 : 0.5,
               child: Image.asset(
-                'assets/calendar/empty_date.png',
+                isFutureDate ? 'assets/calendar/future_date.png' : 'assets/calendar/empty_date.png',
                 width: sakuSize,
                 height: sakuSize,
                 fit: BoxFit.contain,
