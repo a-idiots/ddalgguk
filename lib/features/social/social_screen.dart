@@ -3,6 +3,7 @@ import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/add_friend_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
+import 'package:ddalgguk/features/social/widgets/dialogs/friend_profile_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/friend_card.dart';
 import 'package:ddalgguk/features/social/widgets/screens/postbox_screen.dart';
 import 'package:flutter/material.dart';
@@ -148,7 +149,12 @@ class SocialScreen extends ConsumerWidget {
                     );
                   }
                 : () {
-                    // TODO: 친구 프로필 상세 보기
+                    // 친구 프로필 미리보기 다이얼로그 표시
+                    showDialog(
+                      context: context,
+                      barrierColor: Colors.black.withValues(alpha: 0.7),
+                      builder: (context) => FriendProfileDialog(friend: friend),
+                    );
                   },
           );
         },

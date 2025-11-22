@@ -13,6 +13,7 @@ class Friend {
     this.lastDrinkDate,
     this.daysSinceLastDrink,
     this.yesterdayAvgDrunkLevel,
+    this.weeklyDrunkLevels,
   });
 
   /// Firestore에서 불러오기
@@ -42,6 +43,9 @@ class Friend {
       lastDrinkDate: lastDrinkDate,
       daysSinceLastDrink: daysSinceLastDrink,
       yesterdayAvgDrunkLevel: null, // Provider에서 계산하여 설정
+      weeklyDrunkLevels: data['weeklyDrunkLevels'] != null
+          ? List<int>.from(data['weeklyDrunkLevels'] as List)
+          : null,
     );
   }
 
@@ -54,6 +58,7 @@ class Friend {
   final DateTime? lastDrinkDate; // 마지막 음주 날짜
   final int? daysSinceLastDrink; // 마지막 음주 이후 일수
   final int? yesterdayAvgDrunkLevel; // 어제의 평균 음주 레벨 (0-10)
+  final List<int>? weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
 
   /// Firestore에 저장하기
   Map<String, dynamic> toMap() {
@@ -68,6 +73,7 @@ class Friend {
           ? Timestamp.fromDate(lastDrinkDate!)
           : null,
       'daysSinceLastDrink': daysSinceLastDrink,
+      'weeklyDrunkLevels': weeklyDrunkLevels,
     };
   }
 
@@ -79,8 +85,24 @@ class Friend {
     return dailyStatus!.message;
   }
 
-  /// 음주 레벨 반환 (어제 기록 우선, 없으면 0)
-  int get displayDrunkLevel => yesterdayAvgDrunkLevel ?? 0;
+  /// 음주 레벨 반환 (주간 레벨 우선, 없으면 currentDrunkLevel, 없으면 0)
+  int get displayDrunkLevel {
+    // weeklyDrunkLevels가 있으면 가장 최근 값(어제) 사용
+    if (weeklyDrunkLevels != null && weeklyDrunkLevels!.isNotEmpty) {
+      // 마지막에서 두번째 값 (오늘은 제외하고 어제)
+      final yesterdayIndex = weeklyDrunkLevels!.length >= 2
+          ? weeklyDrunkLevels!.length - 2
+          : weeklyDrunkLevels!.length - 1;
+      final level = weeklyDrunkLevels![yesterdayIndex];
+      // -1(기록없음)이면 0으로, 그 외에는 그대로 반환
+      return level == -1 ? 0 : level;
+    }
+    // weeklyDrunkLevels가 없으면 currentDrunkLevel 사용 (0-10 -> 0-100 변환)
+    if (currentDrunkLevel != null) {
+      return currentDrunkLevel! * 10;
+    }
+    return 0;
+  }
 
   Friend copyWith({
     String? userId,
@@ -92,6 +114,7 @@ class Friend {
     DateTime? lastDrinkDate,
     int? daysSinceLastDrink,
     int? yesterdayAvgDrunkLevel,
+    List<int>? weeklyDrunkLevels,
   }) {
     return Friend(
       userId: userId ?? this.userId,
@@ -104,6 +127,7 @@ class Friend {
       daysSinceLastDrink: daysSinceLastDrink ?? this.daysSinceLastDrink,
       yesterdayAvgDrunkLevel:
           yesterdayAvgDrunkLevel ?? this.yesterdayAvgDrunkLevel,
+      weeklyDrunkLevels: weeklyDrunkLevels ?? this.weeklyDrunkLevels,
     );
   }
 }
