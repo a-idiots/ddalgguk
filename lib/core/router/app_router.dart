@@ -10,6 +10,7 @@ import 'package:ddalgguk/features/auth/splash_screen.dart';
 import 'package:ddalgguk/features/auth/login_screen.dart';
 import 'package:ddalgguk/features/auth/widgets/onboarding/onboarding_profile_screen.dart';
 import 'package:ddalgguk/core/navigation/main_navigation.dart';
+import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 
 /// Route names
 class Routes {
@@ -24,17 +25,30 @@ const Duration kSplashMinDisplay = Duration(milliseconds: 600);
 
 /// Router provider
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  // ❌ Do NOT watch authStateProvider here. It causes the entire GoRouter to rebuild
+  // on every auth change, resetting the navigation stack and showing the splash screen.
+  // final authState = ref.watch(authStateProvider);
 
   // 라우터 생성 시점을 기록 → 스플래시 최소 표시 시간 계산에 사용
   final routerBootTime = DateTime.now();
 
-  // redirect 재평가를 트리거할 수 있는 리스너(아래 클래스 참고)
-  final refresh = GoRouterRefreshStream(
-    ref.read(firebaseAuthProvider).authStateChanges(),
-    // 비인증 최초 진입 시 스플래시를 잠깐이라도 보여주기 위해
-    initialKickDelay: kSplashMinDisplay,
-  );
+  // redirect 재평가를 트리거할 수 있는 리스너
+  final notifier = _RouterNotifier();
+
+  // Auth state 변경 감지 (로딩, 데이터, 에러 등 모든 상태 변화 시 알림)
+  ref.listen<AsyncValue<AppUser?>>(authStateProvider, (_, __) {
+    notifier.notify();
+  });
+
+  // 비인증 최초 진입 시 스플래시를 잠깐이라도 보여주기 위한 타이머
+  final timer = Timer(kSplashMinDisplay, () {
+    notifier.notify();
+  });
+
+  ref.onDispose(() {
+    timer.cancel();
+    notifier.dispose();
+  });
 
   return GoRouter(
     initialLocation: Routes.splash,
@@ -44,6 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final current = state.matchedLocation;
 
       // 0) auth provider가 아직 로딩이면 그대로 두고 그려지게 함
+      // 0) Get current auth state using ref.read (since we are not watching anymore)
+      final authState = ref.read(authStateProvider);
       final isLoading = authState.isLoading;
       if (isLoading) {
         return null;
@@ -51,7 +67,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 1) 인증 여부 및 사용자 정보
       // Always get fresh data from cache to catch updates
-      var appUser = authState.valueOrNull;
+      final appUser = authState.valueOrNull;
       final isAuthed = appUser != null;
 
       // 1.5) If authenticated but profile setup seems incomplete, force check cache
@@ -60,37 +76,60 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isAuthed && !appUser.hasCompletedProfileSetup) {
         final authRepo = ref.read(authRepositoryProvider);
         final cachedUser = await authRepo.getCurrentUser();
-        if (cachedUser != null) {
-          appUser = cachedUser;
+
+        // If cache has newer info (completed setup), invalidate provider to propagate changes
+        if (cachedUser != null && cachedUser.hasCompletedProfileSetup) {
+          // Force refresh of authStateProvider to update UI with fresh data
+          ref.invalidate(authStateProvider);
+          // Return null to wait for the provider to update and trigger redirect again
+          return null;
         }
       }
 
       // 2) 현재 스플래시라면 분기
       if (current == Routes.splash) {
+        // ✅ 인증 여부와 관계없이 스플래시 최소 표시 시간 보장
+        final now = DateTime.now();
+        final bootElapsed = now.difference(routerBootTime);
+        // 로그아웃으로 인해 스플래시로 왔다면 로그아웃 시간 기준 체크
+        final logoutElapsed = notifier.logoutTime != null
+            ? now.difference(notifier.logoutTime!)
+            : const Duration(days: 999);
+
+        final shouldWait =
+            bootElapsed < kSplashMinDisplay ||
+            logoutElapsed < kSplashMinDisplay;
+
+        if (shouldWait) {
+          // 아직은 스플래시에 머문다
+          return null;
+        }
+
         if (!isAuthed) {
-          // ✅ 비인증이면 스플래시 최소 표시 시간 보장
-          final elapsed = DateTime.now().difference(routerBootTime);
-          if (elapsed < kSplashMinDisplay) {
-            // 아직은 스플래시에 머문다
-            return null;
-          }
           // 표시 시간이 지났으면 로그인으로 이동
           return Routes.login;
         } else {
           // ✅ 인증됐다면 애니메이션 없이 바로 목적지
-          final done = appUser?.hasCompletedProfileSetup ?? false;
+          final done = appUser.hasCompletedProfileSetup;
           return done ? Routes.home : Routes.profileSetup;
         }
       }
 
       // 3) 스플래시 외 경로
       if (!isAuthed) {
-        // 비인증 상태에서는 /login에만 머문다
-        return current == Routes.login ? null : Routes.login;
+        // 로그아웃 발생 시 (비인증 상태인데 로그인/스플래시 화면이 아님)
+        // 스플래시 화면을 거쳐서 로그인으로 이동하도록 함
+        if (current != Routes.login) {
+          notifier.logoutTime = DateTime.now();
+          // 스플래시 표시 시간 후 리프레시 트리거
+          Timer(kSplashMinDisplay, () => notifier.notify());
+          return Routes.splash;
+        }
+        return null; // 이미 로그인 화면이면 유지
       }
 
       // 인증된 상태 → 프로필 설정 여부로 분기
-      final done = appUser?.hasCompletedProfileSetup ?? false;
+      final done = appUser.hasCompletedProfileSetup;
       if (done) {
         return current == Routes.home ? null : Routes.home;
       } else {
@@ -98,7 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
     },
 
-    refreshListenable: refresh,
+    refreshListenable: notifier,
 
     routes: [
       GoRoute(
@@ -143,7 +182,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             child: const OnboardingProfileScreen(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
+                  // Slide from Right to Left
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  final tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
                 },
           );
         },
@@ -159,7 +209,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             child: const MainNavigation(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
+                  // Slide from Right to Left
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  final tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
                 },
           );
         },
@@ -168,29 +229,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Helper class to make GoRouter refresh when things change
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream, {Duration? initialKickDelay}) {
-    // 인증 상태 변경 시 즉시 리프레시
-    _subscription = stream.asBroadcastStream().listen(
-      (dynamic _) => notifyListeners(),
-    );
-
-    // 최초 한 번, 스플래시 최소 표시 시간 이후 리프레시(비인증 진입용)
-    if (initialKickDelay != null) {
-      _kickTimer = Timer(initialKickDelay, () => notifyListeners());
-    }
-  }
-
-  late final StreamSubscription<dynamic> _subscription;
-  Timer? _kickTimer;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    _kickTimer?.cancel();
-    super.dispose();
-  }
+/// Simple ChangeNotifier for Router refresh
+class _RouterNotifier extends ChangeNotifier {
+  DateTime? logoutTime;
+  void notify() => notifyListeners();
 }
 
 /// Circular reveal transition for splash → login
