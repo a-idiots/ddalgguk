@@ -271,11 +271,11 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
 
   Widget _buildDrinkSelectionCards() {
     final drinks = [
-      {'emoji': '🍶', 'name': '소주', 'id': 0},
-      {'emoji': '🍺', 'name': '맥주', 'id': 1},
-      {'emoji': '🍸', 'name': '칵테일', 'id': 2},
-      {'emoji': '🍷', 'name': '와인', 'id': 3},
-      {'emoji': '🥃', 'name': '위스키', 'id': 4},
+      {'img': 'assets/alcohol_icons/soju.png', 'name': '소주', 'id': 0},
+      {'img': 'assets/alcohol_icons/beer.png', 'name': '맥주', 'id': 1},
+      {'img': 'assets/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 2},
+      {'img': 'assets/alcohol_icons/wine.png', 'name': '와인', 'id': 3},
+      {'img': 'assets/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
     ];
 
     return Container(
@@ -321,9 +321,10 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            drink['emoji'] as String,
-                            style: const TextStyle(fontSize: 32),
+                          Image.asset(
+                            drink['img'] as String,
+                            width: 42,
+                            height: 42,
                           ),
                           const SizedBox(height: 4),
                           Text(
