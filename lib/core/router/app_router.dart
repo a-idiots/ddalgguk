@@ -21,7 +21,7 @@ class Routes {
 }
 
 /// 스플래시 최소 표시 시간 (필요시 400~800ms 내에서 조절)
-const Duration kSplashMinDisplay = Duration(milliseconds: 600);
+const Duration kSplashMinDisplay = Duration(milliseconds: 900);
 
 /// Router provider
 final routerProvider = Provider<GoRouter>((ref) {
@@ -180,6 +180,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const OnboardingProfileScreen(),
+            transitionDuration: const Duration(milliseconds: 450),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   // Slide from Right to Left
@@ -207,6 +208,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return CustomTransitionPage(
             key: state.pageKey,
             child: const MainNavigation(),
+            transitionDuration: const Duration(milliseconds: 450),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   // Slide from Right to Left
