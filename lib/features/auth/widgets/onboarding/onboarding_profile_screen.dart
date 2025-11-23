@@ -142,6 +142,7 @@ class _OnboardingProfileScreenState
       await _clearSavedState();
 
       // Navigate to home
+      // The router will check cache and see hasCompletedProfileSetup: true
       if (mounted) {
         context.go(Routes.home);
       }

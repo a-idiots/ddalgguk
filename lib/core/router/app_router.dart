@@ -50,8 +50,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 1) 인증 여부 및 사용자 정보
-      final appUser = authState.valueOrNull;
+      // Always get fresh data from cache to catch updates
+      var appUser = authState.valueOrNull;
       final isAuthed = appUser != null;
+
+      // 1.5) If authenticated but profile setup seems incomplete, force check cache
+      // This handles the case where Firestore was updated but stream didn't emit
+      // and prevents redirect loops (Home -> Profile -> Home -> ...)
+      if (isAuthed && !appUser.hasCompletedProfileSetup) {
+        final authRepo = ref.read(authRepositoryProvider);
+        final cachedUser = await authRepo.getCurrentUser();
+        if (cachedUser != null) {
+          appUser = cachedUser;
+        }
+      }
 
       // 2) 현재 스플래시라면 분기
       if (current == Routes.splash) {
@@ -66,7 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return Routes.login;
         } else {
           // ✅ 인증됐다면 애니메이션 없이 바로 목적지
-          final done = appUser.hasCompletedProfileSetup;
+          final done = appUser?.hasCompletedProfileSetup ?? false;
           return done ? Routes.home : Routes.profileSetup;
         }
       }
@@ -78,7 +90,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 인증된 상태 → 프로필 설정 여부로 분기
-      final done = appUser.hasCompletedProfileSetup;
+      final done = appUser?.hasCompletedProfileSetup ?? false;
       if (done) {
         return current == Routes.home ? null : Routes.home;
       } else {
@@ -125,15 +137,32 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.profileSetup,
         name: 'profileSetup',
-        builder: (context, state) => const OnboardingProfileScreen(),
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const OnboardingProfileScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+          );
+        },
       ),
 
       // 메인은 애니메이션 없이 즉시 진입
       GoRoute(
         path: Routes.home,
         name: 'home',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: MainNavigation()),
+        pageBuilder: (context, state) {
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: const MainNavigation(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+          );
+        },
       ),
     ],
   );
