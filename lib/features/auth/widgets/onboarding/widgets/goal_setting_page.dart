@@ -150,26 +150,16 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
             const Text(
               '당신의 목표는 무엇인가요?',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.black54,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             _buildSimpleGoalOptions(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
             // Divider
             const Divider(color: Colors.black26, thickness: 0.5),
-            const SizedBox(height: 32),
-            // Drinking habit survey
-            const Text(
-              '당신의 음주 습관이 궁금해요!',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
-              ),
-            ),
             const SizedBox(height: 12),
             _buildDrinkSelectionCards(),
             const SizedBox(height: 24),
@@ -189,12 +179,12 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                       color: Colors.black54,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildAlcoholSlider(),
                   const SizedBox(height: 6),
+                  _buildAlcoholSlider(),
+                  const SizedBox(height: 12),
                   const Text(
                     '음주 백과💡 소주 1병은 약 7잔이다.',
-                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                 ],
               ),
@@ -202,7 +192,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
             const Spacer(),
             // Weekly drinking frequency input
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -254,7 +244,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 36),
             // Page indicator
             const PageIndicator(currentPage: 2, pageCount: 3),
             const SizedBox(height: 32),
