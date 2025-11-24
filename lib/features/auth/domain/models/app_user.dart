@@ -131,7 +131,8 @@ class AppUser {
       goal: goal ?? this.goal,
       favoriteDrink: favoriteDrink ?? this.favoriteDrink,
       maxAlcohol: maxAlcohol ?? this.maxAlcohol,
-      weeklyDrinkingFrequency: weeklyDrinkingFrequency ?? this.weeklyDrinkingFrequency,
+      weeklyDrinkingFrequency:
+          weeklyDrinkingFrequency ?? this.weeklyDrinkingFrequency,
       dailyStatus: dailyStatus ?? this.dailyStatus,
       badges: badges ?? this.badges,
       stats: stats ?? this.stats,

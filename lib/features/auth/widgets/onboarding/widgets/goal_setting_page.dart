@@ -85,7 +85,10 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
       _sliderIndex != null ? _sliderIndexToAlcohol(_sliderIndex!) : 0.0;
 
   bool get _isFormComplete =>
-      _selectedGoal != null && _selectedDrink != null && _sliderIndex != null && _weeklyDrinkingFrequency != null;
+      _selectedGoal != null &&
+      _selectedDrink != null &&
+      _sliderIndex != null &&
+      _weeklyDrinkingFrequency != null;
 
   void _handleComplete() {
     if (_selectedGoal == null) {
