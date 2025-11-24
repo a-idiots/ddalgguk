@@ -29,6 +29,7 @@ class _OnboardingProfileScreenState
   bool? _goal;
   int? _favoriteDrink;
   double? _maxAlcohol;
+  int? _weeklyDrinkingFrequency;
 
   static const String _pageIndexKey = 'onboarding_profile_page_index';
   static const String _nameKey = 'onboarding_profile_name';
@@ -114,6 +115,7 @@ class _OnboardingProfileScreenState
     required bool goal,
     required int favoriteDrink,
     required double maxAlcohol,
+    required int weeklyDrinkingFrequency,
   }) async {
     if (_name == null || _id == null) {
       return;
@@ -124,6 +126,7 @@ class _OnboardingProfileScreenState
       _goal = goal;
       _favoriteDrink = favoriteDrink;
       _maxAlcohol = maxAlcohol;
+      _weeklyDrinkingFrequency = weeklyDrinkingFrequency;
     });
 
     try {
@@ -136,12 +139,14 @@ class _OnboardingProfileScreenState
         goal: goal,
         favoriteDrink: favoriteDrink,
         maxAlcohol: maxAlcohol,
+        weeklyDrinkingFrequency: weeklyDrinkingFrequency,
       );
 
       // Clear saved state
       await _clearSavedState();
 
       // Navigate to home
+      // The router will check cache and see hasCompletedProfileSetup: true
       if (mounted) {
         context.go(Routes.home);
       }
@@ -259,6 +264,7 @@ class _OnboardingProfileScreenState
                       initialGoal: _goal,
                       initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
+                      initialWeeklyDrinkingFrequency: _weeklyDrinkingFrequency,
                     ),
                   ],
                 ),

@@ -73,12 +73,6 @@ class FirebaseAuthService {
   /// Check if user is signed in
   bool get isSignedIn => _firebaseAuth.currentUser != null;
 
-  /// Get user email
-  String? get userEmail => _firebaseAuth.currentUser?.email;
-
-  /// Get user display name
-  String? get userDisplayName => _firebaseAuth.currentUser?.displayName;
-
   /// Get user photo URL
   String? get userPhotoURL => _firebaseAuth.currentUser?.photoURL;
 

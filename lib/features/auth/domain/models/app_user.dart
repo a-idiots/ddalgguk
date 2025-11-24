@@ -14,7 +14,7 @@ class AppUser {
     this.goal,
     this.favoriteDrink,
     this.maxAlcohol,
-    this.frequencyDrinks,
+    this.weeklyDrinkingFrequency,
     this.dailyStatus,
     this.badges = const [],
     this.stats = const {},
@@ -46,7 +46,7 @@ class AppUser {
       maxAlcohol: json['maxAlcohol'] != null
           ? (json['maxAlcohol'] as num).toDouble()
           : null,
-      frequencyDrinks: json['frequencyDrinks'] as int?,
+      weeklyDrinkingFrequency: json['weeklyDrinkingFrequency'] as int?,
       dailyStatus: json['dailyStatus'] != null
           ? DailyStatus.fromFirestore(
               json['dailyStatus'] as Map<String, dynamic>,
@@ -74,7 +74,7 @@ class AppUser {
   final bool? goal; // true=즐거운 음주, false=건강한 금주
   final int? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
   final double? maxAlcohol;
-  final int? frequencyDrinks;
+  final int? weeklyDrinkingFrequency; // 일주일에 술을 마시는 횟수
 
   // Memo/Status
   final DailyStatus? dailyStatus;
@@ -111,7 +111,7 @@ class AppUser {
       'goal': goal,
       'favoriteDrink': favoriteDrink,
       'maxAlcohol': maxAlcohol,
-      'frequencyDrinks': frequencyDrinks,
+      'weeklyDrinkingFrequency': weeklyDrinkingFrequency,
       'dailyStatus': dailyStatus?.toMap(),
       'badge': badges.map((e) => e.toJson()).toList(),
       'stats': stats,
@@ -129,7 +129,7 @@ class AppUser {
     bool? goal,
     int? favoriteDrink,
     double? maxAlcohol,
-    int? frequencyDrinks,
+    int? weeklyDrinkingFrequency,
     DailyStatus? dailyStatus,
     List<Badge>? badges,
     Map<String, dynamic>? stats,
@@ -145,7 +145,8 @@ class AppUser {
       goal: goal ?? this.goal,
       favoriteDrink: favoriteDrink ?? this.favoriteDrink,
       maxAlcohol: maxAlcohol ?? this.maxAlcohol,
-      frequencyDrinks: frequencyDrinks ?? this.frequencyDrinks,
+      weeklyDrinkingFrequency:
+          weeklyDrinkingFrequency ?? this.weeklyDrinkingFrequency,
       dailyStatus: dailyStatus ?? this.dailyStatus,
       badges: badges ?? this.badges,
       stats: stats ?? this.stats,
@@ -173,7 +174,7 @@ class AppUser {
         other.goal == goal &&
         other.favoriteDrink == favoriteDrink &&
         other.maxAlcohol == maxAlcohol &&
-        other.frequencyDrinks == frequencyDrinks &&
+        other.weeklyDrinkingFrequency == weeklyDrinkingFrequency &&
         other.dailyStatus == dailyStatus &&
         _listEquals(other.badges, badges) &&
         other.stats.toString() == stats.toString();
@@ -190,7 +191,7 @@ class AppUser {
         goal.hashCode ^
         favoriteDrink.hashCode ^
         maxAlcohol.hashCode ^
-        frequencyDrinks.hashCode ^
+        weeklyDrinkingFrequency.hashCode ^
         dailyStatus.hashCode ^
         badges.hashCode ^
         stats.hashCode;

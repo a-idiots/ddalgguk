@@ -9,18 +9,21 @@ class GoalSettingPage extends StatefulWidget {
     this.initialGoal,
     this.initialFavoriteDrink,
     this.initialMaxAlcohol,
+    this.initialWeeklyDrinkingFrequency,
   });
 
   final void Function({
     required bool goal,
     required int favoriteDrink,
     required double maxAlcohol,
+    required int weeklyDrinkingFrequency,
   })
   onComplete;
 
   final bool? initialGoal;
   final int? initialFavoriteDrink;
   final double? initialMaxAlcohol;
+  final int? initialWeeklyDrinkingFrequency;
 
   @override
   State<GoalSettingPage> createState() => _GoalSettingPageState();
@@ -30,6 +33,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
   bool? _selectedGoal;
   int? _selectedDrink;
   int? _sliderIndex; // null until both goal and drink are selected
+  int? _weeklyDrinkingFrequency;
 
   @override
   void initState() {
@@ -40,6 +44,9 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
     }
     if (widget.initialMaxAlcohol != null) {
       _sliderIndex = _alcoholToSliderIndex(widget.initialMaxAlcohol!);
+    }
+    if (widget.initialWeeklyDrinkingFrequency != null) {
+      _weeklyDrinkingFrequency = widget.initialWeeklyDrinkingFrequency;
     }
     // Initialize slider index if both goal and drink are already selected
     if (_selectedGoal != null &&
@@ -78,7 +85,10 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
       _sliderIndex != null ? _sliderIndexToAlcohol(_sliderIndex!) : 0.0;
 
   bool get _isFormComplete =>
-      _selectedGoal != null && _selectedDrink != null && _sliderIndex != null;
+      _selectedGoal != null &&
+      _selectedDrink != null &&
+      _sliderIndex != null &&
+      _weeklyDrinkingFrequency != null;
 
   void _handleComplete() {
     if (_selectedGoal == null) {
@@ -111,10 +121,21 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
       return;
     }
 
+    if (_weeklyDrinkingFrequency == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('일주일 음주 빈도를 입력해주세요'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     widget.onComplete(
       goal: _selectedGoal!,
       favoriteDrink: _selectedDrink!,
       maxAlcohol: _maxAlcohol,
+      weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
     );
   }
 
@@ -132,26 +153,16 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
             const Text(
               '당신의 목표는 무엇인가요?',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.black54,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             _buildSimpleGoalOptions(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
             // Divider
             const Divider(color: Colors.black26, thickness: 0.5),
-            const SizedBox(height: 32),
-            // Drinking habit survey
-            const Text(
-              '당신의 음주 습관이 궁금해요!',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
-              ),
-            ),
             const SizedBox(height: 12),
             _buildDrinkSelectionCards(),
             const SizedBox(height: 24),
@@ -171,17 +182,72 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                       color: Colors.black54,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildAlcoholSlider(),
                   const SizedBox(height: 6),
+                  _buildAlcoholSlider(),
+                  const SizedBox(height: 12),
                   const Text(
                     '음주 백과💡 소주 1병은 약 7잔이다.',
-                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                 ],
               ),
             ),
             const Spacer(),
+            // Weekly drinking frequency input
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '나는 일주일에',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 60,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black26),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
+                      onChanged: (value) {
+                        final frequency = int.tryParse(value);
+                        setState(() {
+                          _weeklyDrinkingFrequency = frequency;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    '번 술을 마신다',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 36),
             // Page indicator
             const PageIndicator(currentPage: 2, pageCount: 3),
             const SizedBox(height: 32),
@@ -271,11 +337,11 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
 
   Widget _buildDrinkSelectionCards() {
     final drinks = [
-      {'emoji': '🍶', 'name': '소주', 'id': 0},
-      {'emoji': '🍺', 'name': '맥주', 'id': 1},
-      {'emoji': '🍸', 'name': '칵테일', 'id': 2},
-      {'emoji': '🍷', 'name': '와인', 'id': 3},
-      {'emoji': '🥃', 'name': '위스키', 'id': 4},
+      {'img': 'assets/alcohol_icons/soju.png', 'name': '소주', 'id': 0},
+      {'img': 'assets/alcohol_icons/beer.png', 'name': '맥주', 'id': 1},
+      {'img': 'assets/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 2},
+      {'img': 'assets/alcohol_icons/wine.png', 'name': '와인', 'id': 3},
+      {'img': 'assets/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
     ];
 
     return Container(
@@ -321,9 +387,10 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            drink['emoji'] as String,
-                            style: const TextStyle(fontSize: 32),
+                          Image.asset(
+                            drink['img'] as String,
+                            width: 42,
+                            height: 42,
                           ),
                           const SizedBox(height: 4),
                           Text(

@@ -350,6 +350,7 @@ class AuthRepository {
     required bool goal,
     required int favoriteDrink,
     required double maxAlcohol,
+    required int weeklyDrinkingFrequency,
   }) async {
     try {
       final firebaseUser = _firebaseAuthService.currentUser;
@@ -371,6 +372,7 @@ class AuthRepository {
           goal: goal,
           favoriteDrink: favoriteDrink,
           maxAlcohol: maxAlcohol,
+          weeklyDrinkingFrequency: weeklyDrinkingFrequency,
           hasCompletedProfileSetup: true,
         );
       } else {
@@ -389,6 +391,7 @@ class AuthRepository {
               goal: goal,
               favoriteDrink: favoriteDrink,
               maxAlcohol: maxAlcohol,
+              weeklyDrinkingFrequency: weeklyDrinkingFrequency,
               hasCompletedProfileSetup: true,
             );
       }
@@ -456,9 +459,16 @@ class AuthRepository {
       }
 
       // If not in cache, fetch from Firestore
-      final doc = await _usersCollection.doc(firebaseUser.uid).get();
+      var doc = await _usersCollection.doc(firebaseUser.uid).get();
       if (!doc.exists) {
-        return null;
+        // Retry once after a short delay to handle race condition during sign up
+        // When creating a new user, auth state changes before Firestore write completes
+        await Future.delayed(const Duration(milliseconds: 500));
+        doc = await _usersCollection.doc(firebaseUser.uid).get();
+
+        if (!doc.exists) {
+          return null;
+        }
       }
 
       final data = doc.data() as Map<String, dynamic>;
