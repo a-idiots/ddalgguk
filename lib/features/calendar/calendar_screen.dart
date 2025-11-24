@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _selectedDay = _focusedDay;
   }
 
+  void _updateRecordsMap(List<DrinkingRecord> records) {
+    final newMap = <DateTime, List<DrinkingRecord>>{};
+    for (final record in records) {
+      final normalizedDate = _normalizeDate(record.date);
+      if (!newMap.containsKey(normalizedDate)) {
+        newMap[normalizedDate] = [];
+      }
+      newMap[normalizedDate]!.add(record);
+    }
+
+    if (mounted) {
+      setState(() {
+        _recordsMap = newMap;
+      });
+    }
+  }
+
   /// 날짜를 키로 사용하기 위해 시간 정보를 제거
   DateTime _normalizeDate(DateTime date) {
     return DateTime(date.year, date.month, date.day);
@@ -42,23 +60,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final recordsAsync = ref.watch(monthRecordsProvider(_focusedDay));
+    // Provider를 구독하기 위해 watch 필요
+    ref.watch(monthRecordsProvider(_focusedDay));
 
-    // 월별 기록이 변경되면 맵 업데이트
-    recordsAsync.whenData((records) {
-      final newMap = <DateTime, List<DrinkingRecord>>{};
-      for (final record in records) {
-        final normalizedDate = _normalizeDate(record.date);
-        if (!newMap.containsKey(normalizedDate)) {
-          newMap[normalizedDate] = [];
-        }
-        newMap[normalizedDate]!.add(record);
-      }
-      if (mounted) {
-        setState(() {
-          _recordsMap = newMap;
-        });
-      }
+    // 월별 기록 변경 감지
+    ref.listen(monthRecordsProvider(_focusedDay), (previous, next) {
+      next.whenData((records) {
+        _updateRecordsMap(records);
+      });
     });
 
     return Scaffold(
@@ -198,6 +207,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (isOutsideMonth) {
       return const SizedBox.shrink();
     }
+
+    // 미래 날짜 체크
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+    final isFutureDate = normalizedDate.isAfter(normalizedToday);
+
     final textColor = isOutsideMonth
         ? Colors.grey
         : isToday
@@ -241,7 +257,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Opacity(
               opacity: isOutsideMonth ? 0.25 : 0.5,
               child: Image.asset(
-                'assets/calendar/empty_date.png',
+                isFutureDate
+                    ? 'assets/calendar/future_date.png'
+                    : 'assets/calendar/empty_date.png',
                 width: sakuSize,
                 height: sakuSize,
                 fit: BoxFit.contain,
@@ -339,31 +357,30 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 카드 빌드
   Widget _buildRecordCard(DrinkingRecord record, int index) {
-    const sakuSize = 60.0;
+    const sakuSize = 50.0;
 
     return GestureDetector(
       onTap: () => _showRecordDetail(context, record),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: Colors.grey[300]!, width: 1.0),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 왼쪽: 사쿠 캐릭터
-            SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
-            const SizedBox(width: 16),
+            // 왼쪽: 사쿠 캐릭터 (중앙정렬)
+            Align(
+              alignment: Alignment.center,
+              child: SakuCharacter(
+                size: sakuSize,
+                drunkLevel: record.drunkLevel * 10,
+              ),
+            ),
+            const SizedBox(width: 24),
             // 중앙: 정보
             Expanded(
               child: Column(
@@ -373,31 +390,31 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   Text(
                     record.meetingName,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   // 혈중 알콜 농도
                   Text(
                     '혈중알콜농도 ${record.drunkLevel * 10}%',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: Colors.red[400],
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   // 음주량
                   if (record.drinkAmount.isNotEmpty) ...[
                     ...record.drinkAmount.map((drink) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                        padding: const EdgeInsets.only(bottom: 2),
                         child: Row(
                           children: [
                             Text(
                               '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(fontSize: 11),
                             ),
                             Expanded(
                               child: Padding(
@@ -408,25 +425,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   painter: _DottedLinePainter(
                                     color: Colors.grey[300]!,
                                   ),
-                                  child: const SizedBox(height: 13),
+                                  child: const SizedBox(height: 11),
                                 ),
                               ),
                             ),
                             Text(
                               formatDrinkAmount(drink.amount),
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(fontSize: 11),
                             ),
                           ],
                         ),
                       );
                     }),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                   ],
                   // 지출 금액
                   Text(
                     '${NumberFormat('#,###').format(record.cost)}원',
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -443,7 +460,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               child: Text(
                 '${record.sessionNumber}차',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.red[400],
                   fontWeight: FontWeight.bold,
                 ),
@@ -522,6 +539,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
       // 캘린더 새로고침을 위해 provider invalidate
       ref.invalidate(monthRecordsProvider(_focusedDay));
+      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
+      ref.invalidate(friendsProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -667,6 +686,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
         // 캘린더 새로고침을 위해 provider invalidate
         ref.invalidate(monthRecordsProvider(_focusedDay));
+        // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
+        ref.invalidate(friendsProvider);
 
         if (mounted) {
           ScaffoldMessenger.of(

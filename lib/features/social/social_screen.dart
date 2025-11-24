@@ -3,6 +3,7 @@ import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/add_friend_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
+import 'package:ddalgguk/features/social/widgets/dialogs/friend_profile_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/friend_card.dart';
 import 'package:ddalgguk/features/social/widgets/screens/postbox_screen.dart';
 import 'package:flutter/material.dart';
@@ -79,27 +80,32 @@ class SocialScreen extends ConsumerWidget {
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
         children: [
-          // 타이틀
-          const Text(
-            'SAKU Village',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          // 타이틀 (중앙)
+          Align(
+            alignment: Alignment.center,
+            child: const Text(
+              'SAKU Village',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+              ),
             ),
           ),
-          // 친구 추가 버튼
-          GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => const AddFriendDialog(),
-              );
-            },
-            child: const Icon(Icons.add, size: 32, color: Colors.black),
+          // 친구 추가 버튼 (우측)
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const AddFriendDialog(),
+                );
+              },
+              child: const Icon(Icons.add, size: 32, color: Colors.black),
+            ),
           ),
         ],
       ),
@@ -123,7 +129,7 @@ class SocialScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 3열
-          childAspectRatio: 0.58, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
+          childAspectRatio: 0.65, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
           crossAxisSpacing: 4, // 카드 간 간격 최소화
           mainAxisSpacing: 16,
         ),
@@ -143,7 +149,12 @@ class SocialScreen extends ConsumerWidget {
                     );
                   }
                 : () {
-                    // TODO: 친구 프로필 상세 보기
+                    // 친구 프로필 미리보기 다이얼로그 표시
+                    showDialog(
+                      context: context,
+                      barrierColor: Colors.black.withValues(alpha: 0.7),
+                      builder: (context) => FriendProfileDialog(friend: friend),
+                    );
                   },
           );
         },

@@ -26,7 +26,7 @@ class AppColors {
   /// - 친구 카드 배경색으로 사용
   /// - 술 레벨(0-100)에 따른 색상 매핑
   static const Map<int, Color> sakuGradientColors = {
-    0: Color(0xFFF1FCEC), // Light green
+    0: Color(0xFFD9D9D9), // Light grey (sober)
     10: Color(0xFFFFCDC2), // Light peach
     20: Color(0xFFFBB5AB), // Peachy pink
     30: Color(0xFFFBA99E), // Coral pink

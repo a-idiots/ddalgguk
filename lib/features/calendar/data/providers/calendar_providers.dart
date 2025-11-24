@@ -13,8 +13,8 @@ final drinkingRecordServiceProvider = Provider<DrinkingRecordService>((ref) {
 
 /// Provider for streaming records for a specific month
 /// Returns a stream of drinking records for the given month
-final monthRecordsProvider =
-    StreamProvider.family<List<DrinkingRecord>, DateTime>((ref, date) {
+final monthRecordsProvider = StreamProvider.autoDispose
+    .family<List<DrinkingRecord>, DateTime>((ref, date) {
       final service = ref.watch(drinkingRecordServiceProvider);
       return service.streamRecordsByMonth(date.year, date.month);
     });
