@@ -69,6 +69,7 @@ class _SpendingSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Comparison Text
           comparisonAsync.when(
@@ -77,28 +78,23 @@ class _SpendingSummaryCard extends StatelessWidget {
               final diffAbs = diff.abs();
               if (diffAbs == 0) {
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       '이번 달은 지난 달과',
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     const Text(
                       '똑같은 금액을 쓰고 있어요',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '(월 전체 기준)',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 );
@@ -135,11 +131,6 @@ class _SpendingSummaryCard extends StatelessWidget {
                         const TextSpan(text: ' 있어요'),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '(월 전체 기준)',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               );

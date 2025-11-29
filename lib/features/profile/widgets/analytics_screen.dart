@@ -65,20 +65,20 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     ),
                     centerTitle: false,
                     bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(60),
+                      preferredSize: const Size.fromHeight(30),
                       child: Container(
                         margin: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
+                          horizontal: 60,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         child: TabBar(
                           indicator: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),
@@ -92,18 +92,18 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                           unselectedLabelColor: Colors.grey,
                           labelStyle: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 10,
                           ),
                           unselectedLabelStyle: const TextStyle(
                             fontWeight: FontWeight.w500,
-                            fontSize: 14,
+                            fontSize: 10,
                           ),
                           dividerColor: Colors.transparent,
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(2),
                           tabs: const [
-                            Tab(text: '알콜섭취량'),
-                            Tab(text: '소비 금액'),
-                            Tab(text: '레포트'),
+                            Tab(height: 24, text: '알콜섭취량'),
+                            Tab(height: 24, text: '소비 금액'),
+                            Tab(height: 24, text: '레포트'),
                           ],
                         ),
                       ),

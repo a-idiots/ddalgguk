@@ -11,83 +11,123 @@ class ProfileStatsService {
 
   final DrinkingRecordService _drinkingRecordService;
 
-  /// Calculate weekly stats for the last 7 days ending on [referenceDate] (default: today)
+  /// Calculate weekly stats for the week containing [referenceDate] (default: today)
+  /// Week starts on Monday and ends on Sunday
   Future<WeeklyStats> calculateWeeklyStats([DateTime? referenceDate]) async {
     final now = referenceDate ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final startDate = today.subtract(const Duration(days: 6));
+    final startDate = _getMondayOfWeek(now);
+    final endDate = startDate.add(const Duration(days: 6)); // Sunday
 
     try {
-      // Fetch records for the last 7 days
+      // Fetch records for the week (Monday to Sunday)
       final records = await _drinkingRecordService.getRecordsByDateRange(
         startDate,
-        today.add(const Duration(days: 1)),
+        endDate.add(const Duration(days: 1)), // Include Sunday
       );
 
-      // Group records by date
-      final Map<String, List<DrinkingRecord>> recordsByDate = {};
-      for (final record in records) {
-        final dateKey = _getDateKey(record.date);
-        recordsByDate.putIfAbsent(dateKey, () => []).add(record);
-      }
-
-      // Calculate daily data for each of the 7 days
-      final dailyData = <DailySakuData>[];
-      for (int i = 0; i < 7; i++) {
-        final date = startDate.add(Duration(days: i));
-        final dateKey = _getDateKey(date);
-        final dayRecords = recordsByDate[dateKey] ?? [];
-
-        int maxDrunkLevel = 0;
-        if (dayRecords.isNotEmpty) {
-          maxDrunkLevel = dayRecords
-              .map((r) => r.drunkLevel)
-              .reduce((a, b) => a > b ? a : b);
-        }
-
-        dailyData.add(
-          DailySakuData(
-            date: date,
-            drunkLevel: maxDrunkLevel * 10, // Convert 0-10 to 0-100
-            hasRecords: dayRecords.isNotEmpty,
-          ),
-        );
-      }
-
-      // Calculate totals
-      final int totalSessions = records.length;
-      double totalAlcoholMl = 0;
-      int totalCost = 0;
-      double totalDrunkLevel = 0;
-
-      for (final record in records) {
-        totalCost += record.cost;
-        totalDrunkLevel += record.drunkLevel;
-
-        for (final drink in record.drinkAmount) {
-          // Calculate pure alcohol in ml
-          totalAlcoholMl += drink.amount * (drink.alcoholContent / 100);
-        }
-      }
-
-      final averageDrunkLevel = records.isEmpty
-          ? 0.0
-          : totalDrunkLevel / records.length;
-      final int soberDays = dailyData.where((d) => !d.hasRecords).length;
-
-      return WeeklyStats(
-        startDate: startDate,
-        endDate: today,
-        dailyData: dailyData,
-        totalSessions: totalSessions,
-        totalAlcoholMl: totalAlcoholMl,
-        totalCost: totalCost,
-        averageDrunkLevel: averageDrunkLevel,
-        soberDays: soberDays,
-      );
+      return _createWeeklyStatsFromRecords(records, startDate, endDate);
     } catch (e) {
       return WeeklyStats.empty(startDate);
     }
+  }
+
+  /// Calculate weekly stats stream
+  /// Week starts on Monday and ends on Sunday
+  Stream<WeeklyStats> calculateWeeklyStatsStream([DateTime? referenceDate]) {
+    final now = referenceDate ?? DateTime.now();
+    final startDate = _getMondayOfWeek(now);
+    final endDate = startDate.add(const Duration(days: 6)); // Sunday
+
+    return _drinkingRecordService
+        .streamRecordsByDateRange(
+          startDate,
+          endDate.add(const Duration(days: 1)),
+        )
+        .map(
+          (records) =>
+              _createWeeklyStatsFromRecords(records, startDate, endDate),
+        );
+  }
+
+  WeeklyStats _createWeeklyStatsFromRecords(
+    List<DrinkingRecord> records,
+    DateTime startDate,
+    DateTime today,
+  ) {
+    // Group records by date
+    final Map<String, List<DrinkingRecord>> recordsByDate = {};
+    for (final record in records) {
+      final dateKey = _getDateKey(record.date);
+      recordsByDate.putIfAbsent(dateKey, () => []).add(record);
+    }
+
+    // Calculate daily data for each of the 7 days
+    final dailyData = <DailySakuData>[];
+    for (int i = 0; i < 7; i++) {
+      final date = startDate.add(Duration(days: i));
+      final dateKey = _getDateKey(date);
+      final dayRecords = recordsByDate[dateKey] ?? [];
+
+      int avgDrunkLevel = 0;
+      double totalAlcoholMl = 0;
+      if (dayRecords.isNotEmpty) {
+        final total = dayRecords.fold(0, (sum, r) => sum + r.drunkLevel);
+        avgDrunkLevel = (total / dayRecords.length).round();
+
+        for (final record in dayRecords) {
+          for (final drink in record.drinkAmount) {
+            totalAlcoholMl += drink.amount * (drink.alcoholContent / 100);
+          }
+        }
+      }
+
+      dailyData.add(
+        DailySakuData(
+          date: date,
+          drunkLevel: avgDrunkLevel * 10, // Convert 0-10 to 0-100
+          hasRecords: dayRecords.isNotEmpty,
+          totalAlcoholMl: totalAlcoholMl,
+        ),
+      );
+    }
+
+    // Calculate totals and drink type stats
+    final Map<int, DrinkTypeStat> drinkTypeStatsMap = {};
+
+    for (final record in records) {
+      for (final drink in record.drinkAmount) {
+        // Aggregate drink type stats
+        final type = drink.drinkType;
+        final currentStat =
+            drinkTypeStatsMap[type] ??
+            DrinkTypeStat(
+              drinkType: type,
+              totalAmountMl: 0,
+              maxAmountMl: 0,
+              pureAlcoholMl: 0,
+            );
+
+        drinkTypeStatsMap[type] = currentStat.copyWith(
+          totalAmountMl: currentStat.totalAmountMl + drink.amount,
+          maxAmountMl: drink.amount > currentStat.maxAmountMl
+              ? drink.amount.toDouble()
+              : currentStat.maxAmountMl,
+          pureAlcoholMl:
+              currentStat.pureAlcoholMl +
+              (drink.amount * (drink.alcoholContent / 100)),
+        );
+      }
+    }
+
+    final int soberDays = dailyData.where((d) => !d.hasRecords).length;
+
+    return WeeklyStats(
+      startDate: startDate,
+      endDate: today,
+      dailyData: dailyData,
+      soberDays: soberDays,
+      drinkTypeStats: drinkTypeStatsMap.values.toList(),
+    );
   }
 
   /// Calculate current profile stats including alcohol breakdown
@@ -276,6 +316,15 @@ class ProfileStatsService {
   /// Helper to get date key for grouping
   String _getDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Get the Monday of the week containing [date]
+  DateTime _getMondayOfWeek(DateTime date) {
+    final normalized = DateTime(date.year, date.month, date.day);
+    final weekday = normalized.weekday; // 1=Monday, 7=Sunday
+    final mondayOffset =
+        weekday - 1; // Days since Monday (0 if today is Monday)
+    return normalized.subtract(Duration(days: mondayOffset));
   }
 
   /// Calculate monthly spending
