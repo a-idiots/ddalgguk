@@ -6,13 +6,12 @@ import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dar
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
-import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'dart:math' as math;
+import 'package:flutter_svg/flutter_svg.dart';
 
 class RecapTab extends ConsumerStatefulWidget {
   const RecapTab({super.key});
@@ -61,12 +60,11 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final normalizedDate = DateTime(now.year, now.month);
 
     final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
-    final currentStatsAsync = ref.watch(currentProfileStatsProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
       child: Column(
         children: [
           // Capture Area
@@ -75,8 +73,8 @@ class _RecapTabState extends ConsumerState<RecapTab> {
             child: Container(
               color: const Color(
                 0xFFFFEBEB,
-              ).withValues(alpha: 0.3), // Light pink bg
-              padding: const EdgeInsets.all(16),
+              ).withValues(alpha: 1), // Light pink bg
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -89,17 +87,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                       return Column(
                         children: [
                           Text(
-                            user.name ?? 'User',
+                            '${user.name ?? 'User'}의 ${now.month}월 음주 Recap',
                             style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${now.month}월 음주 Recap',
-                            style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -109,20 +99,27 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     loading: () => const CircularProgressIndicator(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 32),
 
                   // Character
-                  currentStatsAsync.when(
-                    data: (stats) {
-                      // Calculate average drunk level (0-100)
-                      // Assuming thisMonthDrunkDays represents some metric, cap it at 10
-                      final avgDrunkLevel = (stats.thisMonthDrunkDays * 10)
-                          .clamp(0, 100);
+                  monthRecordsAsync.when(
+                    data: (records) {
+                      if (records.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      final avgDrunkLevel = records.isEmpty
+                          ? 0
+                          : (records
+                                        .map((r) => r.drunkLevel)
+                                        .reduce((a, b) => a + b) /
+                                    records.length *
+                                    10)
+                                .round();
 
                       return Column(
                         children: [
-                          SakuCharacter(size: 180, drunkLevel: avgDrunkLevel),
-                          const SizedBox(height: 24),
+                          SakuCharacter(size: 120, drunkLevel: avgDrunkLevel),
+                          const SizedBox(height: 4),
                           RichText(
                             text: TextSpan(
                               style: const TextStyle(
@@ -130,7 +127,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                                 color: Colors.black87,
                               ),
                               children: [
-                                const TextSpan(text: '평균적으로 술자리에서 '),
+                                const TextSpan(text: '보통 술자리에서 '),
                                 TextSpan(
                                   text: '$avgDrunkLevel%의 취기',
                                   style: const TextStyle(
@@ -148,53 +145,158 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
 
                   // Stats Pills
-                  currentStatsAsync.when(
-                    data: (stats) {
-                      return Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _StatPill(
-                            label: '만취 1번', // Mock
-                            color: const Color(0xFFE55D5D),
-                          ),
-                          _StatPill(
-                            label: '평균 2.5병', // Mock
-                            color: const Color(0xFFE55D5D),
-                          ),
-                          _StatPill(
-                            label: '연속 3일 음주', // Mock
-                            color: const Color(0xFFE55D5D),
-                          ),
-                        ],
-                      );
+                  monthRecordsAsync.when(
+                    data: (records) {
+                      if (records.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      // Calculate stats
+                      try {
+                        final drunkCount = records
+                            .where((r) => r.drunkLevel >= 7)
+                            .length;
+
+                        double totalBottles = 0;
+                        for (var r in records) {
+                          if (r.drinkAmount.isEmpty) continue;
+                          for (var d in r.drinkAmount) {
+                            totalBottles += (d.amount / 500.0).clamp(0, 1000);
+                          }
+                        }
+                        final avgBottles = records.isEmpty
+                            ? 0.0
+                            : (totalBottles / records.length).clamp(0, 100);
+
+                        // Consecutive days
+                        final sortedDates =
+                            records
+                                .map(
+                                  (r) => DateTime(
+                                    r.date.year,
+                                    r.date.month,
+                                    r.date.day,
+                                  ),
+                                )
+                                .toSet()
+                                .toList()
+                              ..sort();
+
+                        int maxConsecutive = sortedDates.isEmpty ? 0 : 1;
+                        if (sortedDates.length > 1) {
+                          int currentConsecutive = 1;
+                          for (int i = 0; i < sortedDates.length - 1; i++) {
+                            final diff = sortedDates[i + 1]
+                                .difference(sortedDates[i])
+                                .inDays;
+                            if (diff == 1) {
+                              currentConsecutive++;
+                              if (currentConsecutive > maxConsecutive) {
+                                maxConsecutive = currentConsecutive;
+                              }
+                            } else {
+                              currentConsecutive = 1;
+                            }
+                          }
+                        }
+
+                        return Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _StatPill(
+                              label: '만취 $drunkCount번',
+                              color: const Color(0xFFE55D5D),
+                            ),
+                            _StatPill(
+                              label: '평균 ${avgBottles.toStringAsFixed(1)}병',
+                              color: const Color(0xFFE55D5D),
+                            ),
+                            _StatPill(
+                              label: '연속 $maxConsecutive일 음주',
+                              color: const Color(0xFFE55D5D),
+                            ),
+                          ],
+                        );
+                      } catch (e) {
+                        return const SizedBox.shrink();
+                      }
                     },
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
 
                   // Grid Layout
                   _buildGridSection(monthRecordsAsync, weeklyStatsAsync),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
 
                   // One-line Review
-                  const SpeechBubble(
-                    text: '간이 회복되지 않았는데 또 술을 마셨어요',
-                    tailPosition: TailPosition.top,
-                    backgroundColor: Colors.white,
-                    textColor: Colors.black87,
-                    fontSize: 16,
+                  SizedBox(
+                    height: 80,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          fit: StackFit.expand,
+                          children: [
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              height: 80,
+                              child: RepaintBoundary(
+                                child: Image.asset(
+                                  'assets/recap/bubble.png',
+                                  fit: BoxFit.fill,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: Colors.grey[300]!,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            Positioned.fill(
+                              bottom: 18,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    '11월 한줄평',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '간이 회복되지 않았는데 또 술을 마셨어요',
+                                    style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '11월 한줄평',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
                 ],
               ),
             ),
@@ -256,19 +358,18 @@ class _RecapTabState extends ConsumerState<RecapTab> {
           children: [
             // Hole in Wallet (Left)
             Expanded(flex: 5, child: _buildHoleInWalletCard(recordsAsync)),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
             // Total Volume (Right)
             Expanded(flex: 4, child: _buildTotalVolumeCard(weeklyStatsAsync)),
           ],
         ),
-        const SizedBox(height: 24),
         // Row 2: Badge & Most Drunk
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Badge (Left)
-            Expanded(flex: 4, child: _buildBadgeCard()),
-            const SizedBox(width: 16),
+            Expanded(flex: 4, child: _buildBadgeCard(recordsAsync)),
+            const SizedBox(width: 8),
             // Most Drunk (Right)
             Expanded(flex: 5, child: _buildMostDrunkCard(recordsAsync)),
           ],
@@ -290,23 +391,31 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '지갑에 빵꾸 뚫린 날',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '지갑에 빵꾸 뚫린 날',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    '11월 술값 지출 부문 1위',
+                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-            const Text(
-              '11월 술값 지출 부문 1위',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFB4B4), // Pink
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withAlpha(10),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -315,10 +424,10 @@ class _RecapTabState extends ConsumerState<RecapTab> {
               child: Row(
                 children: [
                   SakuCharacter(
-                    size: 50,
+                    size: 40,
                     drunkLevel: maxRecord.drunkLevel * 10,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,20 +439,22 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
-                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           '${NumberFormat('#,###').format(maxRecord.cost)}원',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 14,
+                            fontSize: 12,
                           ),
                         ),
-                        const SizedBox(height: 4),
                         const Text(
                           '무슨 일이 있으셨나요?',
-                          style: TextStyle(color: Colors.white70, fontSize: 10),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
@@ -363,40 +474,181 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     return statsAsync.when(
       data: (stats) {
         return SizedBox(
-          height: 140,
+          height: 130,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              CustomPaint(
-                size: const Size(140, 140),
-                painter: _StarburstPainter(
-                  color: const Color(0xFF88D8B0),
-                ), // Green
+              SizedBox(
+                width: 130,
+                height: 130,
+                child: RepaintBoundary(
+                  child: Image.asset(
+                    'assets/recap/star_1.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF88D8B0),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '총',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      NumberFormat('#,###').format(stats.totalAlcoholMl),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'ml 음주',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildBadgeCard(AsyncValue<List<DrinkingRecord>> recordsAsync) {
+    return recordsAsync.when(
+      data: (records) {
+        if (records.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        // 1. Calculate frequency and total volume per weekday
+        final weekdayFrequency = <int, int>{};
+        final weekdayVolume = <int, double>{};
+        final processedDates = <String>{}; // To track unique dates (yyyy-MM-dd)
+
+        for (var record in records) {
+          final dateKey =
+              '${record.date.year}-${record.date.month}-${record.date.day}';
+          final weekday = record.date.weekday;
+
+          // Count frequency only if this date hasn't been processed for frequency yet
+          // Actually, since records might be multiple per day, we should just count unique dates per weekday.
+          // But simpler: just check if we've seen this dateKey.
+          if (!processedDates.contains(dateKey)) {
+            weekdayFrequency[weekday] = (weekdayFrequency[weekday] ?? 0) + 1;
+            processedDates.add(dateKey);
+          }
+
+          double volume = 0;
+          for (var drink in record.drinkAmount) {
+            volume += drink.amount;
+          }
+          weekdayVolume[weekday] = (weekdayVolume[weekday] ?? 0) + volume;
+        }
+
+        // 2. Find the weekday(s) with max frequency
+        int maxFreq = 0;
+        if (weekdayFrequency.isNotEmpty) {
+          maxFreq = weekdayFrequency.values.reduce((a, b) => a > b ? a : b);
+        }
+
+        final maxFreqWeekdays = weekdayFrequency.entries
+            .where((entry) => entry.value == maxFreq)
+            .map((entry) => entry.key)
+            .toList();
+
+        debugPrint('maxFreqWeekdays: $weekdayFrequency');
+
+        // 3. Resolve ties by max volume
+        int bestWeekday = 1; // Default to Monday if something goes wrong
+        if (maxFreqWeekdays.isNotEmpty) {
+          if (maxFreqWeekdays.length == 1) {
+            bestWeekday = maxFreqWeekdays.first;
+          } else {
+            // Sort by volume descending
+            maxFreqWeekdays.sort((a, b) {
+              final volA = weekdayVolume[a] ?? 0;
+              final volB = weekdayVolume[b] ?? 0;
+              return volB.compareTo(volA);
+            });
+            bestWeekday = maxFreqWeekdays.first;
+          }
+        }
+
+        // Map weekday int to String
+        const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+        final weekdayName = weekdays[bestWeekday - 1];
+
+        return SizedBox(
+          height: 130,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 130,
+                height: 130,
+                child: RepaintBoundary(
+                  child: Image.asset(
+                    'assets/recap/star_2.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFFF4081),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    '총',
+                    '나랑',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    NumberFormat('#,###').format(stats.totalAlcoholMl),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const Text(
-                    'ml 음주',
+                    '술마시려면',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '$weekdayName요일 밤',
+                    style: const TextStyle(
+                      color: Colors.yellow,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -408,56 +660,6 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildBadgeCard() {
-    return SizedBox(
-      height: 140,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: const Size(140, 140),
-            painter: _SpikyCirclePainter(
-              color: const Color(0xFFFF4081),
-            ), // Hot Pink
-          ),
-          const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '나랑',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '술마시려면',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '목요일 밤',
-                style: TextStyle(
-                  color: Colors.yellow,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '주로 목, 금 저녁 음주',
-                style: TextStyle(color: Colors.white70, fontSize: 8),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -474,23 +676,31 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            const Text(
-              '가장 얼큰했던 술자리',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    '가장 얼큰했던 술자리',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    '11월 가장 취한 부문 1위',
+                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-            const Text(
-              '11월 가장 취한 부문 1위',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFE55D5D), // Red
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withAlpha(10),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -499,7 +709,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
               child: Row(
                 children: [
                   SakuCharacter(
-                    size: 50,
+                    size: 35,
                     drunkLevel: maxRecord.drunkLevel * 10,
                   ),
                   const SizedBox(width: 12),
@@ -519,10 +729,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                         ),
                         Text(
                           '알딸딸 지수 ${maxRecord.drunkLevel * 10}%',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 12),
                         ),
                       ],
                     ),
@@ -548,7 +755,10 @@ class _StatPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ), // Reduced padding (80% of original 16/12)
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
@@ -563,114 +773,11 @@ class _StatPill extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
           color: color,
         ),
       ),
     );
   }
-}
-
-class _StarburstPainter extends CustomPainter {
-  _StarburstPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    final innerRadius = radius * 0.7;
-    final path = Path();
-
-    const spikes = 12;
-    final angleStep = (math.pi * 2) / spikes;
-
-    for (int i = 0; i < spikes; i++) {
-      final angle = i * angleStep;
-      final nextAngle = (i + 1) * angleStep;
-      final midAngle = (angle + nextAngle) / 2;
-
-      final p1 = Offset(
-        center.dx + math.cos(angle) * radius,
-        center.dy + math.sin(angle) * radius,
-      );
-      final p2 = Offset(
-        center.dx + math.cos(midAngle) * innerRadius,
-        center.dy + math.sin(midAngle) * innerRadius,
-      );
-
-      if (i == 0) {
-        path.moveTo(p1.dx, p1.dy);
-      } else {
-        path.lineTo(p1.dx, p1.dy);
-      }
-      path.lineTo(p2.dx, p2.dy);
-    }
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _SpikyCirclePainter extends CustomPainter {
-  _SpikyCirclePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    final innerRadius = radius * 0.85;
-    final path = Path();
-
-    const spikes = 20;
-    final angleStep = (math.pi * 2) / spikes;
-
-    for (int i = 0; i < spikes; i++) {
-      final angle = i * angleStep;
-      final nextAngle = (i + 1) * angleStep;
-      final midAngle = (angle + nextAngle) / 2;
-
-      final p1 = Offset(
-        center.dx + math.cos(angle) * radius,
-        center.dy + math.sin(angle) * radius,
-      );
-      final p2 = Offset(
-        center.dx + math.cos(midAngle) * innerRadius,
-        center.dy + math.sin(midAngle) * innerRadius,
-      );
-
-      if (i == 0) {
-        path.moveTo(p1.dx, p1.dy);
-      } else {
-        path.lineTo(p1.dx, p1.dy);
-      }
-      path.quadraticBezierTo(
-        center.dx + math.cos(midAngle) * (innerRadius * 0.9),
-        center.dy + math.sin(midAngle) * (innerRadius * 0.9),
-        p2.dx,
-        p2.dy,
-      );
-    }
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
