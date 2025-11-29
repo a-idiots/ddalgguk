@@ -38,7 +38,7 @@ class AchievementsSection extends ConsumerWidget {
                 color: Colors.white.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: AppColors.secondaryGreen.withValues(alpha: 0.5),
+                  color: theme.secondaryColor.withValues(alpha: 0.5),
                   width: 1,
                 ),
               ),
@@ -46,7 +46,7 @@ class AchievementsSection extends ConsumerWidget {
                 '더 많은 뱃지 확인하기',
                 style: TextStyle(
                   fontSize: 10,
-                  color: AppColors.secondaryGreen.withValues(alpha: 1),
+                  color: theme.secondaryColor.withValues(alpha: 1),
                   fontWeight: FontWeight.w500,
                 ),
               ),

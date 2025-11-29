@@ -108,20 +108,40 @@ class _WeeklySakuSectionState extends ConsumerState<WeeklySakuSection> {
   }
 
   Widget _buildWeekRow(WeeklyStats stats) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: stats.dailyData.map((dailyData) {
+        // Normalize dailyData.date to compare at day level
+        final dailyDate = DateTime(
+          dailyData.date.year,
+          dailyData.date.month,
+          dailyData.date.day,
+        );
+
+        // Determine status based on date and hasRecords
+        int status;
+        if (dailyDate.isAfter(today)) {
+          // Future date
+          status = 1;
+        } else if (dailyData.hasRecords) {
+          // Past/today with records
+          status = 0;
+        } else {
+          // Past/today without records
+          status = -1;
+        }
+
         return SizedBox(
           width: 40,
           height: 40,
-          child: dailyData.hasRecords
-              ? SakuCharacter(size: 40, drunkLevel: dailyData.drunkLevel)
-              : Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[100],
-                  ),
-                ),
+          child: SakuCharacter(
+            size: 40,
+            drunkLevel: dailyData.drunkLevel,
+            status: status,
+          ),
         );
       }).toList(),
     );

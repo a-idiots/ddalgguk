@@ -9,6 +9,7 @@ class SakuCharacter extends StatefulWidget {
     this.cursorOffset,
     this.size = 200,
     this.drunkLevel = 0,
+    this.status = 0,
   });
 
   /// Cursor offset in the input field (null when not focused)
@@ -20,6 +21,12 @@ class SakuCharacter extends StatefulWidget {
   /// Drunk level (0-100) for gradient body images
   /// 0 = sober, 100 = very drunk
   final int drunkLevel;
+
+  /// Status of the character
+  /// 0 = normal (default)
+  /// 1 = future date (no eyes)
+  /// -1 = empty date (with eyes)
+  final int status;
 
   @override
   State<SakuCharacter> createState() => _SakuCharacterState();
@@ -136,8 +143,20 @@ class _SakuCharacterState extends State<SakuCharacter>
 
   @override
   Widget build(BuildContext context) {
-    // Get body image path based on drunk level
-    final bodyImagePath = getBodyImagePath(widget.drunkLevel);
+    // Get body image path based on status or drunk level
+    String bodyImagePath;
+    bool showEyes = true;
+
+    if (widget.status == 1) {
+      bodyImagePath = 'assets/calendar/future_date.png';
+      showEyes = false;
+    } else if (widget.status == -1) {
+      bodyImagePath = 'assets/calendar/empty_date.png';
+      showEyes = true;
+    } else {
+      bodyImagePath = getBodyImagePath(widget.drunkLevel);
+      showEyes = true;
+    }
 
     return SizedBox(
       width: _animatedSize,
@@ -153,15 +172,16 @@ class _SakuCharacterState extends State<SakuCharacter>
             fit: BoxFit.contain,
           ),
           // Eyes with tracking
-          Transform.translate(
-            offset: _currentEyePosition,
-            child: Image.asset(
-              'assets/saku/eyes.png',
-              width: _animatedSize * 0.3, // Eyes are smaller relative to body
-              height: _animatedSize * 0.3,
-              fit: BoxFit.contain,
+          if (showEyes)
+            Transform.translate(
+              offset: _currentEyePosition,
+              child: Image.asset(
+                'assets/saku/eyes.png',
+                width: _animatedSize * 0.3, // Eyes are smaller relative to body
+                height: _animatedSize * 0.3,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
         ],
       ),
     );

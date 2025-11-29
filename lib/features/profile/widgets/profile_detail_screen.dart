@@ -146,6 +146,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Section 2-4: Report Card
+                            /*
                             ReportCardSection(
                               theme: theme,
                               onTap: () {
@@ -160,7 +161,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                                   );
                                 }
                               },
-                            ),
+                            ), */
                             const SizedBox(height: 32),
                           ]),
                         ),
