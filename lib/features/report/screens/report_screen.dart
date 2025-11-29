@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/profile/widgets/tabs/alcohol_intake_tab.dart';
-import 'package:ddalgguk/features/profile/widgets/tabs/recap_tab.dart';
-import 'package:ddalgguk/features/profile/widgets/tabs/spending_tab.dart';
+import 'package:ddalgguk/features/report/widgets/tabs/alcohol_intake_tab.dart';
+import 'package:ddalgguk/features/report/widgets/tabs/recap_tab.dart';
+import 'package:ddalgguk/features/report/widgets/tabs/spending_tab.dart';
 
 import 'package:go_router/go_router.dart';
 
-class AnalyticsScreen extends ConsumerStatefulWidget {
-  const AnalyticsScreen({super.key, this.onBack});
+class ReportScreen extends ConsumerStatefulWidget {
+  const ReportScreen({super.key, this.onBack});
 
   final VoidCallback? onBack;
 
   @override
-  ConsumerState<AnalyticsScreen> createState() => _AnalyticsScreenState();
+  ConsumerState<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
+class _ReportScreenState extends ConsumerState<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUserAsync = ref.watch(currentUserProvider);
@@ -32,7 +32,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         return currentStatsAsync.when(
           data: (currentStats) {
             return PopScope(
-              canPop: false,
+              canPop: widget.onBack == null,
               onPopInvokedWithResult: (didPop, result) {
                 if (didPop) {
                   return;

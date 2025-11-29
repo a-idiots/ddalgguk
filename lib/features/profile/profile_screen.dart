@@ -4,7 +4,7 @@ import 'package:ddalgguk/features/profile/widgets/profile_main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/features/profile/widgets/profile_detail_screen.dart';
-import 'package:ddalgguk/features/profile/widgets/analytics_screen.dart';
+import 'package:ddalgguk/features/report/screens/report_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 
@@ -73,12 +73,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() {
       _isAnalyticsVisible = false;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateMainCharacterPosition();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isAnalyticsVisible) {
-      return AnalyticsScreen(onBack: _handleBackFromAnalytics);
+      return ReportScreen(onBack: _handleBackFromAnalytics);
     }
 
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ddalgguk/features/calendar/calendar_screen.dart';
 import 'package:ddalgguk/features/profile/profile_screen.dart';
 import 'package:ddalgguk/features/social/social_screen.dart';
-import 'package:ddalgguk/features/games/games_screen.dart';
+import 'package:ddalgguk/features/report/screens/report_screen.dart';
 import 'package:ddalgguk/features/settings/settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/app_bottom_nav_bar.dart';
 
@@ -20,7 +20,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ProfileScreen(),
     SocialScreen(),
     CalendarScreen(),
-    GamesScreen(),
+    ReportScreen(),
     SettingsScreen(),
   ];
 
