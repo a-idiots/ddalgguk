@@ -69,7 +69,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                       child: Container(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 60,
-                          vertical: 3,
+                          vertical: 10,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
@@ -99,7 +99,6 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                             fontSize: 10,
                           ),
                           dividerColor: Colors.transparent,
-                          padding: const EdgeInsets.all(2),
                           tabs: const [
                             Tab(height: 24, text: '알콜섭취량'),
                             Tab(height: 24, text: '소비 금액'),

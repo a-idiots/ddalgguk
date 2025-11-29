@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/report/screens/report_screen.dart';
+import 'package:ddalgguk/features/report/report_screen.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/profile_header.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/weekly_saku_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/achievements_section.dart';

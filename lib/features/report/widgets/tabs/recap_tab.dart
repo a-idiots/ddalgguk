@@ -66,7 +66,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         children: [
           // Capture Area
