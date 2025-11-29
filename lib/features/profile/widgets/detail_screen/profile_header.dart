@@ -11,17 +11,33 @@ class ProfileHeader extends StatelessWidget {
     required this.user,
     required this.theme,
     this.showCharacter = true,
+    this.drunkLevel = 0,
   });
 
   final AppUser user;
   final AppTheme theme;
   final bool showCharacter;
+  final int drunkLevel;
+
+  String _formatMaxAlcohol(double amount) {
+    if (amount < 1) {
+      final glasses = (amount * 7).round();
+      return '$glasses잔';
+    } else {
+      // If integer, show as integer. If decimal, show as decimal.
+      final formatted = amount % 1 == 0
+          ? amount.toInt().toString()
+          : amount.toString();
+      return '$formatted병';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final userName = user.name ?? 'User';
     final userId = user.id ?? 'username';
     final userMaxAlcohol = user.maxAlcohol ?? 0;
+    final formattedMaxAlcohol = _formatMaxAlcohol(userMaxAlcohol);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 28),
@@ -60,7 +76,7 @@ class ProfileHeader extends StatelessWidget {
           // Speech bubble on the left
           Expanded(
             child: SpeechBubble(
-              text: '주량 $userMaxAlcohol병',
+              text: '주량 $formattedMaxAlcohol',
               tailPosition: TailPosition.right,
               backgroundColor: Colors.white,
               textColor: Colors.black87,
@@ -73,7 +89,9 @@ class ProfileHeader extends StatelessWidget {
           SizedBox(
             width: 60,
             height: 60,
-            child: showCharacter ? SakuCharacter(size: 60) : null,
+            child: showCharacter
+                ? SakuCharacter(size: 60, drunkLevel: drunkLevel)
+                : null,
           ),
         ],
       ),

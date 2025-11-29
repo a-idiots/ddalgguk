@@ -110,6 +110,11 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             user: user,
                             theme: theme,
                             showCharacter: widget.showCharacter,
+                            drunkLevel: weeklyStatsAsync.when(
+                              data: (stats) => stats.averageDrunkLevel.round(),
+                              loading: () => 0,
+                              error: (_, __) => 0,
+                            ),
                           ),
                         ),
                         // Content

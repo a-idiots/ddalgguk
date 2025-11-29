@@ -12,10 +12,12 @@ class ProfileMainView extends ConsumerWidget {
     super.key,
     this.showCharacter = true,
     this.characterKey,
+    this.opacity = 1.0,
   });
 
   final bool showCharacter;
   final GlobalKey? characterKey;
+  final double opacity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,23 +66,24 @@ class ProfileMainView extends ConsumerWidget {
                                     color: Colors.black,
                                   ),
                                   children: [
-                                    const TextSpan(text: '이번 달 '),
-                                    if (thisMonthDrunkDays == 0) ...[
+                                    if (stats.consecutiveDrinkingDays > 0) ...[
+                                      const TextSpan(text: '이번 달 '),
                                       TextSpan(
-                                        text: '$thisMonthDrunkDays일째',
+                                        text:
+                                            '${stats.thisMonthDrinkingCount}번째',
+                                        style: TextStyle(
+                                          color: theme.secondaryColor,
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' 음주 중이네요!'),
+                                    ] else ...[
+                                      TextSpan(
+                                        text: '${stats.consecutiveSoberDays}일째',
                                         style: TextStyle(
                                           color: theme.secondaryColor,
                                         ),
                                       ),
                                       const TextSpan(text: ' 금주 중이네요!'),
-                                    ] else ...[
-                                      TextSpan(
-                                        text: '$thisMonthDrunkDays번째',
-                                        style: TextStyle(
-                                          color: theme.secondaryColor,
-                                        ),
-                                      ),
-                                      const TextSpan(text: ' 음주네요!'),
                                     ],
                                   ],
                                 ),
@@ -93,7 +96,10 @@ class ProfileMainView extends ConsumerWidget {
                             width: 150,
                             height: 150,
                             child: showCharacter
-                                ? SakuCharacter(size: 150)
+                                ? SakuCharacter(
+                                    size: 150,
+                                    drunkLevel: stats.todayDrunkLevel,
+                                  )
                                 : Container(key: characterKey),
                           ),
 
@@ -102,11 +108,14 @@ class ProfileMainView extends ConsumerWidget {
                       ),
                     ),
                     // Scroll indicator at bottom
-                    const Positioned(
+                    Positioned(
                       bottom: 50,
                       left: 0,
                       right: 0,
-                      child: AnimatedScrollIndicator(),
+                      child: Opacity(
+                        opacity: opacity,
+                        child: const AnimatedScrollIndicator(),
+                      ),
                     ),
                   ],
                 ),

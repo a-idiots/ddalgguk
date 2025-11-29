@@ -38,9 +38,9 @@ final weeklyStatsOffsetProvider = StreamProvider.family<WeeklyStats, int>((
 });
 
 /// Current profile stats provider (alcohol breakdown, drunk level, etc.)
-final currentProfileStatsProvider = FutureProvider<ProfileStats>((ref) async {
+final currentProfileStatsProvider = StreamProvider<ProfileStats>((ref) {
   final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateCurrentStats();
+  return service.calculateCurrentStatsStream();
 });
 
 /// Achievements provider

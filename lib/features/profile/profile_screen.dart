@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/features/profile/widgets/profile_detail_screen.dart';
 import 'package:ddalgguk/features/profile/widgets/analytics_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -80,6 +81,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return AnalyticsScreen(onBack: _handleBackFromAnalytics);
     }
 
+    final currentStatsAsync = ref.watch(currentProfileStatsProvider);
     final screenSize = MediaQuery.of(context).size;
     final padding = MediaQuery.of(context).padding;
 
@@ -133,6 +135,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ProfileMainView(
                 showCharacter: showMainStatic,
                 characterKey: _mainCharacterKey,
+                opacity: (1.0 - progress).clamp(0.0, 1.0),
               ),
               // Page 1: Detail View
               ProfileDetailScreen(
@@ -156,7 +159,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               left: currentLeft,
               width: currentSize,
               height: currentSize,
-              child: IgnorePointer(child: SakuCharacter(size: currentSize)),
+              child: IgnorePointer(
+                child: currentStatsAsync.when(
+                  data: (stats) => SakuCharacter(
+                    size: currentSize,
+                    drunkLevel: stats.todayDrunkLevel,
+                  ),
+                  loading: () => SakuCharacter(size: currentSize),
+                  error: (_, __) => SakuCharacter(size: currentSize),
+                ),
+              ),
             ),
         ],
       ),

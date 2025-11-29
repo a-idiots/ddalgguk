@@ -133,87 +133,176 @@ class ProfileStatsService {
   /// Calculate current profile stats including alcohol breakdown
   Future<ProfileStats> calculateCurrentStats() async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     try {
-      // Get today's records
-      final todayRecords = await _drinkingRecordService.getRecordsByDate(now);
-
-      if (todayRecords.isEmpty) {
-        return ProfileStats.empty();
-      }
-
-      // Get the most recent record to calculate current status
-      todayRecords.sort((a, b) => b.date.compareTo(a.date));
-      final latestRecord = todayRecords.first;
-
-      // Calculate total alcohol consumed today
-      double totalAlcoholGrams = 0;
-      for (final drink in latestRecord.drinkAmount) {
-        // Alcohol density: 0.789 g/ml
-        // Pure alcohol ml = amount * alcoholContent / 100
-        // Alcohol in grams = pure alcohol ml * 0.789
-        final pureAlcoholMl = drink.amount * (drink.alcoholContent / 100);
-        totalAlcoholGrams += pureAlcoholMl * 0.789;
-      }
-
-      // Calculate time elapsed since drinking
-      final hoursSinceDrinking =
-          now.difference(latestRecord.date).inMinutes / 60;
-
-      // Average alcohol metabolism rate: ~7-10g per hour
-      // Using 8g per hour as average
-      const alcoholMetabolismRate = 8.0; // grams per hour
-      final alcoholProcessed = hoursSinceDrinking * alcoholMetabolismRate;
-      final alcoholRemaining = (totalAlcoholGrams - alcoholProcessed).clamp(
-        0.0,
-        totalAlcoholGrams,
+      // Fetch records for the last 30 days to calculate streaks
+      final startDate = today.subtract(const Duration(days: 30));
+      final records = await _drinkingRecordService.getRecordsByDateRange(
+        startDate,
+        today.add(const Duration(days: 1)),
       );
 
-      // Calculate time to sober (when alcohol hits 0)
-      final timeToSober = alcoholRemaining / alcoholMetabolismRate;
-
-      // Calculate progress percentage
-      final progressPercentage = totalAlcoholGrams > 0
-          ? ((alcoholProcessed / totalAlcoholGrams) * 100).clamp(0.0, 100.0)
-          : 0.0;
-
-      // Generate status message
-      String statusMessage;
-      if (alcoholRemaining <= 0) {
-        statusMessage = '깨끗한 상태입니다! 이미 모든 알콜이 분해되었어요 ☘';
-      } else if (timeToSober < 1) {
-        statusMessage = '곧 회복될 거예요! 조금만 더 기다리세요 ⏰';
-      } else if (timeToSober < 3) {
-        statusMessage = '${timeToSober.toStringAsFixed(1)}시간 후면 완전히 깰 거예요 🌱';
-      } else {
-        statusMessage =
-            '아직 ${timeToSober.toStringAsFixed(1)}시간이 필요해요. 충분히 쉬세요 💤';
-      }
-
-      final breakdown = AlcoholBreakdown(
-        totalAlcoholConsumed: totalAlcoholGrams,
-        alcoholRemaining: alcoholRemaining,
-        alcoholProcessed: alcoholProcessed,
-        progressPercentage: progressPercentage,
-        lastDrinkTime: latestRecord.date,
-        estimatedSoberTime: now.add(
-          Duration(minutes: (timeToSober * 60).round()),
-        ),
-      );
-
-      return ProfileStats(
-        thisMonthDrunkDays: (latestRecord.drunkLevel * 10).clamp(
-          0,
-          100,
-        ), // Convert 0-10 to 0-100
-        currentAlcoholInBody: alcoholRemaining,
-        timeToSober: timeToSober,
-        statusMessage: statusMessage,
-        breakdown: breakdown,
-      );
+      return _calculateStatsFromRecords(records, now, today);
     } catch (e) {
       return ProfileStats.empty();
     }
+  }
+
+  /// Calculate current profile stats stream
+  Stream<ProfileStats> calculateCurrentStatsStream() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDate = today.subtract(const Duration(days: 30));
+
+    return _drinkingRecordService
+        .streamRecordsByDateRange(startDate, today.add(const Duration(days: 1)))
+        .map((records) => _calculateStatsFromRecords(records, now, today));
+  }
+
+  ProfileStats _calculateStatsFromRecords(
+    List<DrinkingRecord> records,
+    DateTime now,
+    DateTime today,
+  ) {
+    // Group by date
+    final recordsByDate = <String, List<DrinkingRecord>>{};
+    for (var r in records) {
+      final key = _getDateKey(r.date);
+      recordsByDate.putIfAbsent(key, () => []).add(r);
+    }
+
+    final todayKey = _getDateKey(today);
+    final todayRecords = recordsByDate[todayKey] ?? [];
+
+    int consecutiveDrinkingDays = 0;
+    int consecutiveSoberDays = 0;
+    int todayDrunkLevel = 0;
+
+    if (todayRecords.isNotEmpty) {
+      // Today is a drinking day
+      consecutiveDrinkingDays = 1;
+      // Check previous days
+      for (int i = 1; i <= 30; i++) {
+        final date = today.subtract(Duration(days: i));
+        final key = _getDateKey(date);
+        if (recordsByDate.containsKey(key)) {
+          consecutiveDrinkingDays++;
+        } else {
+          break;
+        }
+      }
+
+      // Calculate today's drunk level (max of today's records)
+      todayDrunkLevel = todayRecords.fold(
+        0,
+        (max, r) => r.drunkLevel > max ? r.drunkLevel : max,
+      );
+    } else {
+      // Today is a sober day (so far)
+      consecutiveSoberDays = 1;
+      // Check previous days
+      for (int i = 1; i <= 30; i++) {
+        final date = today.subtract(Duration(days: i));
+        final key = _getDateKey(date);
+        if (!recordsByDate.containsKey(key)) {
+          consecutiveSoberDays++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Calculate this month drinking count
+    final currentYearMonth =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final thisMonthDrinkingCount = records
+        .where((r) => r.yearMonth == currentYearMonth)
+        .map((r) => _getDateKey(r.date))
+        .toSet()
+        .length;
+
+    if (todayRecords.isEmpty) {
+      return ProfileStats.empty().copyWith(
+        consecutiveSoberDays: consecutiveSoberDays,
+        consecutiveDrinkingDays: 0,
+        todayDrunkLevel: 0,
+        thisMonthDrinkingCount: thisMonthDrinkingCount,
+      );
+    }
+
+    // Get the most recent record to calculate current status
+    todayRecords.sort((a, b) => b.date.compareTo(a.date));
+    final latestRecord = todayRecords.first;
+
+    // Calculate total alcohol consumed today
+    double totalAlcoholGrams = 0;
+    for (final drink in latestRecord.drinkAmount) {
+      // Alcohol density: 0.789 g/ml
+      // Pure alcohol ml = amount * alcoholContent / 100
+      // Alcohol in grams = pure alcohol ml * 0.789
+      final pureAlcoholMl = drink.amount * (drink.alcoholContent / 100);
+      totalAlcoholGrams += pureAlcoholMl * 0.789;
+    }
+
+    // Calculate time elapsed since drinking
+    final hoursSinceDrinking = now.difference(latestRecord.date).inMinutes / 60;
+
+    // Average alcohol metabolism rate: ~7-10g per hour
+    // Using 8g per hour as average
+    const alcoholMetabolismRate = 8.0; // grams per hour
+    final alcoholProcessed = hoursSinceDrinking * alcoholMetabolismRate;
+    final alcoholRemaining = (totalAlcoholGrams - alcoholProcessed).clamp(
+      0.0,
+      totalAlcoholGrams,
+    );
+
+    // Calculate time to sober (when alcohol hits 0)
+    final timeToSober = alcoholRemaining / alcoholMetabolismRate;
+
+    // Calculate progress percentage
+    final progressPercentage = totalAlcoholGrams > 0
+        ? ((alcoholProcessed / totalAlcoholGrams) * 100).clamp(0.0, 100.0)
+        : 0.0;
+
+    // Generate status message
+    String statusMessage;
+    if (alcoholRemaining <= 0) {
+      statusMessage = '깨끗한 상태입니다! 이미 모든 알콜이 분해되었어요 ☘';
+    } else if (timeToSober < 1) {
+      statusMessage = '곧 회복될 거예요! 조금만 더 기다리세요 ⏰';
+    } else if (timeToSober < 3) {
+      statusMessage = '${timeToSober.toStringAsFixed(1)}시간 후면 완전히 깰 거예요 🌱';
+    } else {
+      statusMessage =
+          '아직 ${timeToSober.toStringAsFixed(1)}시간이 필요해요. 충분히 쉬세요 💤';
+    }
+
+    final breakdown = AlcoholBreakdown(
+      totalAlcoholConsumed: totalAlcoholGrams,
+      alcoholRemaining: alcoholRemaining,
+      alcoholProcessed: alcoholProcessed,
+      progressPercentage: progressPercentage,
+      lastDrinkTime: latestRecord.date,
+      estimatedSoberTime: now.add(
+        Duration(minutes: (timeToSober * 60).round()),
+      ),
+    );
+
+    return ProfileStats(
+      thisMonthDrunkDays: (todayDrunkLevel * 10).clamp(
+        0,
+        100,
+      ), // Convert 0-10 to 0-100
+      currentAlcoholInBody: alcoholRemaining,
+      timeToSober: timeToSober,
+      statusMessage: statusMessage,
+      breakdown: breakdown,
+      consecutiveDrinkingDays: consecutiveDrinkingDays,
+      consecutiveSoberDays: consecutiveSoberDays,
+      todayDrunkLevel: todayDrunkLevel * 10,
+      thisMonthDrinkingCount: thisMonthDrinkingCount,
+    );
   }
 
   /// Calculate achievements based on drinking records
