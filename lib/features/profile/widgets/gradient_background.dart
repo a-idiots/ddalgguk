@@ -21,8 +21,9 @@ class ProfileGradientBackground extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: reversed
-              ? [theme.primaryColor, AppColors.white]
+              ? [theme.primaryColor, AppColors.white, AppColors.white]
               : [AppColors.white, AppColors.white, theme.primaryColor],
+          stops: reversed ? const [0.0, 0.2, 1.0] : const [0.0, 0.4, 1.0],
         ),
       ),
       child: child,

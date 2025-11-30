@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/profile/widgets/tabs/alcohol_intake_tab.dart';
-import 'package:ddalgguk/features/profile/widgets/tabs/recap_tab.dart';
-import 'package:ddalgguk/features/profile/widgets/tabs/spending_tab.dart';
+import 'package:ddalgguk/features/report/widgets/tabs/alcohol_intake_tab.dart';
+import 'package:ddalgguk/features/report/widgets/tabs/recap_tab.dart';
+import 'package:ddalgguk/features/report/widgets/tabs/spending_tab.dart';
 
 import 'package:go_router/go_router.dart';
 
-class AnalyticsScreen extends ConsumerStatefulWidget {
-  const AnalyticsScreen({super.key, this.onBack});
+class ReportScreen extends ConsumerStatefulWidget {
+  const ReportScreen({super.key, this.onBack});
 
   final VoidCallback? onBack;
 
   @override
-  ConsumerState<AnalyticsScreen> createState() => _AnalyticsScreenState();
+  ConsumerState<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
+class _ReportScreenState extends ConsumerState<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUserAsync = ref.watch(currentUserProvider);
@@ -32,7 +32,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         return currentStatsAsync.when(
           data: (currentStats) {
             return PopScope(
-              canPop: false,
+              canPop: widget.onBack == null,
               onPopInvokedWithResult: (didPop, result) {
                 if (didPop) {
                   return;
@@ -65,20 +65,20 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     ),
                     centerTitle: false,
                     bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(60),
+                      preferredSize: const Size.fromHeight(30),
                       child: Container(
                         margin: const EdgeInsets.symmetric(
-                          horizontal: 20,
+                          horizontal: 60,
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         child: TabBar(
                           indicator: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),
@@ -92,18 +92,17 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                           unselectedLabelColor: Colors.grey,
                           labelStyle: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 10,
                           ),
                           unselectedLabelStyle: const TextStyle(
                             fontWeight: FontWeight.w500,
-                            fontSize: 14,
+                            fontSize: 10,
                           ),
                           dividerColor: Colors.transparent,
-                          padding: const EdgeInsets.all(4),
                           tabs: const [
-                            Tab(text: '알콜섭취량'),
-                            Tab(text: '소비 금액'),
-                            Tab(text: '레포트'),
+                            Tab(height: 24, text: '알콜섭취량'),
+                            Tab(height: 24, text: '소비 금액'),
+                            Tab(height: 24, text: '레포트'),
                           ],
                         ),
                       ),

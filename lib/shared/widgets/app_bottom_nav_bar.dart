@@ -28,7 +28,7 @@ class AppBottomNavBar extends StatelessWidget {
         BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: ''),
         BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: ''),
+        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
         BottomNavigationBarItem(icon: Icon(Icons.menu), label: ''),
       ],
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/profile/widgets/analytics_screen.dart';
+import 'package:ddalgguk/features/report/report_screen.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/profile_header.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/weekly_saku_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/achievements_section.dart';
@@ -110,6 +110,11 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             user: user,
                             theme: theme,
                             showCharacter: widget.showCharacter,
+                            drunkLevel: weeklyStatsAsync.when(
+                              data: (stats) => stats.averageDrunkLevel.round(),
+                              loading: () => 0,
+                              error: (_, __) => 0,
+                            ),
                           ),
                         ),
                         // Content
@@ -141,6 +146,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             // Section 2-4: Report Card
+                            /*
                             ReportCardSection(
                               theme: theme,
                               onTap: () {
@@ -150,12 +156,12 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const AnalyticsScreen(),
+                                          const ReportScreen(),
                                     ),
                                   );
                                 }
                               },
-                            ),
+                            ), */
                             const SizedBox(height: 32),
                           ]),
                         ),

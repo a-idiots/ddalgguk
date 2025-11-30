@@ -408,4 +408,22 @@ class DrinkingRecordService {
           return records;
         });
   }
+
+  /// 실시간 음주 기록 스트림 (특정 기간)
+  Stream<List<DrinkingRecord>> streamRecordsByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return _getRecordsCollection()
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('date')
+        .orderBy('sessionNumber')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => DrinkingRecord.fromFirestore(doc))
+              .toList(),
+        );
+  }
 }

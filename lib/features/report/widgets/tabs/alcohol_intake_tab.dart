@@ -14,6 +14,8 @@ class AlcoholIntakeTab extends ConsumerStatefulWidget {
 class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
+  DailySakuData? _selectedData;
+  int? _selectedIndex;
 
   @override
   void dispose() {
@@ -24,7 +26,7 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -32,22 +34,44 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  '순수 알코올(에탄올)',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+              AnimatedOpacity(
+                opacity: _selectedData != null ? 1.0 : 0.0,
+                duration: _selectedData != null
+                    ? const Duration(milliseconds: 200)
+                    : Duration.zero,
+                curve: Curves.easeInOut,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEB),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        '순수 알코올',
+                        style: TextStyle(
+                          color: Color(0xFFF27B7B),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _selectedData != null
+                          ? '${_selectedData!.totalAlcoholMl.toInt()}g'
+                          : '',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Container(
@@ -69,23 +93,24 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, size: 16),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 4),
 
           // Chart Section with PageView
           SizedBox(
-            height: 300,
+            height: 200,
             child: PageView.builder(
               controller: _pageController,
-              reverse: true, // Page 0 is rightmost (This week)
+              reverse: true,
               onPageChanged: (index) {
                 setState(() {
                   _currentIndex = index;
+                  _selectedData = null; // Reset selection on page change
+                  _selectedIndex = null;
                 });
               },
               itemBuilder: (context, index) {
@@ -93,19 +118,28 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                 if (index > 3) {
                   return null;
                 }
-                return _WeeklyChartPage(offset: index);
+                return _WeeklyChartPage(
+                  offset: index,
+                  selectedIndex: _selectedIndex,
+                  onBarTouch: (data, index) {
+                    setState(() {
+                      _selectedData = data;
+                      _selectedIndex = index;
+                    });
+                  },
+                );
               },
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Stats Grid
           _buildStatsGrid(ref, _currentIndex),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Comparison Text
           _buildComparisonText(ref, _currentIndex),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
           // Drink Type Breakdown
           _buildDrinkTypeBreakdown(ref, _currentIndex),
@@ -116,12 +150,12 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
 
   String _getWeekLabel(int offset) {
     if (offset == 0) {
-      return 'This week';
+      return '이번 주';
     }
     if (offset == 1) {
-      return 'Last week';
+      return '지난 주';
     }
-    return '$offset weeks ago';
+    return '$offset주 전';
   }
 
   Widget _buildStatsGrid(WidgetRef ref, int offset) {
@@ -146,7 +180,7 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                 icon: Icons.water_drop,
                 color: Colors.red,
                 label: '순수 알코올',
-                value: '${(stats.totalAlcoholMl * 0.789).toInt()}',
+                value: '${stats.totalPureAlcoholMl.toInt()}',
                 unit: 'g',
               ),
             ),
@@ -210,70 +244,126 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   }
 
   Widget _buildDrinkTypeBreakdown(WidgetRef ref, int offset) {
-    // Mock data for breakdown
-    final drinkTypes = [
-      {
-        'name': '소주',
-        'amount': 8310,
-        'max': 10000,
-        'color': Colors.green,
-        'icon': Icons.local_drink,
-      },
-      {
-        'name': '맥주',
-        'amount': 1001,
-        'max': 10000,
-        'color': Colors.amber,
-        'icon': Icons.sports_bar,
-      },
-      {
-        'name': '와인',
-        'amount': 830,
-        'max': 10000,
-        'color': Colors.red,
-        'icon': Icons.wine_bar,
-      },
-    ];
+    final statsAsync = ref.watch(weeklyStatsOffsetProvider(offset));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '주종별 섭취량 TOP 3',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[200]!),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            children: [
-              for (int i = 0; i < drinkTypes.length; i++) ...[
-                if (i > 0) const SizedBox(height: 16),
-                _DrinkTypeRow(
-                  rank: i + 1,
-                  icon: drinkTypes[i]['icon'] as IconData,
-                  color: drinkTypes[i]['color'] as Color,
-                  name: drinkTypes[i]['name'] as String,
-                  amount: drinkTypes[i]['amount'] as int,
-                  maxAmount: drinkTypes[i]['max'] as int,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
+    return statsAsync.when(
+      data: (stats) {
+        final drinkTypes = stats.drinkTypeStats;
+        // Sort by amount descending
+        drinkTypes.sort((a, b) => b.totalAmountMl.compareTo(a.totalAmountMl));
+
+        // Take top 3 and fill with default if needed
+        final displayItems = <DrinkTypeStat>[];
+        displayItems.addAll(drinkTypes.take(3));
+
+        // Fill with default empty items if less than 3
+        while (displayItems.length < 3) {
+          displayItems.add(
+            const DrinkTypeStat(
+              drinkType: 0,
+              totalAmountMl: 0,
+              maxAmountMl: 0,
+              pureAlcoholMl: 0,
+            ),
+          );
+        }
+
+        final maxAmount =
+            displayItems.isNotEmpty && displayItems.first.totalAmountMl > 0
+            ? displayItems.first.totalAmountMl
+            : 1.0; // Avoid division by zero
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '주종별 섭취량 TOP 3',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  for (int i = 0; i < displayItems.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 16),
+                    _DrinkTypeRow(
+                      rank: i + 1,
+                      iconPath: _getDrinkTypeIconPath(
+                        displayItems[i].drinkType,
+                      ),
+                      name: _getDrinkTypeName(displayItems[i].drinkType),
+                      amount: displayItems[i].totalAmountMl.toInt(),
+                      maxAmount: maxAmount.toInt(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
+  }
+
+  String _getDrinkTypeName(int type) {
+    switch (type) {
+      case 1:
+        return '소주';
+      case 2:
+        return '맥주';
+      case 3:
+        return '와인';
+      case 4:
+        return '칵테일';
+      case 5:
+        return '막걸리';
+      default:
+        return '기타';
+    }
+  }
+
+  String _getDrinkTypeIconPath(int type) {
+    switch (type) {
+      case 1:
+        return 'assets/alcohol_icons/soju.png';
+      case 2:
+        return 'assets/alcohol_icons/beer.png';
+      case 3:
+        return 'assets/alcohol_icons/wine.png';
+      case 4:
+        return 'assets/alcohol_icons/cocktail.png';
+      case 5:
+        return 'assets/alcohol_icons/makgulli.png';
+      default:
+        return 'assets/alcohol_icons/undecided.png';
+    }
   }
 }
 
 class _WeeklyChartPage extends ConsumerWidget {
-  const _WeeklyChartPage({required this.offset});
+  const _WeeklyChartPage({
+    required this.offset,
+    this.onBarTouch,
+    this.selectedIndex,
+  });
 
   final int offset;
+  final Function(DailySakuData?, int?)? onBarTouch;
+  final int? selectedIndex;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -282,7 +372,7 @@ class _WeeklyChartPage extends ConsumerWidget {
     return statsAsync.when(
       data: (stats) {
         final maxVal = _calculateMaxY(
-          stats.dailyData.map((d) => d.drunkLevel.toDouble()).toList(),
+          stats.dailyData.map((d) => d.totalAlcoholMl).toList(),
         );
 
         return Padding(
@@ -291,7 +381,41 @@ class _WeeklyChartPage extends ConsumerWidget {
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
               maxY: maxVal,
-              barGroups: _buildBarGroups(stats.dailyData),
+              barTouchData: BarTouchData(
+                touchCallback: (FlTouchEvent event, barTouchResponse) {
+                  // Only handle tap events (click/touch release)
+                  if (event is FlTapUpEvent) {
+                    if (barTouchResponse == null ||
+                        barTouchResponse.spot == null) {
+                      return;
+                    }
+                    final index = barTouchResponse.spot!.touchedBarGroupIndex;
+                    if (index >= 0 && index < stats.dailyData.length) {
+                      // Toggle: if same index clicked, deselect. Otherwise select new
+                      if (selectedIndex == index) {
+                        onBarTouch?.call(null, null);
+                      } else {
+                        onBarTouch?.call(stats.dailyData[index], index);
+                      }
+                    }
+                  }
+                },
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) => null,
+                ),
+              ),
+              barGroups: _buildBarGroups(stats.dailyData, maxVal),
+              extraLinesData: ExtraLinesData(
+                horizontalLines: [
+                  HorizontalLine(
+                    y: maxVal,
+                    color: Colors.grey[200],
+                    strokeWidth: 1,
+                    dashArray: [4, 4],
+                    label: HorizontalLineLabel(show: false),
+                  ),
+                ],
+              ),
               titlesData: FlTitlesData(
                 show: true,
                 bottomTitles: AxisTitles(
@@ -317,7 +441,7 @@ class _WeeklyChartPage extends ConsumerWidget {
                     showTitles: true,
                     reservedSize: 30,
                     getTitlesWidget: (value, meta) {
-                      if (value % 100 == 0) {
+                      if (value % 100 == 0 || value == maxVal) {
                         return Text(
                           value.toInt().toString(),
                           style: const TextStyle(
@@ -361,36 +485,40 @@ class _WeeklyChartPage extends ConsumerWidget {
 
   double _calculateMaxY(List<double> values) {
     if (values.isEmpty) {
-      return 400;
+      return 100;
     }
     final max = values.reduce((a, b) => a > b ? a : b);
-    return (max > 400 ? max * 1.2 : 400).toDouble();
+    final target = max + 50;
+    return (target / 50).ceil() * 50.0;
   }
 
-  List<BarChartGroupData> _buildBarGroups(List<DailySakuData> dailyData) {
+  List<BarChartGroupData> _buildBarGroups(
+    List<DailySakuData> dailyData,
+    double maxY,
+  ) {
     return List.generate(7, (index) {
       if (index < dailyData.length) {
-        // Use a multiplier to make bars taller for visualization if needed
-        // Assuming drunkLevel is 0-100, but chart shows up to 400.
-        // Maybe mapping drunkLevel to ml? Or just using drunkLevel as is?
-        // The design shows bars going up to 400. Let's assume drunkLevel is scaled or we use ml if available.
-        // DailySakuData has drunkLevel (int). Let's use it directly for now, scaled up x4 for visual match with 400 scale
-        final value = dailyData[index].drunkLevel.toDouble() * 4;
+        // Use totalAlcoholMl instead of drunkLevel
+        final value = dailyData[index].totalAlcoholMl;
+        final isSelected = selectedIndex == index;
 
         return BarChartGroupData(
           x: index,
           barRods: [
             BarChartRodData(
               toY: value,
-              color: _getBarColor(dailyData[index].drunkLevel),
+              color: isSelected
+                  ? _getBarColor(
+                      dailyData[index].drunkLevel,
+                    ).withValues(alpha: 1.0)
+                  : _getBarColor(
+                      dailyData[index].drunkLevel,
+                    ).withValues(alpha: 0.6),
               width: 24,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-                bottom: Radius.circular(12),
-              ),
+              borderRadius: BorderRadius.circular(4), // Reduced border radius
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
-                toY: 400, // Max height background
+                toY: maxY, // Max height background
                 color: Colors.transparent,
               ),
             ),
@@ -432,8 +560,15 @@ class _StatBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[200]!),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,17 +579,17 @@ class _StatBox extends StatelessWidget {
               color: color,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Colors.white, size: 16),
+            child: Icon(icon, color: Colors.white, size: 14),
           ),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: 4),
           RichText(
             text: TextSpan(
               style: const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 16,
               ),
               children: [
                 TextSpan(text: value),
@@ -477,16 +612,14 @@ class _StatBox extends StatelessWidget {
 class _DrinkTypeRow extends StatelessWidget {
   const _DrinkTypeRow({
     required this.rank,
-    required this.icon,
-    required this.color,
+    required this.iconPath,
     required this.name,
     required this.amount,
     required this.maxAmount,
   });
 
   final int rank;
-  final IconData icon;
-  final Color color;
+  final String iconPath;
   final String name;
   final int amount;
   final int maxAmount;
@@ -512,10 +645,10 @@ class _DrinkTypeRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.white, size: 20),
+          child: Image.asset(iconPath, width: 20, height: 20),
         ),
         const SizedBox(width: 12),
         // Details

@@ -109,11 +109,8 @@ class _FriendProfileDialogState extends ConsumerState<FriendProfileDialog> {
       startDate: startDate,
       endDate: today,
       dailyData: dailyData,
-      totalSessions: 0, // 통계는 계산하지 않음
-      totalAlcoholMl: 0,
-      totalCost: 0,
-      averageDrunkLevel: 0,
       soberDays: weeklyLevels.where((l) => l == -1).length,
+      drinkTypeStats: [],
     );
   }
 

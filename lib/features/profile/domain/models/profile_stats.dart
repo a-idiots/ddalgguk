@@ -5,6 +5,10 @@ class ProfileStats {
     required this.timeToSober,
     required this.statusMessage,
     required this.breakdown,
+    this.consecutiveDrinkingDays = 0,
+    this.consecutiveSoberDays = 0,
+    this.todayDrunkLevel = 0,
+    this.thisMonthDrinkingCount = 0,
   });
 
   factory ProfileStats.empty() {
@@ -14,6 +18,10 @@ class ProfileStats {
       timeToSober: 0,
       statusMessage: '건강한 상태입니다',
       breakdown: AlcoholBreakdown.empty(),
+      consecutiveDrinkingDays: 0,
+      consecutiveSoberDays: 0,
+      todayDrunkLevel: 0,
+      thisMonthDrinkingCount: 0,
     );
   }
 
@@ -22,6 +30,10 @@ class ProfileStats {
   final double timeToSober; // in hours
   final String statusMessage;
   final AlcoholBreakdown breakdown;
+  final int consecutiveDrinkingDays;
+  final int consecutiveSoberDays;
+  final int todayDrunkLevel;
+  final int thisMonthDrinkingCount;
 
   ProfileStats copyWith({
     int? currentDrunkLevel,
@@ -29,6 +41,10 @@ class ProfileStats {
     double? timeToSober,
     String? statusMessage,
     AlcoholBreakdown? breakdown,
+    int? consecutiveDrinkingDays,
+    int? consecutiveSoberDays,
+    int? todayDrunkLevel,
+    int? thisMonthDrinkingCount,
   }) {
     return ProfileStats(
       thisMonthDrunkDays: currentDrunkLevel ?? thisMonthDrunkDays,
@@ -36,6 +52,12 @@ class ProfileStats {
       timeToSober: timeToSober ?? this.timeToSober,
       statusMessage: statusMessage ?? this.statusMessage,
       breakdown: breakdown ?? this.breakdown,
+      consecutiveDrinkingDays:
+          consecutiveDrinkingDays ?? this.consecutiveDrinkingDays,
+      consecutiveSoberDays: consecutiveSoberDays ?? this.consecutiveSoberDays,
+      todayDrunkLevel: todayDrunkLevel ?? this.todayDrunkLevel,
+      thisMonthDrinkingCount:
+          thisMonthDrinkingCount ?? this.thisMonthDrinkingCount,
     );
   }
 }
