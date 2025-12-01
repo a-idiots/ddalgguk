@@ -101,13 +101,170 @@ class EditInfoScreen extends ConsumerWidget {
 
           // Usage Purpose Section
           const SettingsSectionHeader(title: '이용 목적'),
-          SettingsListTile(
-            title: '즐거운 음주',
-            onTap: () {
-              // TODO: Navigate to usage purpose selection
-            },
+          currentUserAsync.when(
+            data: (user) => _GoalToggleTile(
+              currentGoal: user?.goal ?? true,
+              onToggle: (newGoal) async {
+                try {
+                  final authRepository = ref.read(authRepositoryProvider);
+                  final currentUser = user;
+
+                  if (currentUser != null) {
+                    await authRepository.saveProfileData(
+                      id: currentUser.id ?? '',
+                      name: currentUser.name ?? '',
+                      goal: newGoal,
+                      favoriteDrink: currentUser.favoriteDrink ?? 0,
+                      maxAlcohol: currentUser.maxAlcohol ?? 0,
+                      weeklyDrinkingFrequency:
+                          currentUser.weeklyDrinkingFrequency ?? 0,
+                      gender: currentUser.gender,
+                      birthDate: currentUser.birthDate,
+                      height: currentUser.height,
+                      weight: currentUser.weight,
+                    );
+
+                    // Refresh user data immediately
+                    ref.invalidate(currentUserProvider);
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            newGoal ? '즐거운 음주로 변경되었습니다' : '건강한 절주로 변경되었습니다',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('변경 실패: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            loading: () =>
+                const _GoalToggleTile(currentGoal: true, onToggle: null),
+            error: (_, __) =>
+                const _GoalToggleTile(currentGoal: true, onToggle: null),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Goal toggle tile widget
+class _GoalToggleTile extends StatefulWidget {
+  const _GoalToggleTile({required this.currentGoal, required this.onToggle});
+
+  final bool currentGoal;
+  final Future<void> Function(bool)? onToggle;
+
+  @override
+  State<_GoalToggleTile> createState() => _GoalToggleTileState();
+}
+
+class _GoalToggleTileState extends State<_GoalToggleTile> {
+  late bool _localGoal;
+  bool _isUpdating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _localGoal = widget.currentGoal;
+  }
+
+  @override
+  void didUpdateWidget(_GoalToggleTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentGoal != oldWidget.currentGoal && !_isUpdating) {
+      _localGoal = widget.currentGoal;
+    }
+  }
+
+  Future<void> _handleToggle() async {
+    if (widget.onToggle == null || _isUpdating) {
+      return;
+    }
+
+    setState(() {
+      _localGoal = !_localGoal;
+      _isUpdating = true;
+    });
+
+    try {
+      await widget.onToggle!(_localGoal);
+    } catch (e) {
+      // Revert on error
+      if (mounted) {
+        setState(() {
+          _localGoal = !_localGoal;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              _localGoal ? '즐거운 음주' : '건강한 절주',
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 16),
+            ),
+            GestureDetector(
+              onTap: widget.onToggle != null ? _handleToggle : null,
+              child: Opacity(
+                opacity: widget.onToggle != null && !_isUpdating ? 1.0 : 0.5,
+                child: Container(
+                  width: 51,
+                  height: 31,
+                  decoration: BoxDecoration(
+                    color: _localGoal ? Colors.red : Colors.green,
+                    borderRadius: BorderRadius.circular(15.5),
+                  ),
+                  child: AnimatedAlign(
+                    duration: const Duration(milliseconds: 200),
+                    alignment: _localGoal
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      width: 27,
+                      height: 27,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
