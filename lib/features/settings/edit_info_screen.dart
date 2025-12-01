@@ -257,8 +257,8 @@ class PhysicalInfoScreen extends ConsumerStatefulWidget {
 }
 
 class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
-  int? _height;
-  int? _weight;
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
   bool _isLoading = true;
 
   @override
@@ -267,47 +267,44 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
     _loadPhysicalInfo();
   }
 
+  @override
+  void dispose() {
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadPhysicalInfo() async {
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
-        _height = currentUser?.height?.toInt();
-        _weight = currentUser?.weight?.toInt();
+        if (currentUser?.height != null) {
+          _heightController.text = currentUser!.height!.toInt().toString();
+        }
+        if (currentUser?.weight != null) {
+          _weightController.text = currentUser!.weight!.toInt().toString();
+        }
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _selectHeight() async {
-    final selected = await showDialog<int>(
-      context: context,
-      builder: (context) => _HeightPickerDialog(initialHeight: _height),
-    );
-    if (selected != null) {
-      setState(() {
-        _height = selected;
-      });
-    }
-  }
-
-  Future<void> _selectWeight() async {
-    final selected = await showDialog<int>(
-      context: context,
-      builder: (context) => _WeightPickerDialog(initialWeight: _weight),
-    );
-    if (selected != null) {
-      setState(() {
-        _weight = selected;
-      });
-    }
-  }
-
   Future<void> _handleSave() async {
+    final heightText = _heightController.text.trim();
+    final weightText = _weightController.text.trim();
+
+    if (heightText.isEmpty && weightText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('키 또는 몸무게를 입력해주세요')),
+      );
+      return;
+    }
+
     try {
       final authRepository = ref.read(authRepositoryProvider);
       await authRepository.updateUserInfo(
-        height: _height?.toDouble(),
-        weight: _weight?.toDouble(),
+        height: heightText.isNotEmpty ? double.tryParse(heightText) : null,
+        weight: weightText.isNotEmpty ? double.tryParse(weightText) : null,
       );
 
       if (mounted) {
@@ -367,212 +364,116 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
       body: Column(
         children: [
           const SettingsSectionDivider(),
-          ListTile(
-            title: const Text(
-              '키',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-              ),
-            ),
-            trailing: Text(
-              _height != null ? '$_height cm' : '선택',
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-            onTap: _selectHeight,
-          ),
-          const Divider(height: 1),
-          ListTile(
-            title: const Text(
-              '몸무게',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-              ),
-            ),
-            trailing: Text(
-              _weight != null ? '$_weight kg' : '선택',
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-            onTap: _selectWeight,
-          ),
-          const SizedBox(height: 32),
-          Center(
-            child: ElevatedButton(
-              onPressed: _handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
-                  vertical: 16,
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text(
+                      '키',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 120),
+                    Expanded(
+                      child: TextField(
+                        controller: _heightController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: '입력',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'cm',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    const Text(
+                      '몸무게',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 88),
+                    Expanded(
+                      child: TextField(
+                        controller: _weightController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: '입력',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'kg',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              child: const Text(
-                '저장하기',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                const SizedBox(height: 48),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: const Text(
+                      '저장하기',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Height picker dialog
-class _HeightPickerDialog extends StatefulWidget {
-  const _HeightPickerDialog({this.initialHeight});
-
-  final int? initialHeight;
-
-  @override
-  State<_HeightPickerDialog> createState() => _HeightPickerDialogState();
-}
-
-class _HeightPickerDialogState extends State<_HeightPickerDialog> {
-  late int _selectedHeight;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedHeight = widget.initialHeight ?? 170;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('키 선택', style: TextStyle(fontFamily: 'Inter')),
-      content: SizedBox(
-        height: 300,
-        width: 300,
-        child: ListWheelScrollView.useDelegate(
-          itemExtent: 50,
-          physics: const FixedExtentScrollPhysics(),
-          onSelectedItemChanged: (index) {
-            setState(() {
-              _selectedHeight = 100 + index;
-            });
-          },
-          controller: FixedExtentScrollController(
-            initialItem: _selectedHeight - 100,
-          ),
-          childDelegate: ListWheelChildBuilderDelegate(
-            builder: (context, index) {
-              final height = 100 + index;
-              return Center(
-                child: Text(
-                  '$height cm',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: height == _selectedHeight ? 24 : 18,
-                    fontWeight: height == _selectedHeight
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-              );
-            },
-            childCount: 121, // 100-220cm
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_selectedHeight),
-          child: const Text('확인', style: TextStyle(fontFamily: 'Inter')),
-        ),
-      ],
-    );
-  }
-}
-
-/// Weight picker dialog
-class _WeightPickerDialog extends StatefulWidget {
-  const _WeightPickerDialog({this.initialWeight});
-
-  final int? initialWeight;
-
-  @override
-  State<_WeightPickerDialog> createState() => _WeightPickerDialogState();
-}
-
-class _WeightPickerDialogState extends State<_WeightPickerDialog> {
-  late int _selectedWeight;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedWeight = widget.initialWeight ?? 60;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('몸무게 선택', style: TextStyle(fontFamily: 'Inter')),
-      content: SizedBox(
-        height: 300,
-        width: 300,
-        child: ListWheelScrollView.useDelegate(
-          itemExtent: 50,
-          physics: const FixedExtentScrollPhysics(),
-          onSelectedItemChanged: (index) {
-            setState(() {
-              _selectedWeight = 30 + index;
-            });
-          },
-          controller: FixedExtentScrollController(
-            initialItem: _selectedWeight - 30,
-          ),
-          childDelegate: ListWheelChildBuilderDelegate(
-            builder: (context, index) {
-              final weight = 30 + index;
-              return Center(
-                child: Text(
-                  '$weight kg',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: weight == _selectedWeight ? 24 : 18,
-                    fontWeight: weight == _selectedWeight
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                ),
-              );
-            },
-            childCount: 121, // 30-150kg
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_selectedWeight),
-          child: const Text('확인', style: TextStyle(fontFamily: 'Inter')),
-        ),
-      ],
     );
   }
 }
@@ -697,13 +598,16 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SettingsSectionDivider(),
-            const SizedBox(height: 24),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SettingsSectionDivider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
             const Text(
               '연도',
               style: TextStyle(
@@ -716,11 +620,11 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
             InputDecorator(
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 12,
+                  vertical: 8,
                 ),
               ),
               child: DropdownButtonHideUnderline(
@@ -761,11 +665,11 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
             InputDecorator(
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 12,
+                  vertical: 8,
                 ),
               ),
               child: DropdownButtonHideUnderline(
@@ -806,11 +710,11 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
             InputDecorator(
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 12,
+                  vertical: 8,
                 ),
               ),
               child: DropdownButtonHideUnderline(
@@ -832,33 +736,35 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 48),
-            Center(
-              child: ElevatedButton(
-                onPressed: _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 48),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: const Text(
+                      '저장하기',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  '저장하기',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
