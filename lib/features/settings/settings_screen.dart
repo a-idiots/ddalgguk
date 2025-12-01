@@ -133,47 +133,158 @@ class SettingsScreen extends ConsumerWidget {
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
-          const Divider(),
+          Container(
+            height: 8,
+            color: const Color(0xFFEFEFEF),
+          ),
 
-          // Settings Options
+          // Account Settings Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(
+              '계정 설정',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
           ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('알림 설정', style: TextStyle(fontFamily: 'Inter')),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '정보 수정',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Navigate to profile edit
+            },
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '알림 설정',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Navigate to notification settings
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('개인정보 처리방침', style: TextStyle(fontFamily: 'Inter')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to privacy policy
-            },
+          Container(
+            height: 8,
+            color: const Color(0xFFEFEFEF),
           ),
-          ListTile(
-            leading: const Icon(Icons.description),
-            title: const Text('서비스 이용약관', style: TextStyle(fontFamily: 'Inter')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to terms of service
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('앱 정보', style: TextStyle(fontFamily: 'Inter')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to app info
-            },
-          ),
-          const Divider(),
 
-          // Logout Button
+          // Usage Guide Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(
+              '이용 안내',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter', color: Colors.red)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '앱 버전',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Navigate to app version
+            },
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '문의하기',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Navigate to contact
+            },
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '공지사항',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Navigate to notices
+            },
+          ),
+          Container(
+            height: 8,
+            color: const Color(0xFFEFEFEF),
+          ),
+
+          // Other Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Text(
+              '기타',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '회원 탈퇴',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // TODO: Navigate to account deletion
+            },
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            title: const Text(
+              '로그아웃',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
             onTap: () => _handleLogout(context, ref),
           ),
         ],
