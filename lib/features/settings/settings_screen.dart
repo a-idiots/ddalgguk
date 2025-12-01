@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
+import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -156,15 +157,11 @@ class SettingsScreen extends ConsumerWidget {
           const SettingsSectionHeader(title: '이용 안내'),
           SettingsListTile(
             title: '앱 버전',
-            onTap: () {
-              // TODO: Navigate to app version
-            },
+            onTap: () => showVersionDialog(context),
           ),
           SettingsListTile(
             title: '문의하기',
-            onTap: () {
-              // TODO: Navigate to contact
-            },
+            onTap: () => showContactDialog(context),
           ),
           SettingsListTile(
             title: '공지사항',
