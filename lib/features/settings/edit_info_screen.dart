@@ -4,11 +4,13 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 
 /// Edit information screen for user profile settings
-class EditInfoScreen extends StatelessWidget {
+class EditInfoScreen extends ConsumerWidget {
   const EditInfoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserAsync = ref.watch(currentUserProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -88,7 +90,11 @@ class EditInfoScreen extends StatelessWidget {
           SettingsListTile(
             title: '주량',
             onTap: () {
-              // TODO: Navigate to alcohol tolerance selection
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AlcoholToleranceScreen(),
+                ),
+              );
             },
           ),
           const SettingsSectionDivider(),
@@ -1252,6 +1258,385 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
             }).toList(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Alcohol tolerance screen
+class AlcoholToleranceScreen extends ConsumerStatefulWidget {
+  const AlcoholToleranceScreen({super.key});
+
+  @override
+  ConsumerState<AlcoholToleranceScreen> createState() =>
+      _AlcoholToleranceScreenState();
+}
+
+class _AlcoholToleranceScreenState
+    extends ConsumerState<AlcoholToleranceScreen> {
+  int? _sliderIndex;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMaxAlcohol();
+  }
+
+  Future<void> _loadMaxAlcohol() async {
+    final currentUser = await ref.read(currentUserProvider.future);
+    if (mounted) {
+      setState(() {
+        if (currentUser?.maxAlcohol != null) {
+          _sliderIndex = _alcoholToSliderIndex(currentUser!.maxAlcohol!);
+        }
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Convert slider index to actual alcohol amount
+  double _sliderIndexToAlcohol(int index) {
+    if (index <= 7) {
+      // 0-1병: 7등분
+      return index / 7.0;
+    } else if (index <= 13) {
+      // 1-4병: 0.5병씩
+      return 1.0 + (index - 7) * 0.5;
+    } else {
+      // 4병+
+      return 4.0 + (index - 13);
+    }
+  }
+
+  // Convert alcohol amount to slider index
+  int _alcoholToSliderIndex(double alcohol) {
+    if (alcohol <= 1.0) {
+      return (alcohol * 7).round();
+    } else if (alcohol <= 4.0) {
+      return 7 + ((alcohol - 1.0) / 0.5).round();
+    } else {
+      return 13 + (alcohol - 4.0).round();
+    }
+  }
+
+  double get _maxAlcohol =>
+      _sliderIndex != null ? _sliderIndexToAlcohol(_sliderIndex!) : 0.0;
+
+  String _getAlcoholDisplayText() {
+    final alcohol = _maxAlcohol;
+    if (alcohol >= 1) {
+      if ((alcohol * 10) % 10 != 0) {
+        return '$alcohol병';
+      } else {
+        return '${alcohol.toInt()}병';
+      }
+    } else {
+      return '${(alcohol * 7).toInt()}잔';
+    }
+  }
+
+  Future<void> _handleSave() async {
+    if (_sliderIndex == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('주량을 선택해주세요')));
+      return;
+    }
+
+    try {
+      final authRepository = ref.read(authRepositoryProvider);
+      final currentUser = await ref.read(currentUserProvider.future);
+
+      if (currentUser != null) {
+        await authRepository.saveProfileData(
+          id: currentUser.id ?? '',
+          name: currentUser.name ?? '',
+          goal: currentUser.goal ?? true,
+          favoriteDrink: currentUser.favoriteDrink ?? 0,
+          maxAlcohol: _maxAlcohol,
+          weeklyDrinkingFrequency: currentUser.weeklyDrinkingFrequency ?? 0,
+          gender: currentUser.gender,
+          birthDate: currentUser.birthDate,
+          height: currentUser.height,
+          weight: currentUser.weight,
+        );
+
+        // Refresh user data
+        ref.invalidate(currentUserProvider);
+
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('주량이 저장되었습니다')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: const Text(
+            '주량',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          '주량',
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          const SettingsSectionDivider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                const Text(
+                  '소주 주량을 입력해주세요.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildAlcoholSlider(),
+                const SizedBox(height: 12),
+                const Text(
+                  '음주 백과💡 소주 1병은 약 7잔이다.',
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+                const SizedBox(height: 48),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: const Text(
+                      '저장하기',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlcoholSlider() {
+    return Column(
+      children: [
+        _NonLinearSlider(
+          sliderIndex: _sliderIndex ?? 0,
+          onChanged: (index) {
+            setState(() {
+              _sliderIndex = index;
+            });
+          },
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '0병',
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+              Text(
+                _getAlcoholDisplayText(),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const Text(
+                '7병',
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NonLinearSlider extends StatelessWidget {
+  const _NonLinearSlider({required this.sliderIndex, required this.onChanged});
+
+  final int sliderIndex;
+  final ValueChanged<int> onChanged;
+
+  // Calculate visual position (0.0 to 1.0) for each index
+  double _getVisualPosition(int index) {
+    if (index <= 7) {
+      // 0-1병: 7등분 -> 30% of track (0.0 to 0.3)
+      return 0.3 * (index / 7.0);
+    } else if (index <= 13) {
+      // 1-4병: 6단계 -> 50% of track (0.3 to 0.8)
+      return 0.3 + 0.5 * ((index - 7) / 6.0);
+    } else {
+      // 4병+: 3단계 -> 20% of track (0.8 to 1.0)
+      return 0.8 + 0.2 * ((index - 13) / 3.0);
+    }
+  }
+
+  // Find nearest index from visual position
+  int _findNearestIndex(double position) {
+    int nearestIndex = 0;
+    double minDistance = double.infinity;
+
+    for (int i = 0; i <= 16; i++) {
+      final indexPosition = _getVisualPosition(i);
+      final distance = (position - indexPosition).abs();
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestIndex = i;
+      }
+    }
+
+    return nearestIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final visualPosition = _getVisualPosition(sliderIndex);
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        final RenderBox box = context.findRenderObject() as RenderBox;
+        final localPosition = details.localPosition.dx;
+        final width = box.size.width;
+        final position = (localPosition / width).clamp(0.0, 1.0);
+        final newIndex = _findNearestIndex(position);
+        if (newIndex != sliderIndex) {
+          onChanged(newIndex);
+        }
+      },
+      onTapDown: (details) {
+        final RenderBox box = context.findRenderObject() as RenderBox;
+        final localPosition = details.localPosition.dx;
+        final width = box.size.width;
+        final position = (localPosition / width).clamp(0.0, 1.0);
+        final newIndex = _findNearestIndex(position);
+        onChanged(newIndex);
+      },
+      child: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        clipBehavior: Clip.none,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Thumb의 반지름
+            const thumbRadius = 10.0;
+            // 실제 사용 가능한 트랙 너비 (padding 제외)
+            final trackWidth = constraints.maxWidth;
+            // Thumb의 중심 위치 (thumbRadius ~ trackWidth - thumbRadius 범위)
+            final thumbCenterPosition =
+                thumbRadius + (trackWidth - 2 * thumbRadius) * visualPosition;
+
+            return Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                // Track
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+                // Active track (thumb의 중심까지 채움)
+                Positioned(
+                  left: 0,
+                  right: null,
+                  top: 18,
+                  child: Container(
+                    width: thumbCenterPosition,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B6B),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Thumb (중심이 thumbCenterPosition에 오도록)
+                Positioned(
+                  left: thumbCenterPosition - thumbRadius,
+                  child: Container(
+                    width: thumbRadius * 2,
+                    height: thumbRadius * 2,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF6B6B),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
