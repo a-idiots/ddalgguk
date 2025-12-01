@@ -415,7 +415,9 @@ class AuthRepository {
         'hasCompletedProfileSetup: ${firestoreData['hasCompletedProfileSetup']}',
       );
 
-      await _usersCollection.doc(uid).set(firestoreData, SetOptions(merge: true));
+      await _usersCollection
+          .doc(uid)
+          .set(firestoreData, SetOptions(merge: true));
 
       // Save to cache
       await _storageService.saveUserCache(updatedUser);
@@ -458,37 +460,27 @@ class AuthRepository {
 
   /// Get AppUser stream
   Stream<AppUser?> get appUserChanges {
-    return _firebaseAuthService.authStateChanges.asyncMap((firebaseUser) async {
+    return _firebaseAuthService.authStateChanges.asyncExpand((firebaseUser) {
       if (firebaseUser == null) {
-        return null;
+        return Stream.value(null);
       }
 
-      // Try to get from cache first
-      final cachedUser = await _storageService.getUserCache();
-      if (cachedUser != null && cachedUser.uid == firebaseUser.uid) {
-        return cachedUser;
-      }
-
-      // If not in cache, fetch from Firestore
-      var doc = await _usersCollection.doc(firebaseUser.uid).get();
-      if (!doc.exists) {
-        // Retry once after a short delay to handle race condition during sign up
-        // When creating a new user, auth state changes before Firestore write completes
-        await Future.delayed(const Duration(milliseconds: 500));
-        doc = await _usersCollection.doc(firebaseUser.uid).get();
-
-        if (!doc.exists) {
+      // Return a stream of AppUser from Firestore snapshots
+      return _usersCollection.doc(firebaseUser.uid).snapshots().asyncMap((
+        snapshot,
+      ) async {
+        if (!snapshot.exists) {
           return null;
         }
-      }
 
-      final data = doc.data() as Map<String, dynamic>;
-      final user = AppUser.fromJson(data);
+        final data = snapshot.data() as Map<String, dynamic>;
+        final user = AppUser.fromJson(data);
 
-      // Update cache
-      await _storageService.saveUserCache(user);
+        // Update cache
+        await _storageService.saveUserCache(user);
 
-      return user;
+        return user;
+      });
     });
   }
 }

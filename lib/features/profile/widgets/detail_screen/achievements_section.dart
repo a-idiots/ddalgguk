@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/badge_data.dart';
-import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/widgets/reusable_section.dart';
 
 class AchievementsSection extends ConsumerWidget {
@@ -13,27 +13,19 @@ class AchievementsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentUserProvider);
+    final badgesAsync = ref.watch(userBadgesProvider);
 
-    return userAsync.when(
-      data: (user) {
-        if (user == null) {
-          return const SizedBox.shrink();
-        }
-
-        final badges = List<Badge>.from(user.badges);
-        // Sort by date descending (newest first)
-        badges.sort((a, b) => b.achievedDay.compareTo(a.achievedDay));
-
+    return badgesAsync.when(
+      data: (badges) {
         return ProfileSection(
           title: '나의 업적',
           titleOutside: true,
           subtitle: GestureDetector(
             onTap: () {
-              _showAllAchievements(context, user.badges);
+              _showAllAchievements(context, badges);
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(20),
@@ -45,7 +37,7 @@ class AchievementsSection extends ConsumerWidget {
               child: Text(
                 '더 많은 뱃지 확인하기',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   color: theme.secondaryColor.withValues(alpha: 1),
                   fontWeight: FontWeight.w500,
                 ),

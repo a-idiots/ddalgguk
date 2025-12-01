@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class Badge extends Equatable {
@@ -11,7 +12,7 @@ class Badge extends Equatable {
     return Badge(
       group: json['group'] as String,
       idx: json['idx'] as int,
-      achievedDay: DateTime.parse(json['achievedDay'] as String),
+      achievedDay: (json['achievedDay'] as Timestamp).toDate(),
     );
   }
 

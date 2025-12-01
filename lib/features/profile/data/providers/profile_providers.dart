@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
@@ -10,6 +11,20 @@ import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 final profileStatsServiceProvider = Provider<ProfileStatsService>((ref) {
   final drinkingRecordService = ref.watch(drinkingRecordServiceProvider);
   return ProfileStatsService(drinkingRecordService);
+});
+
+/// User badges provider (real-time)
+final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return authRepository.appUserChanges.map((user) {
+    if (user == null) return [];
+
+    final badges = List<Badge>.from(user.badges);
+    // Sort by date descending (newest first)
+    badges.sort((a, b) => b.achievedDay.compareTo(a.achievedDay));
+
+    return badges;
+  });
 });
 
 /// Weekly stats provider (last 7 days)
