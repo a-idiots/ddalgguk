@@ -19,9 +19,18 @@ final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
   return authRepository.appUserChanges.map((user) {
     if (user == null) return [];
 
-    final badges = List<Badge>.from(user.badges);
-    // Sort by date descending (newest first)
-    badges.sort((a, b) => b.achievedDay.compareTo(a.achievedDay));
+    final pinnedBadges = user.pinnedBadges;
+    final badges = user.badges.map((b) {
+      final isPinned = pinnedBadges.contains(b.id);
+      return b.copyWith(isPinned: isPinned);
+    }).toList();
+
+    // Sort by pinned status (pinned first) then by date descending (newest first)
+    badges.sort((a, b) {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return b.achievedDay.compareTo(a.achievedDay);
+    });
 
     return badges;
   });

@@ -318,6 +318,42 @@ class AuthRepository {
     }
   }
 
+  /// Toggle badge pin status
+  Future<void> toggleBadgePin(String badgeId) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        throw Exception('User not found');
+      }
+
+      final currentPinned = List<String>.from(currentUser.pinnedBadges);
+      if (currentPinned.contains(badgeId)) {
+        currentPinned.remove(badgeId);
+      } else {
+        if (currentPinned.length >= 4) {
+          // Max 4 pinned badges
+          return;
+        }
+        currentPinned.add(badgeId);
+      }
+
+      // Optimistic update
+      final updatedUser = currentUser.copyWith(pinnedBadges: currentPinned);
+      await _storageService.saveUserCache(updatedUser);
+
+      // Fire and forget Firestore update (or await if critical, but for UI responsiveness we can await)
+      await _usersCollection.doc(uid).update({'pinnedBadges': currentPinned});
+    } catch (e) {
+      debugPrint('Toggle badge pin error: $e');
+      rethrow;
+    }
+  }
+
   /// Update user profile in Firestore
   Future<void> updateUserProfile({String? name, String? photoURL}) async {
     try {

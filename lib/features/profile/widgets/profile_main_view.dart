@@ -25,12 +25,14 @@ class ProfileMainView extends ConsumerWidget {
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
 
     return currentUserAsync.when(
+      skipLoadingOnReload: true,
       data: (user) {
         if (user == null) {
           return const Center(child: Text('Please log in'));
         }
 
         return currentStatsAsync.when(
+          skipLoadingOnReload: true,
           data: (stats) {
             final thisMonthDrunkDays = stats.thisMonthDrunkDays;
             final theme = AppColors.getTheme(thisMonthDrunkDays);

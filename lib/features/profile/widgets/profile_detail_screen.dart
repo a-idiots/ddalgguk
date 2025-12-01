@@ -83,12 +83,14 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
 
     return currentUserAsync.when(
+      skipLoadingOnReload: true,
       data: (user) {
         if (user == null) {
           return const Scaffold(body: Center(child: Text('Please log in')));
         }
 
         return currentStatsAsync.when(
+          skipLoadingOnReload: true,
           data: (currentStats) {
             final theme = AppColors.getTheme(currentStats.thisMonthDrunkDays);
 
@@ -111,6 +113,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             theme: theme,
                             showCharacter: widget.showCharacter,
                             drunkLevel: weeklyStatsAsync.when(
+                              skipLoadingOnReload: true,
                               data: (stats) => stats.averageDrunkLevel.round(),
                               loading: () => 0,
                               error: (_, __) => 0,
@@ -122,6 +125,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                           delegate: SliverChildListDelegate([
                             // Section 2-1: Weekly Saku
                             weeklyStatsAsync.when(
+                              skipLoadingOnReload: true,
                               data: (weeklyStats) => WeeklySakuSection(
                                 weeklyStats: weeklyStats,
                                 theme: theme,
@@ -135,7 +139,6 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                               error: (error, stack) => const SizedBox.shrink(),
                             ),
                             const SizedBox(height: 8),
-                            // Section 2-2: Achievements
                             // Section 2-2: Achievements
                             AchievementsSection(theme: theme),
                             const SizedBox(height: 8),

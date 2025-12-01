@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/badge_data.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
@@ -16,13 +17,14 @@ class AchievementsSection extends ConsumerWidget {
     final badgesAsync = ref.watch(userBadgesProvider);
 
     return badgesAsync.when(
+      skipLoadingOnReload: true,
       data: (badges) {
         return ProfileSection(
           title: '나의 업적',
           titleOutside: true,
           subtitle: GestureDetector(
             onTap: () {
-              _showAllAchievements(context, badges);
+              _showAllAchievements(context, badges, ref);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
@@ -68,11 +70,20 @@ class AchievementsSection extends ConsumerWidget {
                           return const SizedBox.shrink();
                         }
 
+                        final pinnedCount = badges
+                            .where((b) => b.isPinned)
+                            .length;
+
                         return Padding(
-                          padding: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.only(right: 12, top: 8),
                           child: AchievementItem(
                             data: badgeData,
                             isUnlocked: true,
+                            isPinned: badge.isPinned,
+                            showPin: badge.isPinned || pinnedCount < 4,
+                            onPin: () => ref
+                                .read(authRepositoryProvider)
+                                .toggleBadgePin(badge.id),
                           ),
                         );
                       },
@@ -89,7 +100,11 @@ class AchievementsSection extends ConsumerWidget {
     );
   }
 
-  void _showAllAchievements(BuildContext context, List<Badge> userBadges) {
+  void _showAllAchievements(
+    BuildContext context,
+    List<Badge> userBadges,
+    WidgetRef ref,
+  ) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -179,9 +194,11 @@ class AchievementsSection extends ConsumerWidget {
       itemCount: badgeMap.length,
       itemBuilder: (context, index) {
         final badgeData = badgeMap[index]!;
-        final isUnlocked = userBadges.any(
-          (b) => b.group == group && b.idx == index,
-        );
+        // Find if user has this badge
+        final userBadge = userBadges
+            .where((b) => b.group == group && b.idx == index)
+            .firstOrNull;
+        final isUnlocked = userBadge != null;
 
         return AchievementItem(
           data: badgeData,
@@ -199,22 +216,51 @@ class AchievementItem extends StatelessWidget {
     required this.data,
     required this.isUnlocked,
     this.compact = false,
+    this.isPinned = false,
+    this.showPin = false,
+    this.onPin,
   });
 
   final BadgeData data;
   final bool isUnlocked;
   final bool compact;
+  final bool isPinned;
+  final bool showPin;
+  final VoidCallback? onPin;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AchievementIcon(
-          text1: data.iconText1,
-          text2: data.iconText2,
-          color: isUnlocked ? data.color : Colors.grey[300]!,
-          size: compact ? 50 : 60,
+        Stack(
+          alignment: Alignment.topRight,
+          clipBehavior: Clip.none,
+          children: [
+            AchievementIcon(
+              text1: data.iconText1,
+              text2: data.iconText2,
+              color: isUnlocked ? data.color : Colors.grey[300]!,
+              size: compact ? 50 : 60,
+            ),
+            if (showPin && !compact)
+              Positioned(
+                top: -10,
+                right: -5,
+                child: GestureDetector(
+                  onTap: onPin,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    color: Colors.transparent,
+                    child: Icon(
+                      isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                      size: 16,
+                      color: Colors.grey[400],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(
