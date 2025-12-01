@@ -5,6 +5,7 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
+import 'package:ddalgguk/features/settings/edit_info_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -101,7 +102,11 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     OutlinedButton(
                       onPressed: () {
-                        // TODO: Navigate to profile edit
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const EditInfoScreen(),
+                          ),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFF0A9A9)),
@@ -142,7 +147,11 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '정보 수정',
             onTap: () {
-              // TODO: Navigate to profile edit
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const EditInfoScreen(),
+                ),
+              );
             },
           ),
           SettingsListTile(
