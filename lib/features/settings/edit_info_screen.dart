@@ -68,7 +68,11 @@ class EditInfoScreen extends StatelessWidget {
           SettingsListTile(
             title: '음주 빈도',
             onTap: () {
-              // TODO: Navigate to drinking frequency selection
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const DrinkingFrequencyScreen(),
+                ),
+              );
             },
           ),
           SettingsListTile(
@@ -135,6 +139,9 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
     try {
       final authRepository = ref.read(authRepositoryProvider);
       await authRepository.updateUserInfo(gender: _selectedGender);
+
+      // Refresh user data
+      ref.invalidate(currentUserProvider);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -306,6 +313,9 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
         height: heightText.isNotEmpty ? double.tryParse(heightText) : null,
         weight: weightText.isNotEmpty ? double.tryParse(weightText) : null,
       );
+
+      // Refresh user data
+      ref.invalidate(currentUserProvider);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -544,6 +554,9 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
       final authRepository = ref.read(authRepositoryProvider);
       await authRepository.updateUserInfo(birthDate: birthDate);
 
+      // Refresh user data
+      ref.invalidate(currentUserProvider);
+
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -736,6 +749,225 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
                 ),
               ),
             ),
+                const SizedBox(height: 48),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: const Text(
+                      '저장하기',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Drinking frequency screen
+class DrinkingFrequencyScreen extends ConsumerStatefulWidget {
+  const DrinkingFrequencyScreen({super.key});
+
+  @override
+  ConsumerState<DrinkingFrequencyScreen> createState() => _DrinkingFrequencyScreenState();
+}
+
+class _DrinkingFrequencyScreenState extends ConsumerState<DrinkingFrequencyScreen> {
+  final TextEditingController _frequencyController = TextEditingController();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFrequency();
+  }
+
+  @override
+  void dispose() {
+    _frequencyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFrequency() async {
+    final currentUser = await ref.read(currentUserProvider.future);
+    if (mounted) {
+      setState(() {
+        if (currentUser?.weeklyDrinkingFrequency != null) {
+          _frequencyController.text = currentUser!.weeklyDrinkingFrequency.toString();
+        }
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleSave() async {
+    final frequencyText = _frequencyController.text.trim();
+
+    if (frequencyText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('음주 빈도를 입력해주세요')),
+      );
+      return;
+    }
+
+    final frequency = int.tryParse(frequencyText);
+    if (frequency == null || frequency < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 숫자를 입력해주세요')),
+      );
+      return;
+    }
+
+    try {
+      final authRepository = ref.read(authRepositoryProvider);
+      final currentUser = await ref.read(currentUserProvider.future);
+
+      if (currentUser != null) {
+        await authRepository.saveProfileData(
+          id: currentUser.id ?? '',
+          name: currentUser.name ?? '',
+          goal: currentUser.goal ?? true,
+          favoriteDrink: currentUser.favoriteDrink ?? 0,
+          maxAlcohol: currentUser.maxAlcohol ?? 0,
+          weeklyDrinkingFrequency: frequency,
+          gender: currentUser.gender,
+          birthDate: currentUser.birthDate,
+          height: currentUser.height,
+          weight: currentUser.weight,
+        );
+
+        // Refresh user data
+        ref.invalidate(currentUserProvider);
+
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('음주 빈도가 저장되었습니다')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: const Text(
+            '음주 빈도',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          '음주 빈도',
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          const SettingsSectionDivider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '나는 술을 일주일에',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 60,
+                      child: TextField(
+                        controller: _frequencyController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 12,
+                          ),
+                          hintText: '0',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      '번 마신다',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 48),
                 Center(
                   child: ElevatedButton(
