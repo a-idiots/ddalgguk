@@ -1,14 +1,14 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
-import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:flutter/material.dart';
 
 /// 친구 카드 위젯
 class FriendCard extends StatelessWidget {
-  const FriendCard({required this.friend, this.onTap, super.key});
+  const FriendCard({required this.friendData, this.onTap, super.key});
 
-  final Friend friend;
+  final FriendWithData friendData;
   final VoidCallback? onTap;
 
   void _showFullStatus(BuildContext context, String status) {
@@ -40,14 +40,14 @@ class FriendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final drunkLevel = friend.displayDrunkLevel; // 이미 0-100 범위
+    final drunkLevel = friendData.displayDrunkLevel; // 이미 0-100 범위
     final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
-    final status = friend.displayStatus;
+    final status = friendData.displayStatus;
 
     // 마지막 음주 이후 일수 계산
     String daysSinceText = '최근 음주: ?일 전';
-    if (friend.daysSinceLastDrink != null) {
-      daysSinceText = '최근 음주: ${friend.daysSinceLastDrink}일 전';
+    if (friendData.daysSinceLastDrink != null) {
+      daysSinceText = '최근 음주: ${friendData.daysSinceLastDrink}일 전';
     }
 
     return GestureDetector(
@@ -107,7 +107,7 @@ class FriendCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           // 친구 이름 버튼 (카드 외부 하단)
-          _NameButton(name: friend.name),
+          _NameButton(name: friendData.name),
         ],
       ),
     );

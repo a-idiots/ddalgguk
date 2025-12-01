@@ -58,9 +58,7 @@ class FriendService {
 
       final friends = snapshot.docs.map((doc) {
         final friend = Friend.fromFirestore(doc);
-        debugPrint(
-          'Friend: ${friend.name}, status: ${friend.dailyStatus?.message}, drunkLevel: ${friend.currentDrunkLevel}, lastDrink: ${friend.lastDrinkDate}',
-        );
+        debugPrint('Friend: ${friend.name} (userId: ${friend.userId})');
         return friend;
       }).toList();
 
@@ -105,7 +103,6 @@ class FriendService {
           .get();
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
-      final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
 
       debugPrint('My name: $currentUserName');
       debugPrint('Friend name: ${friendUser.name}');
@@ -127,13 +124,7 @@ class FriendService {
       batch.set(myFriendRef, {
         'userId': friendUserId,
         'name': friendUser.name ?? 'Unknown',
-        'photoURL': friendUser.photoURL,
         'createdAt': Timestamp.fromDate(now),
-        'dailyStatus': null,
-        'currentDrunkLevel': null,
-        'lastDrinkDate': null,
-        'daysSinceLastDrink': null,
-        'weeklyDrunkLevels': null,
       });
 
       // 친구의 friends 컬렉션에 현재 사용자 추가
@@ -150,13 +141,7 @@ class FriendService {
       batch.set(theirFriendRef, {
         'userId': _currentUserId,
         'name': currentUserName,
-        'photoURL': currentUserPhotoURL,
         'createdAt': Timestamp.fromDate(now),
-        'dailyStatus': null,
-        'currentDrunkLevel': null,
-        'lastDrinkDate': null,
-        'daysSinceLastDrink': null,
-        'weeklyDrunkLevels': null,
       });
 
       debugPrint('Committing batch...');
@@ -217,7 +202,7 @@ class FriendService {
   // ==================== 일일 상태 ====================
 
   /// 나의 일일 상태 업데이트
-  /// 내 프로필과 모든 친구들의 friends 컬렉션에 반영
+  /// 내 프로필에만 저장 (친구들은 users 컬렉션에서 직접 조회)
   Future<void> updateMyDailyStatus(String message) async {
     debugPrint('=== updateMyDailyStatus START ===');
     debugPrint('Current User ID: $_currentUserId');
@@ -237,26 +222,6 @@ class FriendService {
         'dailyStatus': status.toMap(),
       });
       debugPrint('✅ My profile status updated');
-
-      // 모든 친구의 friends 컬렉션에서 나를 업데이트
-      final myFriends = await getFriends();
-      debugPrint('Number of friends to update: ${myFriends.length}');
-
-      final batch = _firestore.batch();
-
-      for (final friend in myFriends) {
-        final friendRef = _firestore
-            .collection('users')
-            .doc(friend.userId)
-            .collection('friends')
-            .doc(_currentUserId);
-        debugPrint('Updating: users/${friend.userId}/friends/$_currentUserId');
-        batch.update(friendRef, {'dailyStatus': status.toMap()});
-      }
-
-      debugPrint('Committing batch update...');
-      await batch.commit();
-      debugPrint('✅ Daily status updated successfully for all friends');
       debugPrint('=== updateMyDailyStatus END ===');
     } catch (e) {
       debugPrint('❌ Error updating daily status: $e');
@@ -291,8 +256,8 @@ class FriendService {
 
   // ==================== 나의 프로필 ====================
 
-  /// 나의 프로필을 Friend 형식으로 가져오기
-  Future<Friend?> getMyProfile() async {
+  /// 나의 프로필을 AppUser 형식으로 가져오기
+  Future<AppUser?> getMyProfile() async {
     debugPrint('=== getMyProfile ===');
     debugPrint('Current User ID: $_currentUserId');
 
@@ -316,41 +281,9 @@ class FriendService {
       final data = doc.data()!;
       debugPrint('User data: $data');
 
-      final currentUser = _auth.currentUser!;
+      final profile = AppUser.fromJson(data);
 
-      // lastDrinkDate가 있으면 실시간으로 daysSince 계산
-      final lastDrinkDate = data['lastDrinkDate'] != null
-          ? (data['lastDrinkDate'] as Timestamp).toDate()
-          : null;
-
-      final daysSinceLastDrink = lastDrinkDate != null
-          ? DateTime.now().difference(lastDrinkDate).inDays
-          : null;
-
-      debugPrint('lastDrinkDate from Firestore: $lastDrinkDate');
-      debugPrint('Calculated daysSinceLastDrink: $daysSinceLastDrink');
-      debugPrint(
-        'daysSinceLastDrink from Firestore: ${data['daysSinceLastDrink']}',
-      );
-
-      final profile = Friend(
-        userId: _currentUserId!,
-        name: data['name'] as String? ?? 'Me',
-        photoURL: data['photoURL'] as String? ?? currentUser.photoURL,
-        createdAt: DateTime.now(),
-        dailyStatus: data['dailyStatus'] != null
-            ? DailyStatus.fromFirestore(
-                data['dailyStatus'] as Map<String, dynamic>,
-              )
-            : null,
-        currentDrunkLevel: data['currentDrunkLevel'] as int?,
-        lastDrinkDate: lastDrinkDate,
-        daysSinceLastDrink: daysSinceLastDrink,
-      );
-
-      debugPrint(
-        '✅ My profile loaded: ${profile.name}, drunkLevel: ${profile.currentDrunkLevel}, daysSince: ${profile.daysSinceLastDrink}',
-      );
+      debugPrint('✅ My profile loaded: ${profile.name}');
       return profile;
     } catch (e) {
       debugPrint('❌ Error getting my profile: $e');
@@ -358,10 +291,34 @@ class FriendService {
     }
   }
 
+  /// 친구의 프로필을 AppUser 형식으로 가져오기
+  Future<AppUser?> getFriendProfile(String friendUserId) async {
+    debugPrint('=== getFriendProfile ===');
+    debugPrint('Friend User ID: $friendUserId');
+
+    try {
+      final doc = await _firestore.collection('users').doc(friendUserId).get();
+
+      if (!doc.exists) {
+        debugPrint('❌ Friend document does not exist');
+        return null;
+      }
+
+      final data = doc.data()!;
+      final profile = AppUser.fromJson(data);
+
+      debugPrint('✅ Friend profile loaded: ${profile.name}');
+      return profile;
+    } catch (e) {
+      debugPrint('❌ Error getting friend profile: $e');
+      return null;
+    }
+  }
+
   // ==================== 음주 데이터 ====================
 
   /// 나의 음주 데이터 업데이트
-  /// 내 프로필과 모든 친구들의 friends 컬렉션에 반영
+  /// 내 프로필에만 저장 (친구들은 users 컬렉션에서 직접 조회)
   Future<void> updateMyDrinkingData({
     required int drunkLevel,
     required DateTime lastDrinkDate,
@@ -376,12 +333,6 @@ class FriendService {
     }
 
     try {
-      // 마지막 음주 이후 일수 계산
-      final now = DateTime.now();
-      final daysSince = now.difference(lastDrinkDate).inDays;
-
-      debugPrint('Days Since Last Drink: $daysSince');
-
       // 주간 음주 레벨 계산 (최근 7일)
       final weeklyDrunkLevels = await _calculateWeeklyDrunkLevels();
       debugPrint('Weekly drunk levels: $weeklyDrunkLevels');
@@ -391,34 +342,9 @@ class FriendService {
       await _firestore.collection('users').doc(_currentUserId).update({
         'currentDrunkLevel': drunkLevel,
         'lastDrinkDate': Timestamp.fromDate(lastDrinkDate),
-        'daysSinceLastDrink': daysSince,
+        'weeklyDrunkLevels': weeklyDrunkLevels,
       });
       debugPrint('✅ My profile updated');
-
-      // 모든 친구의 friends 컬렉션에서 나를 업데이트
-      final myFriends = await getFriends();
-      debugPrint('Number of friends to update: ${myFriends.length}');
-
-      final batch = _firestore.batch();
-
-      for (final friend in myFriends) {
-        final friendRef = _firestore
-            .collection('users')
-            .doc(friend.userId)
-            .collection('friends')
-            .doc(_currentUserId);
-        debugPrint('Updating: users/${friend.userId}/friends/$_currentUserId');
-        batch.update(friendRef, {
-          'currentDrunkLevel': drunkLevel,
-          'lastDrinkDate': Timestamp.fromDate(lastDrinkDate),
-          'daysSinceLastDrink': daysSince,
-          'weeklyDrunkLevels': weeklyDrunkLevels,
-        });
-      }
-
-      debugPrint('Committing batch update...');
-      await batch.commit();
-      debugPrint('✅ Drinking data updated successfully for all friends');
       debugPrint('=== updateMyDrinkingData END ===');
     } catch (e) {
       debugPrint('❌ Error updating drinking data: $e');

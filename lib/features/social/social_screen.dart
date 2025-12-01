@@ -1,6 +1,6 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
+import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/add_friend_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/friend_profile_dialog.dart';
@@ -121,7 +121,10 @@ class SocialScreen extends ConsumerWidget {
     await ref.read(friendsProvider.future);
   }
 
-  Widget _buildFriendsGridWithRefresh(WidgetRef ref, List<Friend> friends) {
+  Widget _buildFriendsGridWithRefresh(
+    WidgetRef ref,
+    List<FriendWithData> friends,
+  ) {
     return RefreshIndicator(
       onRefresh: () => _onRefresh(ref),
       color: AppColors.primaryPink,
@@ -135,11 +138,11 @@ class SocialScreen extends ConsumerWidget {
         ),
         itemCount: friends.length,
         itemBuilder: (context, index) {
-          final friend = friends[index];
+          final friendData = friends[index];
           final isMe = index == 0; // 첫 번째는 항상 나
 
           return FriendCard(
-            friend: friend,
+            friendData: friendData,
             onTap: isMe
                 ? () {
                     // 나 자신 클릭 시 일일 상태 다이얼로그 표시
@@ -153,7 +156,8 @@ class SocialScreen extends ConsumerWidget {
                     showDialog(
                       context: context,
                       barrierColor: Colors.black.withValues(alpha: 0.7),
-                      builder: (context) => FriendProfileDialog(friend: friend),
+                      builder: (context) =>
+                          FriendProfileDialog(friendData: friendData),
                     );
                   },
           );

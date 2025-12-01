@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
@@ -15,8 +16,15 @@ class AppUser {
     this.favoriteDrink,
     this.maxAlcohol,
     this.weeklyDrinkingFrequency,
+    this.height,
+    this.weight,
+    this.coefficient,
+    this.currentDrunkLevel,
+    this.weeklyDrunkLevels,
+    this.lastDrinkDate,
     this.dailyStatus,
     this.badges = const [],
+    this.pinnedBadges = const [],
     this.stats = const {},
     this.gender,
     this.birthDate,
@@ -45,12 +53,28 @@ class AppUser {
           json['hasCompletedProfileSetup'] as bool? ?? false,
       id: json['id'] as String?,
       name: json['name'] as String?,
-      goal: json['goal'] as bool?,
-      favoriteDrink: _parseFavoriteDrink(json['favoriteDrink']),
+      height: json['height'] != null
+          ? (json['height'] as num).toDouble()
+          : null,
+      weight: json['weight'] != null
+          ? (json['weight'] as num).toDouble()
+          : null,
       maxAlcohol: json['maxAlcohol'] != null
           ? (json['maxAlcohol'] as num).toDouble()
           : null,
+      goal: json['goal'] as bool?,
       weeklyDrinkingFrequency: json['weeklyDrinkingFrequency'] as int?,
+      favoriteDrink: _parseFavoriteDrink(json['favoriteDrink']),
+      coefficient: json['coefficient'] != null
+          ? (json['coefficient'] as num).toDouble()
+          : null,
+      currentDrunkLevel: json['currentDrunkLevel'] as int?,
+      weeklyDrunkLevels: json['weeklyDrunkLevels'] != null
+          ? List<int>.from(json['weeklyDrunkLevels'] as List)
+          : null,
+      lastDrinkDate: json['lastDrinkDate'] != null
+          ? (json['lastDrinkDate'] as Timestamp).toDate()
+          : null,
       dailyStatus: json['dailyStatus'] != null
           ? DailyStatus.fromFirestore(
               json['dailyStatus'] as Map<String, dynamic>,
@@ -60,6 +84,9 @@ class AppUser {
           ? (json['badge'] as List)
                 .map((e) => Badge.fromJson(e as Map<String, dynamic>))
                 .toList()
+          : const [],
+      pinnedBadges: json['pinnedBadges'] != null
+          ? List<String>.from(json['pinnedBadges'] as List)
           : const [],
       stats: json['stats'] != null
           ? Map<String, dynamic>.from(json['stats'] as Map)
@@ -79,24 +106,35 @@ class AppUser {
     );
   }
 
+  // Stats (Basic user info)
   final String uid;
   final LoginProvider provider;
   final String? photoURL;
   final bool hasCompletedProfileSetup;
-
-  // Basic Info
   final String? id;
   final String? name;
-  final bool? goal; // true=즐거운 음주, false=건강한 금주
-  final int? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
-  final double? maxAlcohol;
-  final int? weeklyDrinkingFrequency; // 일주일에 술을 마시는 횟수
 
-  // Memo/Status
+  // Health Info
+  final double? height; // 키 (cm)
+  final double? weight; // 몸무게 (kg)
+  final double? maxAlcohol; // 주량 (소주 병 수)
+  final bool? goal; // true=즐거운 음주, false=건강한 금주
+  final int? weeklyDrinkingFrequency; // 일주일에 술을 마시는 횟수
+  final int? favoriteDrink; // 0=소주, 1=맥주, 2=와인, 3=기타
+  final double? coefficient; // 계산된 계수 (추후 프론트에서 계산)
+
+  // Recent Drink Info
+  final int? currentDrunkLevel; // 현재 술 레벨 (0-10)
+  final List<int>?
+  weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
+  final DateTime? lastDrinkDate; // 마지막 음주 날짜
+
+  // Daily Status
   final DailyStatus? dailyStatus;
 
-  // Achievements
-  final List<Badge> badges;
+  // Badges
+  final List<Badge> badges; // all badges
+  final List<String> pinnedBadges; // pinned badge IDs
 
   // Stats
   final Map<String, dynamic> stats;
@@ -130,12 +168,21 @@ class AppUser {
       'hasCompletedProfileSetup': hasCompletedProfileSetup,
       'id': id,
       'name': name,
-      'goal': goal,
-      'favoriteDrink': favoriteDrink,
+      'height': height,
+      'weight': weight,
       'maxAlcohol': maxAlcohol,
+      'goal': goal,
       'weeklyDrinkingFrequency': weeklyDrinkingFrequency,
+      'favoriteDrink': favoriteDrink,
+      'coefficient': coefficient,
+      'currentDrunkLevel': currentDrunkLevel,
+      'weeklyDrunkLevels': weeklyDrunkLevels,
+      'lastDrinkDate': lastDrinkDate != null
+          ? Timestamp.fromDate(lastDrinkDate!)
+          : null,
       'dailyStatus': dailyStatus?.toMap(),
       'badge': badges.map((e) => e.toJson()).toList(),
+      'pinnedBadges': pinnedBadges,
       'stats': stats,
       'gender': gender,
       'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
@@ -152,12 +199,19 @@ class AppUser {
     bool? hasCompletedProfileSetup,
     String? id,
     String? name,
-    bool? goal,
-    int? favoriteDrink,
+    double? height,
+    double? weight,
     double? maxAlcohol,
+    bool? goal,
     int? weeklyDrinkingFrequency,
+    int? favoriteDrink,
+    double? coefficient,
+    int? currentDrunkLevel,
+    List<int>? weeklyDrunkLevels,
+    DateTime? lastDrinkDate,
     DailyStatus? dailyStatus,
     List<Badge>? badges,
+    List<String>? pinnedBadges,
     Map<String, dynamic>? stats,
     String? gender,
     DateTime? birthDate,
@@ -172,13 +226,20 @@ class AppUser {
           hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
       id: id ?? this.id,
       name: name ?? this.name,
-      goal: goal ?? this.goal,
-      favoriteDrink: favoriteDrink ?? this.favoriteDrink,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
       maxAlcohol: maxAlcohol ?? this.maxAlcohol,
+      goal: goal ?? this.goal,
       weeklyDrinkingFrequency:
           weeklyDrinkingFrequency ?? this.weeklyDrinkingFrequency,
+      favoriteDrink: favoriteDrink ?? this.favoriteDrink,
+      coefficient: coefficient ?? this.coefficient,
+      currentDrunkLevel: currentDrunkLevel ?? this.currentDrunkLevel,
+      weeklyDrunkLevels: weeklyDrunkLevels ?? this.weeklyDrunkLevels,
+      lastDrinkDate: lastDrinkDate ?? this.lastDrinkDate,
       dailyStatus: dailyStatus ?? this.dailyStatus,
       badges: badges ?? this.badges,
+      pinnedBadges: pinnedBadges ?? this.pinnedBadges,
       stats: stats ?? this.stats,
       gender: gender ?? this.gender,
       birthDate: birthDate ?? this.birthDate,
@@ -205,12 +266,19 @@ class AppUser {
         other.hasCompletedProfileSetup == hasCompletedProfileSetup &&
         other.id == id &&
         other.name == name &&
-        other.goal == goal &&
-        other.favoriteDrink == favoriteDrink &&
+        other.height == height &&
+        other.weight == weight &&
         other.maxAlcohol == maxAlcohol &&
+        other.goal == goal &&
         other.weeklyDrinkingFrequency == weeklyDrinkingFrequency &&
+        other.favoriteDrink == favoriteDrink &&
+        other.coefficient == coefficient &&
+        other.currentDrunkLevel == currentDrunkLevel &&
+        _listEquals(other.weeklyDrunkLevels, weeklyDrunkLevels) &&
+        other.lastDrinkDate == lastDrinkDate &&
         other.dailyStatus == dailyStatus &&
         _listEquals(other.badges, badges) &&
+        _listEquals(other.pinnedBadges, pinnedBadges) &&
         other.stats.toString() == stats.toString() &&
         other.gender == gender &&
         other.birthDate == birthDate &&
@@ -226,12 +294,19 @@ class AppUser {
         hasCompletedProfileSetup.hashCode ^
         id.hashCode ^
         name.hashCode ^
-        goal.hashCode ^
-        favoriteDrink.hashCode ^
+        height.hashCode ^
+        weight.hashCode ^
         maxAlcohol.hashCode ^
+        goal.hashCode ^
         weeklyDrinkingFrequency.hashCode ^
+        favoriteDrink.hashCode ^
+        coefficient.hashCode ^
+        currentDrunkLevel.hashCode ^
+        weeklyDrunkLevels.hashCode ^
+        lastDrinkDate.hashCode ^
         dailyStatus.hashCode ^
         badges.hashCode ^
+        pinnedBadges.hashCode ^
         stats.hashCode ^
         gender.hashCode ^
         birthDate.hashCode ^
