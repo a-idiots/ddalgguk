@@ -252,10 +252,13 @@ class AchievementItem extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     color: Colors.transparent,
-                    child: Icon(
-                      isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                      size: 16,
-                      color: Colors.grey[400],
+                    child: Transform.rotate(
+                      angle: 0.785398, // 45 degrees in radians (π/4)
+                      child: Icon(
+                        isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
                     ),
                   ),
                 ),
