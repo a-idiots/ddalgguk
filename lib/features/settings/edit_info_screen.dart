@@ -78,7 +78,11 @@ class EditInfoScreen extends StatelessWidget {
           SettingsListTile(
             title: '가장 선호하는 주종',
             onTap: () {
-              // TODO: Navigate to favorite drink selection
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FavoriteDrinkScreen(),
+                ),
+              );
             },
           ),
           SettingsListTile(
@@ -108,7 +112,8 @@ class GenderSelectionScreen extends ConsumerStatefulWidget {
   const GenderSelectionScreen({super.key});
 
   @override
-  ConsumerState<GenderSelectionScreen> createState() => _GenderSelectionScreenState();
+  ConsumerState<GenderSelectionScreen> createState() =>
+      _GenderSelectionScreenState();
 }
 
 class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
@@ -145,9 +150,9 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('성별이 저장되었습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('성별이 저장되었습니다')));
       }
     } catch (e) {
       if (mounted) {
@@ -213,14 +218,9 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                 ListTile(
                   title: const Text(
                     '남성',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 16),
                   ),
-                  leading: Radio<String>(
-                    value: '남성',
-                  ),
+                  leading: Radio<String>(value: '남성'),
                   onTap: () async {
                     setState(() {
                       _selectedGender = '남성';
@@ -231,14 +231,9 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                 ListTile(
                   title: const Text(
                     '여성',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 16),
                   ),
-                  leading: Radio<String>(
-                    value: '여성',
-                  ),
+                  leading: Radio<String>(value: '여성'),
                   onTap: () async {
                     setState(() {
                       _selectedGender = '여성';
@@ -301,9 +296,9 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
     final weightText = _weightController.text.trim();
 
     if (heightText.isEmpty && weightText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('키 또는 몸무게를 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('키 또는 몸무게를 입력해주세요')));
       return;
     }
 
@@ -319,9 +314,9 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('신체 정보가 저장되었습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('신체 정보가 저장되었습니다')));
       }
     } catch (e) {
       if (mounted) {
@@ -383,10 +378,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
                   children: [
                     const Text(
                       '키',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(fontFamily: 'Inter', fontSize: 16),
                     ),
                     const SizedBox(width: 120),
                     Expanded(
@@ -421,10 +413,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
                   children: [
                     const Text(
                       '몸무게',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(fontFamily: 'Inter', fontSize: 16),
                     ),
                     const SizedBox(width: 88),
                     Expanded(
@@ -543,9 +532,9 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
 
   Future<void> _handleSave() async {
     if (_year == null || _month == null || _day == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('모든 항목을 선택해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('모든 항목을 선택해주세요')));
       return;
     }
 
@@ -559,9 +548,9 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('생년월일이 저장되었습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('생년월일이 저장되었습니다')));
       }
     } catch (e) {
       if (mounted) {
@@ -621,134 +610,160 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-            const Text(
-              '연도',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            InputDecorator(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                const Text(
+                  '연도',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _year,
+                      hint: const Text(
+                        '선택',
+                        style: TextStyle(fontFamily: 'Inter'),
+                      ),
+                      isExpanded: true,
+                      items: _getYears().map((year) {
+                        return DropdownMenuItem(
+                          value: year,
+                          child: Text(
+                            '$year년',
+                            style: const TextStyle(fontFamily: 'Inter'),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _year = value;
+                          if (_day != null && _month != null) {
+                            final daysInMonth = DateTime(
+                              _year!,
+                              _month! + 1,
+                              0,
+                            ).day;
+                            if (_day! > daysInMonth) {
+                              _day = daysInMonth;
+                            }
+                          }
+                        });
+                      },
+                    ),
+                  ),
                 ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: _year,
-                  hint: const Text('선택', style: TextStyle(fontFamily: 'Inter')),
-                  isExpanded: true,
-                  items: _getYears().map((year) {
-                    return DropdownMenuItem(
-                      value: year,
-                      child: Text('$year년', style: const TextStyle(fontFamily: 'Inter')),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _year = value;
-                      if (_day != null && _month != null) {
-                        final daysInMonth = DateTime(_year!, _month! + 1, 0).day;
-                        if (_day! > daysInMonth) {
-                          _day = daysInMonth;
-                        }
-                      }
-                    });
-                  },
+                const SizedBox(height: 24),
+                const Text(
+                  '월',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              '월',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            InputDecorator(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _month,
+                      hint: const Text(
+                        '선택',
+                        style: TextStyle(fontFamily: 'Inter'),
+                      ),
+                      isExpanded: true,
+                      items: _getMonths().map((month) {
+                        return DropdownMenuItem(
+                          value: month,
+                          child: Text(
+                            '$month월',
+                            style: const TextStyle(fontFamily: 'Inter'),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _month = value;
+                          if (_day != null && _year != null && _month != null) {
+                            final daysInMonth = DateTime(
+                              _year!,
+                              _month! + 1,
+                              0,
+                            ).day;
+                            if (_day! > daysInMonth) {
+                              _day = daysInMonth;
+                            }
+                          }
+                        });
+                      },
+                    ),
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                const SizedBox(height: 24),
+                const Text(
+                  '일',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: _month,
-                  hint: const Text('선택', style: TextStyle(fontFamily: 'Inter')),
-                  isExpanded: true,
-                  items: _getMonths().map((month) {
-                    return DropdownMenuItem(
-                      value: month,
-                      child: Text('$month월', style: const TextStyle(fontFamily: 'Inter')),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _month = value;
-                      if (_day != null && _year != null && _month != null) {
-                        final daysInMonth = DateTime(_year!, _month! + 1, 0).day;
-                        if (_day! > daysInMonth) {
-                          _day = daysInMonth;
-                        }
-                      }
-                    });
-                  },
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _day,
+                      hint: const Text(
+                        '선택',
+                        style: TextStyle(fontFamily: 'Inter'),
+                      ),
+                      isExpanded: true,
+                      items: _getDays().map((day) {
+                        return DropdownMenuItem(
+                          value: day,
+                          child: Text(
+                            '$day일',
+                            style: const TextStyle(fontFamily: 'Inter'),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _day = value;
+                        });
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              '일',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            InputDecorator(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: _day,
-                  hint: const Text('선택', style: TextStyle(fontFamily: 'Inter')),
-                  isExpanded: true,
-                  items: _getDays().map((day) {
-                    return DropdownMenuItem(
-                      value: day,
-                      child: Text('$day일', style: const TextStyle(fontFamily: 'Inter')),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _day = value;
-                    });
-                  },
-                ),
-              ),
-            ),
                 const SizedBox(height: 48),
                 Center(
                   child: ElevatedButton(
@@ -788,10 +803,12 @@ class DrinkingFrequencyScreen extends ConsumerStatefulWidget {
   const DrinkingFrequencyScreen({super.key});
 
   @override
-  ConsumerState<DrinkingFrequencyScreen> createState() => _DrinkingFrequencyScreenState();
+  ConsumerState<DrinkingFrequencyScreen> createState() =>
+      _DrinkingFrequencyScreenState();
 }
 
-class _DrinkingFrequencyScreenState extends ConsumerState<DrinkingFrequencyScreen> {
+class _DrinkingFrequencyScreenState
+    extends ConsumerState<DrinkingFrequencyScreen> {
   final TextEditingController _frequencyController = TextEditingController();
   bool _isLoading = true;
 
@@ -812,7 +829,8 @@ class _DrinkingFrequencyScreenState extends ConsumerState<DrinkingFrequencyScree
     if (mounted) {
       setState(() {
         if (currentUser?.weeklyDrinkingFrequency != null) {
-          _frequencyController.text = currentUser!.weeklyDrinkingFrequency.toString();
+          _frequencyController.text = currentUser!.weeklyDrinkingFrequency
+              .toString();
         }
         _isLoading = false;
       });
@@ -823,17 +841,17 @@ class _DrinkingFrequencyScreenState extends ConsumerState<DrinkingFrequencyScree
     final frequencyText = _frequencyController.text.trim();
 
     if (frequencyText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('음주 빈도를 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('음주 빈도를 입력해주세요')));
       return;
     }
 
     final frequency = int.tryParse(frequencyText);
     if (frequency == null || frequency < 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('올바른 숫자를 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('올바른 숫자를 입력해주세요')));
       return;
     }
 
@@ -860,9 +878,9 @@ class _DrinkingFrequencyScreenState extends ConsumerState<DrinkingFrequencyScree
 
         if (mounted) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('음주 빈도가 저장되었습니다')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('음주 빈도가 저장되었습니다')));
         }
       }
     } catch (e) {
@@ -995,6 +1013,243 @@ class _DrinkingFrequencyScreenState extends ConsumerState<DrinkingFrequencyScree
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Favorite drink selection screen
+class FavoriteDrinkScreen extends ConsumerStatefulWidget {
+  const FavoriteDrinkScreen({super.key});
+
+  @override
+  ConsumerState<FavoriteDrinkScreen> createState() =>
+      _FavoriteDrinkScreenState();
+}
+
+class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
+  int? _selectedDrink;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteDrink();
+  }
+
+  Future<void> _loadFavoriteDrink() async {
+    final currentUser = await ref.read(currentUserProvider.future);
+    if (mounted) {
+      setState(() {
+        _selectedDrink = currentUser?.favoriteDrink;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleSave() async {
+    if (_selectedDrink == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('선호하는 주종을 선택해주세요')));
+      return;
+    }
+
+    try {
+      final authRepository = ref.read(authRepositoryProvider);
+      final currentUser = await ref.read(currentUserProvider.future);
+
+      if (currentUser != null) {
+        await authRepository.saveProfileData(
+          id: currentUser.id ?? '',
+          name: currentUser.name ?? '',
+          goal: currentUser.goal ?? true,
+          favoriteDrink: _selectedDrink!,
+          maxAlcohol: currentUser.maxAlcohol ?? 0,
+          weeklyDrinkingFrequency: currentUser.weeklyDrinkingFrequency ?? 0,
+          gender: currentUser.gender,
+          birthDate: currentUser.birthDate,
+          height: currentUser.height,
+          weight: currentUser.weight,
+        );
+
+        // Refresh user data
+        ref.invalidate(currentUserProvider);
+
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('선호하는 주종이 저장되었습니다')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: const Text(
+            '가장 선호하는 주종',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          '가장 선호하는 주종',
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          const SettingsSectionDivider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                _buildDrinkSelectionCards(),
+                const SizedBox(height: 48),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: const Text(
+                      '저장하기',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrinkSelectionCards() {
+    final drinks = [
+      {'img': 'assets/alcohol_icons/soju.png', 'name': '소주', 'id': 0},
+      {'img': 'assets/alcohol_icons/beer.png', 'name': '맥주', 'id': 1},
+      {'img': 'assets/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 2},
+      {'img': 'assets/alcohol_icons/wine.png', 'name': '와인', 'id': 3},
+      {'img': 'assets/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const Text(
+            '당신의 최애 술은?',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: drinks.map((drink) {
+              final drinkId = drink['id'] as int;
+              final isSelected = _selectedDrink == drinkId;
+
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedDrink = drinkId;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFFFB3B3)
+                            : Colors.grey.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            drink['img'] as String,
+                            width: 42,
+                            height: 42,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            drink['name'] as String,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.black87
+                                  : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
