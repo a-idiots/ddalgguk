@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
+import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -133,158 +134,56 @@ class SettingsScreen extends ConsumerWidget {
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
-          Container(
-            height: 8,
-            color: const Color(0xFFEFEFEF),
-          ),
+          const SettingsSectionDivider(),
 
           // Account Settings Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text(
-              '계정 설정',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '정보 수정',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          const SettingsSectionHeader(title: '계정 설정'),
+          SettingsListTile(
+            title: '정보 수정',
             onTap: () {
               // TODO: Navigate to profile edit
             },
           ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '알림 설정',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          SettingsListTile(
+            title: '알림 설정',
             onTap: () {
               // TODO: Navigate to notification settings
             },
           ),
-          Container(
-            height: 8,
-            color: const Color(0xFFEFEFEF),
-          ),
+          const SettingsSectionDivider(),
 
           // Usage Guide Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text(
-              '이용 안내',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '앱 버전',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          const SettingsSectionHeader(title: '이용 안내'),
+          SettingsListTile(
+            title: '앱 버전',
             onTap: () {
               // TODO: Navigate to app version
             },
           ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '문의하기',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          SettingsListTile(
+            title: '문의하기',
             onTap: () {
               // TODO: Navigate to contact
             },
           ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '공지사항',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          SettingsListTile(
+            title: '공지사항',
             onTap: () {
               // TODO: Navigate to notices
             },
           ),
-          Container(
-            height: 8,
-            color: const Color(0xFFEFEFEF),
-          ),
+          const SettingsSectionDivider(),
 
           // Other Section
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text(
-              '기타',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '회원 탈퇴',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          const SettingsSectionHeader(title: '기타'),
+          SettingsListTile(
+            title: '회원 탈퇴',
             onTap: () {
               // TODO: Navigate to account deletion
             },
           ),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            title: const Text(
-              '로그아웃',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
+          SettingsListTile(
+            title: '로그아웃',
             onTap: () => _handleLogout(context, ref),
           ),
         ],
