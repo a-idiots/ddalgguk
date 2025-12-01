@@ -11,7 +11,6 @@ import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class RecapTab extends ConsumerStatefulWidget {
   const RecapTab({super.key});
@@ -162,7 +161,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
                         double totalBottles = 0;
                         for (var r in records) {
-                          if (r.drinkAmount.isEmpty) continue;
+                          if (r.drinkAmount.isEmpty) {
+                            continue;
+                          }
                           for (var d in r.drinkAmount) {
                             totalBottles += (d.amount / 500.0).clamp(0, 1000);
                           }

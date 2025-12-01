@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
@@ -102,3 +103,18 @@ final monthlySpendingComparisonProvider =
 
       return AsyncValue.data(prevSum - currentSum);
     });
+
+/// Provider for user physical info
+final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
+  ref,
+) async {
+  final user = await ref.watch(currentUserProvider.future);
+  if (user == null) return {};
+
+  return {
+    'gender': user.gender,
+    'birthDate': user.birthDate,
+    'height': user.height,
+    'weight': user.weight,
+  };
+});

@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/info_input_pag
 import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/goal_setting_page.dart';
 import 'package:ddalgguk/features/auth/widgets/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 
 /// Main onboarding profile screen with PageView
 class OnboardingProfileScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,10 @@ class _OnboardingProfileScreenState
   int? _favoriteDrink;
   double? _maxAlcohol;
   int? _weeklyDrinkingFrequency;
+  String? _gender;
+  DateTime? _birthDate;
+  double? _height;
+  double? _weight;
 
   static const String _pageIndexKey = 'onboarding_profile_page_index';
   static const String _nameKey = 'onboarding_profile_name';
@@ -140,6 +145,10 @@ class _OnboardingProfileScreenState
         favoriteDrink: favoriteDrink,
         maxAlcohol: maxAlcohol,
         weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+        gender: _gender,
+        birthDate: _birthDate,
+        height: _height,
+        weight: _weight,
       );
 
       // Clear saved state
@@ -163,6 +172,26 @@ class _OnboardingProfileScreenState
         });
       }
     }
+  }
+
+  void _handleGoalSubmit({
+    required bool goal,
+    required int favoriteDrink,
+    required double maxAlcohol,
+    required int weeklyDrinkingFrequency,
+  }) {
+    setState(() {
+      _goal = goal;
+      _favoriteDrink = favoriteDrink;
+      _maxAlcohol = maxAlcohol;
+      _weeklyDrinkingFrequency = weeklyDrinkingFrequency;
+    });
+    _pageController.animateToPage(
+      3,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+    _saveState();
   }
 
   void _handleBack() {
@@ -260,12 +289,33 @@ class _OnboardingProfileScreenState
                     ),
                     // Page 3: Goal setting
                     GoalSettingPage(
-                      onComplete: _handleComplete,
+                      onComplete:
+                          ({
+                            required goal,
+                            required favoriteDrink,
+                            required maxAlcohol,
+                            required weeklyDrinkingFrequency,
+                          }) => _handleGoalSubmit(
+                            goal: goal,
+                            favoriteDrink: favoriteDrink,
+                            maxAlcohol: maxAlcohol,
+                            weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+                          ),
                       initialGoal: _goal,
                       initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
                       initialWeeklyDrinkingFrequency: _weeklyDrinkingFrequency,
                     ),
+                    // Page 3: Intro
+                    _buildIntroPage(),
+                    // Page 4: Gender
+                    _buildGenderPage(),
+                    // Page 5: BirthDate
+                    _buildBirthDatePage(),
+                    // Page 6: BodyInfo
+                    _buildBodyInfoPage(),
+                    // Page 7: Outro
+                    _buildOutroPage(),
                   ],
                 ),
                 // Page indicator - Hidden when keyboard is visible or on page 3
@@ -316,6 +366,174 @@ class _OnboardingProfileScreenState
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIntroPage() {
+    return _CommonOnboardingPage(
+      title: '당신의 건강한 음주 생활을 위해\n몇 가지 정보가 필요해요!',
+      content: const SizedBox.shrink(),
+      onNext: () {
+        _pageController.animateToPage(
+          4,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
+      buttonText: '다음',
+    );
+  }
+
+  Widget _buildGenderPage() {
+    return _CommonOnboardingPage(
+      title: '성별을 알려주세요',
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _GenderButton(
+            label: '남성',
+            isSelected: _gender == 'male',
+            onTap: () {
+              setState(() {
+                _gender = 'male';
+              });
+            },
+          ),
+          const SizedBox(width: 16),
+          _GenderButton(
+            label: '여성',
+            isSelected: _gender == 'female',
+            onTap: () {
+              setState(() {
+                _gender = 'female';
+              });
+            },
+          ),
+        ],
+      ),
+      onNext: _gender != null
+          ? () {
+              _pageController.animateToPage(
+                5,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          : null,
+      buttonText: '다음',
+    );
+  }
+
+  Widget _buildBirthDatePage() {
+    // Simple date picker implementation
+    return _CommonOnboardingPage(
+      title: '생년월일을 알려주세요',
+      content: Column(
+        children: [
+          GestureDetector(
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: DateTime(2000),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (date != null) {
+                setState(() {
+                  _birthDate = date;
+                });
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _birthDate != null
+                    ? '${_birthDate!.year}년 ${_birthDate!.month}월 ${_birthDate!.day}일'
+                    : '날짜 선택',
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+      onNext: _birthDate != null
+          ? () {
+              _pageController.animateToPage(
+                6,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          : null,
+      buttonText: '다음',
+    );
+  }
+
+  Widget _buildBodyInfoPage() {
+    return _CommonOnboardingPage(
+      title: '키와 몸무게를 알려주세요',
+      content: Column(
+        children: [
+          _BodyInfoInput(
+            label: '키 (cm)',
+            onChanged: (value) {
+              setState(() {
+                _height = double.tryParse(value);
+              });
+            },
+            initialValue: _height?.toString(),
+          ),
+          const SizedBox(height: 16),
+          _BodyInfoInput(
+            label: '몸무게 (kg)',
+            onChanged: (value) {
+              setState(() {
+                _weight = double.tryParse(value);
+              });
+            },
+            initialValue: _weight?.toString(),
+          ),
+        ],
+      ),
+      onNext: (_height != null && _weight != null)
+          ? () {
+              _pageController.animateToPage(
+                7,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          : null,
+      buttonText: '다음',
+    );
+  }
+
+  Widget _buildOutroPage() {
+    return _CommonOnboardingPage(
+      title: '준비가 완료되었어요!\n이제 시작해볼까요?',
+      content: const SizedBox.shrink(),
+      onNext: () {
+        if (_goal != null &&
+            _favoriteDrink != null &&
+            _maxAlcohol != null &&
+            _weeklyDrinkingFrequency != null &&
+            _gender != null &&
+            _birthDate != null &&
+            _height != null &&
+            _weight != null) {
+          _handleComplete(
+            goal: _goal!,
+            favoriteDrink: _favoriteDrink!,
+            maxAlcohol: _maxAlcohol!,
+            weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
+          );
+        }
+      },
+      buttonText: '시작하기',
     );
   }
 
@@ -434,6 +652,157 @@ class _AnimatedOnboardingBackground extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _CommonOnboardingPage extends StatelessWidget {
+  final String title;
+  final Widget content;
+  final VoidCallback? onNext;
+  final String buttonText;
+
+  const _CommonOnboardingPage({
+    required this.title,
+    required this.content,
+    this.onNext,
+    required this.buttonText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          const SakuCharacter(size: 120), // Default size
+          const SizedBox(height: 40),
+          Expanded(child: content),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: onNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: onNext != null
+                    ? Colors.black
+                    : Colors.grey[300],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Text(
+                buttonText,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+class _GenderButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _GenderButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? Colors.black : Colors.grey[300]!,
+            width: 2,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BodyInfoInput extends StatelessWidget {
+  final String label;
+  final ValueChanged<String> onChanged;
+  final String? initialValue;
+
+  const _BodyInfoInput({
+    required this.label,
+    required this.onChanged,
+    this.initialValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          initialValue: initialValue,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 }

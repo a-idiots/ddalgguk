@@ -18,6 +18,10 @@ class AppUser {
     this.dailyStatus,
     this.badges = const [],
     this.stats = const {},
+    this.gender,
+    this.birthDate,
+    this.height,
+    this.weight,
   });
 
   /// Create AppUser from Firebase User
@@ -60,6 +64,18 @@ class AppUser {
       stats: json['stats'] != null
           ? Map<String, dynamic>.from(json['stats'] as Map)
           : const {},
+      gender: json['gender'] as String?,
+      birthDate: json['birthDate'] != null
+          ? (json['birthDate'] is Timestamp
+                ? (json['birthDate'] as Timestamp).toDate()
+                : DateTime.tryParse(json['birthDate'].toString()))
+          : null,
+      height: json['height'] != null
+          ? (json['height'] as num).toDouble()
+          : null,
+      weight: json['weight'] != null
+          ? (json['weight'] as num).toDouble()
+          : null,
     );
   }
 
@@ -84,6 +100,12 @@ class AppUser {
 
   // Stats
   final Map<String, dynamic> stats;
+
+  // Physical Info
+  final String? gender; // 'male', 'female'
+  final DateTime? birthDate;
+  final double? height;
+  final double? weight;
 
   /// Parse favoriteDrink from JSON - handles both int and List formats
   static int? _parseFavoriteDrink(dynamic value) {
@@ -115,6 +137,10 @@ class AppUser {
       'dailyStatus': dailyStatus?.toMap(),
       'badge': badges.map((e) => e.toJson()).toList(),
       'stats': stats,
+      'gender': gender,
+      'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
+      'height': height,
+      'weight': weight,
     };
   }
 
@@ -133,6 +159,10 @@ class AppUser {
     DailyStatus? dailyStatus,
     List<Badge>? badges,
     Map<String, dynamic>? stats,
+    String? gender,
+    DateTime? birthDate,
+    double? height,
+    double? weight,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -150,6 +180,10 @@ class AppUser {
       dailyStatus: dailyStatus ?? this.dailyStatus,
       badges: badges ?? this.badges,
       stats: stats ?? this.stats,
+      gender: gender ?? this.gender,
+      birthDate: birthDate ?? this.birthDate,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
     );
   }
 
@@ -177,7 +211,11 @@ class AppUser {
         other.weeklyDrinkingFrequency == weeklyDrinkingFrequency &&
         other.dailyStatus == dailyStatus &&
         _listEquals(other.badges, badges) &&
-        other.stats.toString() == stats.toString();
+        other.stats.toString() == stats.toString() &&
+        other.gender == gender &&
+        other.birthDate == birthDate &&
+        other.height == height &&
+        other.weight == weight;
   }
 
   @override
@@ -194,7 +232,11 @@ class AppUser {
         weeklyDrinkingFrequency.hashCode ^
         dailyStatus.hashCode ^
         badges.hashCode ^
-        stats.hashCode;
+        stats.hashCode ^
+        gender.hashCode ^
+        birthDate.hashCode ^
+        height.hashCode ^
+        weight.hashCode;
   }
 
   /// Helper method to compare lists

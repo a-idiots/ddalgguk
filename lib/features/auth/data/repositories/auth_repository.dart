@@ -351,6 +351,10 @@ class AuthRepository {
     required int favoriteDrink,
     required double maxAlcohol,
     required int weeklyDrinkingFrequency,
+    String? gender,
+    DateTime? birthDate,
+    double? height,
+    double? weight,
   }) async {
     try {
       final firebaseUser = _firebaseAuthService.currentUser;
@@ -374,6 +378,10 @@ class AuthRepository {
           maxAlcohol: maxAlcohol,
           weeklyDrinkingFrequency: weeklyDrinkingFrequency,
           hasCompletedProfileSetup: true,
+          gender: gender,
+          birthDate: birthDate,
+          height: height,
+          weight: weight,
         );
       } else {
         // User doesn't exist in Firestore, create new AppUser
@@ -393,6 +401,10 @@ class AuthRepository {
               maxAlcohol: maxAlcohol,
               weeklyDrinkingFrequency: weeklyDrinkingFrequency,
               hasCompletedProfileSetup: true,
+              gender: gender,
+              birthDate: birthDate,
+              height: height,
+              weight: weight,
             );
       }
 
