@@ -12,16 +12,16 @@ class SettingsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('정말 로그아웃 하시겠습니까?'),
+        title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter')),
+        content: const Text('정말 로그아웃 하시겠습니까?', style: TextStyle(fontFamily: 'Inter')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
+            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+            child: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter', color: Colors.red)),
           ),
         ],
       ),
@@ -51,7 +51,7 @@ class SettingsScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(),
       body: ListView(
         children: [
           // User Info Section
@@ -60,22 +60,76 @@ class SettingsScreen extends ConsumerWidget {
               if (user == null) {
                 return const SizedBox.shrink();
               }
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: user.photoURL != null
-                      ? NetworkImage(user.photoURL!)
-                      : null,
-                  child: user.photoURL == null
-                      ? const Icon(Icons.person)
-                      : null,
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundImage: user.photoURL != null
+                          ? NetworkImage(user.photoURL!)
+                          : null,
+                      child: user.photoURL == null
+                          ? const Icon(Icons.person, size: 32)
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name ?? 'Unknown User',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '@${user.id ?? ''}',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        // TODO: Navigate to profile edit
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFF0A9A9)),
+                        foregroundColor: const Color(0xFFF0A9A9),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
+                      child: const Text(
+                        '프로필 편집',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                title: Text(user.name ?? 'Unknown User'),
-                subtitle: Text(user.id ?? ''),
               );
             },
-            loading: () => const ListTile(
-              leading: CircleAvatar(child: CircularProgressIndicator()),
-              title: Text('Loading...'),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(radius: 32, child: CircularProgressIndicator()),
+                  SizedBox(width: 16),
+                  Text('Loading...', style: TextStyle(fontFamily: 'Inter')),
+                ],
+              ),
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
@@ -84,7 +138,7 @@ class SettingsScreen extends ConsumerWidget {
           // Settings Options
           ListTile(
             leading: const Icon(Icons.notifications),
-            title: const Text('알림 설정'),
+            title: const Text('알림 설정', style: TextStyle(fontFamily: 'Inter')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Navigate to notification settings
@@ -92,7 +146,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip),
-            title: const Text('개인정보 처리방침'),
+            title: const Text('개인정보 처리방침', style: TextStyle(fontFamily: 'Inter')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Navigate to privacy policy
@@ -100,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.description),
-            title: const Text('서비스 이용약관'),
+            title: const Text('서비스 이용약관', style: TextStyle(fontFamily: 'Inter')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Navigate to terms of service
@@ -108,7 +162,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.info),
-            title: const Text('앱 정보'),
+            title: const Text('앱 정보', style: TextStyle(fontFamily: 'Inter')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Navigate to app info
@@ -119,7 +173,7 @@ class SettingsScreen extends ConsumerWidget {
           // Logout Button
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+            title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter', color: Colors.red)),
             onTap: () => _handleLogout(context, ref),
           ),
         ],
