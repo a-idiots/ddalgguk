@@ -16,8 +16,6 @@ class AppUser {
     this.favoriteDrink,
     this.maxAlcohol,
     this.weeklyDrinkingFrequency,
-    this.height,
-    this.weight,
     this.coefficient,
     this.currentDrunkLevel,
     this.weeklyDrunkLevels,
@@ -53,12 +51,6 @@ class AppUser {
           json['hasCompletedProfileSetup'] as bool? ?? false,
       id: json['id'] as String?,
       name: json['name'] as String?,
-      height: json['height'] != null
-          ? (json['height'] as num).toDouble()
-          : null,
-      weight: json['weight'] != null
-          ? (json['weight'] as num).toDouble()
-          : null,
       maxAlcohol: json['maxAlcohol'] != null
           ? (json['maxAlcohol'] as num).toDouble()
           : null,
@@ -115,8 +107,6 @@ class AppUser {
   final String? name;
 
   // Health Info
-  final double? height; // 키 (cm)
-  final double? weight; // 몸무게 (kg)
   final double? maxAlcohol; // 주량 (소주 병 수)
   final bool? goal; // true=즐거운 음주, false=건강한 금주
   final int? weeklyDrinkingFrequency; // 일주일에 술을 마시는 횟수
@@ -159,7 +149,8 @@ class AppUser {
     return null;
   }
 
-  /// Convert AppUser to JSON (for Firestore)
+  /// Convert AppUser to JSON (for cache and Firestore)
+  /// Dates are stored as ISO 8601 strings for JSON compatibility
   Map<String, dynamic> toJson() {
     return {
       'uid': uid,
@@ -168,8 +159,6 @@ class AppUser {
       'hasCompletedProfileSetup': hasCompletedProfileSetup,
       'id': id,
       'name': name,
-      'height': height,
-      'weight': weight,
       'maxAlcohol': maxAlcohol,
       'goal': goal,
       'weeklyDrinkingFrequency': weeklyDrinkingFrequency,
@@ -177,18 +166,29 @@ class AppUser {
       'coefficient': coefficient,
       'currentDrunkLevel': currentDrunkLevel,
       'weeklyDrunkLevels': weeklyDrunkLevels,
-      'lastDrinkDate': lastDrinkDate != null
-          ? Timestamp.fromDate(lastDrinkDate!)
-          : null,
+      'lastDrinkDate': lastDrinkDate?.toIso8601String(),
       'dailyStatus': dailyStatus?.toMap(),
       'badge': badges.map((e) => e.toJson()).toList(),
       'pinnedBadges': pinnedBadges,
       'stats': stats,
       'gender': gender,
-      'birthDate': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
+      'birthDate': birthDate?.toIso8601String(),
       'height': height,
       'weight': weight,
     };
+  }
+
+  /// Convert AppUser to Firestore format with Timestamps
+  Map<String, dynamic> toFirestore() {
+    final json = toJson();
+    // Convert date strings to Firestore Timestamps
+    if (birthDate != null) {
+      json['birthDate'] = Timestamp.fromDate(birthDate!);
+    }
+    if (lastDrinkDate != null) {
+      json['lastDrinkDate'] = Timestamp.fromDate(lastDrinkDate!);
+    }
+    return json;
   }
 
   /// Create a copy with updated fields
@@ -199,8 +199,6 @@ class AppUser {
     bool? hasCompletedProfileSetup,
     String? id,
     String? name,
-    double? height,
-    double? weight,
     double? maxAlcohol,
     bool? goal,
     int? weeklyDrinkingFrequency,
@@ -226,8 +224,6 @@ class AppUser {
           hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
       id: id ?? this.id,
       name: name ?? this.name,
-      height: height ?? this.height,
-      weight: weight ?? this.weight,
       maxAlcohol: maxAlcohol ?? this.maxAlcohol,
       goal: goal ?? this.goal,
       weeklyDrinkingFrequency:

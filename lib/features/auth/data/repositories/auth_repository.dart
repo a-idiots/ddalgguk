@@ -288,7 +288,7 @@ class AuthRepository {
     try {
       await _usersCollection
           .doc(user.uid)
-          .set(user.toJson(), SetOptions(merge: true));
+          .set(user.toFirestore(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Save user to Firestore error: $e');
       rethrow;
@@ -377,8 +377,6 @@ class AuthRepository {
           favoriteDrink: favoriteDrink,
           maxAlcohol: maxAlcohol,
           weeklyDrinkingFrequency: weeklyDrinkingFrequency,
-          height: height,
-          weight: weight,
           hasCompletedProfileSetup: true,
           gender: gender,
           birthDate: birthDate,
@@ -402,8 +400,6 @@ class AuthRepository {
               favoriteDrink: favoriteDrink,
               maxAlcohol: maxAlcohol,
               weeklyDrinkingFrequency: weeklyDrinkingFrequency,
-              height: height,
-              weight: weight,
               hasCompletedProfileSetup: true,
               gender: gender,
               birthDate: birthDate,
@@ -413,14 +409,13 @@ class AuthRepository {
       }
 
       // Save to Firestore
-      final jsonData = updatedUser.toJson();
+      final firestoreData = updatedUser.toFirestore();
       debugPrint('=== Saving profile data to Firestore ===');
-      debugPrint('JSON data: $jsonData');
       debugPrint(
-        'hasCompletedProfileSetup: ${jsonData['hasCompletedProfileSetup']}',
+        'hasCompletedProfileSetup: ${firestoreData['hasCompletedProfileSetup']}',
       );
 
-      await _usersCollection.doc(uid).set(jsonData, SetOptions(merge: true));
+      await _usersCollection.doc(uid).set(firestoreData, SetOptions(merge: true));
 
       // Save to cache
       await _storageService.saveUserCache(updatedUser);
