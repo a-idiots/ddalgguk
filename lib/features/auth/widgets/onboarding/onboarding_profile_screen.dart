@@ -30,6 +30,8 @@ class _OnboardingProfileScreenState
   int? _favoriteDrink;
   double? _maxAlcohol;
   int? _weeklyDrinkingFrequency;
+  double? _height;
+  double? _weight;
 
   static const String _pageIndexKey = 'onboarding_profile_page_index';
   static const String _nameKey = 'onboarding_profile_name';
@@ -116,6 +118,8 @@ class _OnboardingProfileScreenState
     required int favoriteDrink,
     required double maxAlcohol,
     required int weeklyDrinkingFrequency,
+    required double height,
+    required double weight,
   }) async {
     if (_name == null || _id == null) {
       return;
@@ -127,6 +131,8 @@ class _OnboardingProfileScreenState
       _favoriteDrink = favoriteDrink;
       _maxAlcohol = maxAlcohol;
       _weeklyDrinkingFrequency = weeklyDrinkingFrequency;
+      _height = height;
+      _weight = weight;
     });
 
     try {
@@ -140,6 +146,8 @@ class _OnboardingProfileScreenState
         favoriteDrink: favoriteDrink,
         maxAlcohol: maxAlcohol,
         weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+        height: height,
+        weight: weight,
       );
 
       // Clear saved state

@@ -351,6 +351,8 @@ class AuthRepository {
     required int favoriteDrink,
     required double maxAlcohol,
     required int weeklyDrinkingFrequency,
+    required double height,
+    required double weight,
   }) async {
     try {
       final firebaseUser = _firebaseAuthService.currentUser;
@@ -373,6 +375,8 @@ class AuthRepository {
           favoriteDrink: favoriteDrink,
           maxAlcohol: maxAlcohol,
           weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+          height: height,
+          weight: weight,
           hasCompletedProfileSetup: true,
         );
       } else {
@@ -392,6 +396,8 @@ class AuthRepository {
               favoriteDrink: favoriteDrink,
               maxAlcohol: maxAlcohol,
               weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+              height: height,
+              weight: weight,
               hasCompletedProfileSetup: true,
             );
       }

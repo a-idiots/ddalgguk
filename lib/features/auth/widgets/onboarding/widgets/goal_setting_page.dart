@@ -10,6 +10,8 @@ class GoalSettingPage extends StatefulWidget {
     this.initialFavoriteDrink,
     this.initialMaxAlcohol,
     this.initialWeeklyDrinkingFrequency,
+    this.initialHeight,
+    this.initialWeight,
   });
 
   final void Function({
@@ -17,6 +19,8 @@ class GoalSettingPage extends StatefulWidget {
     required int favoriteDrink,
     required double maxAlcohol,
     required int weeklyDrinkingFrequency,
+    required double height,
+    required double weight,
   })
   onComplete;
 
@@ -24,6 +28,8 @@ class GoalSettingPage extends StatefulWidget {
   final int? initialFavoriteDrink;
   final double? initialMaxAlcohol;
   final int? initialWeeklyDrinkingFrequency;
+  final double? initialHeight;
+  final double? initialWeight;
 
   @override
   State<GoalSettingPage> createState() => _GoalSettingPageState();
@@ -34,6 +40,8 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
   int? _selectedDrink;
   int? _sliderIndex; // null until both goal and drink are selected
   int? _weeklyDrinkingFrequency;
+  double? _height;
+  double? _weight;
 
   @override
   void initState() {
@@ -47,6 +55,12 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
     }
     if (widget.initialWeeklyDrinkingFrequency != null) {
       _weeklyDrinkingFrequency = widget.initialWeeklyDrinkingFrequency;
+    }
+    if (widget.initialHeight != null) {
+      _height = widget.initialHeight;
+    }
+    if (widget.initialWeight != null) {
+      _weight = widget.initialWeight;
     }
     // Initialize slider index if both goal and drink are already selected
     if (_selectedGoal != null &&
@@ -88,7 +102,9 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
       _selectedGoal != null &&
       _selectedDrink != null &&
       _sliderIndex != null &&
-      _weeklyDrinkingFrequency != null;
+      _weeklyDrinkingFrequency != null &&
+      _height != null &&
+      _weight != null;
 
   void _handleComplete() {
     if (_selectedGoal == null) {
@@ -131,11 +147,33 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
       return;
     }
 
+    if (_height == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('키를 입력해주세요'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (_weight == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('몸무게를 입력해주세요'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     widget.onComplete(
       goal: _selectedGoal!,
       favoriteDrink: _selectedDrink!,
       maxAlcohol: _maxAlcohol,
       weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
+      height: _height!,
+      weight: _weight!,
     );
   }
 
@@ -193,6 +231,107 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
               ),
             ),
             const Spacer(),
+            // Height and Weight input
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '키',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 70,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black26),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
+                      onChanged: (value) {
+                        final height = double.tryParse(value);
+                        setState(() {
+                          _height = height;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'cm',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  const Text(
+                    '몸무게',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 70,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black26),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
+                      onChanged: (value) {
+                        final weight = double.tryParse(value);
+                        setState(() {
+                          _weight = weight;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'kg',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             // Weekly drinking frequency input
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
