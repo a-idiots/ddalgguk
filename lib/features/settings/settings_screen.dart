@@ -49,6 +49,51 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleAccountDeletion(BuildContext context, WidgetRef ref) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('회원 탈퇴', style: TextStyle(fontFamily: 'Inter')),
+        content: const Text(
+          '정말 탈퇴하시겠습니까?\n\n모든 데이터가 삭제되며 복구할 수 없습니다.',
+          style: TextStyle(fontFamily: 'Inter'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              '탈퇴',
+              style: TextStyle(fontFamily: 'Inter', color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final authRepository = ref.read(authRepositoryProvider);
+        await authRepository.deleteAccount();
+
+        if (context.mounted) {
+          // Navigation will be handled automatically by go_router redirect
+          context.go(Routes.login);
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('회원 탈퇴 실패: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
@@ -184,9 +229,7 @@ class SettingsScreen extends ConsumerWidget {
           const SettingsSectionHeader(title: '기타'),
           SettingsListTile(
             title: '회원 탈퇴',
-            onTap: () {
-              // TODO: Navigate to account deletion
-            },
+            onTap: () => _handleAccountDeletion(context, ref),
           ),
           SettingsListTile(
             title: '로그아웃',
