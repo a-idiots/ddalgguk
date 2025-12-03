@@ -78,7 +78,8 @@ class ProfileMainView extends ConsumerWidget {
                                         ),
                                       ),
                                       const TextSpan(text: ' 음주 중이네요!'),
-                                    ] else ...[
+                                    ] else if (stats.consecutiveSoberDays >
+                                        0) ...[
                                       TextSpan(
                                         text: '${stats.consecutiveSoberDays}일째',
                                         style: TextStyle(
@@ -86,6 +87,8 @@ class ProfileMainView extends ConsumerWidget {
                                         ),
                                       ),
                                       const TextSpan(text: ' 금주 중이네요!'),
+                                    ] else ...[
+                                      const TextSpan(text: '아직 기록이 없어요!'),
                                     ],
                                   ],
                                 ),

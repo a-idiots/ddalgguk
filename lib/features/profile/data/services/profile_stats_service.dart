@@ -179,6 +179,19 @@ class ProfileStatsService {
     int consecutiveSoberDays = 0;
     int todayDrunkLevel = 0;
 
+    if (records.isNotEmpty) {
+      final latestRecord = records.reduce(
+        (a, b) => a.date.compareTo(b.date) > 0 ? a : b,
+      );
+      final latestDate = DateTime(
+        latestRecord.date.year,
+        latestRecord.date.month,
+        latestRecord.date.day,
+      );
+      final diff = today.difference(latestDate).inDays;
+      consecutiveSoberDays = diff > 0 ? diff : 0;
+    }
+
     if (todayRecords.isNotEmpty) {
       // Today is a drinking day
       consecutiveDrinkingDays = 1;
@@ -198,19 +211,6 @@ class ProfileStatsService {
         0,
         (max, r) => r.drunkLevel > max ? r.drunkLevel : max,
       );
-    } else {
-      // Today is a sober day (so far)
-      consecutiveSoberDays = 1;
-      // Check previous days
-      for (int i = 1; i <= 30; i++) {
-        final date = today.subtract(Duration(days: i));
-        final key = _getDateKey(date);
-        if (!recordsByDate.containsKey(key)) {
-          consecutiveSoberDays++;
-        } else {
-          break;
-        }
-      }
     }
 
     // Calculate this month drinking count
