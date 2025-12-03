@@ -17,7 +17,9 @@ final profileStatsServiceProvider = Provider<ProfileStatsService>((ref) {
 final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return authRepository.appUserChanges.map((user) {
-    if (user == null) return [];
+    if (user == null) {
+      return [];
+    }
 
     final pinnedBadges = user.pinnedBadges;
     final badges = user.badges.map((b) {
@@ -27,8 +29,12 @@ final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
 
     // Sort by pinned status (pinned first) then by date descending (newest first)
     badges.sort((a, b) {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
+      if (a.isPinned && !b.isPinned) {
+        return -1;
+      }
+      if (!a.isPinned && b.isPinned) {
+        return 1;
+      }
       return b.achievedDay.compareTo(a.achievedDay);
     });
 
@@ -65,7 +71,8 @@ final weeklyStatsOffsetProvider = StreamProvider.family<WeeklyStats, int>((
 /// Current profile stats provider (alcohol breakdown, drunk level, etc.)
 final currentProfileStatsProvider = StreamProvider<ProfileStats>((ref) {
   final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateCurrentStatsStream();
+  final userInfoAsync = ref.watch(userPhysicalInfoProvider);
+  return service.calculateCurrentStatsStream(userInfoAsync.valueOrNull);
 });
 
 /// Achievements provider
@@ -133,7 +140,9 @@ final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
   ref,
 ) async {
   final user = await ref.watch(currentUserProvider.future);
-  if (user == null) return {};
+  if (user == null) {
+    return {};
+  }
 
   return {
     'gender': user.gender,

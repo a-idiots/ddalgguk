@@ -3,6 +3,7 @@ import 'package:ddalgguk/features/calendar/data/services/drinking_record_service
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
+import 'package:ddalgguk/shared/utils/alcohol_calculator.dart';
 
 /// Profile statistics calculation service
 /// Calculates various stats from drinking records for profile display
@@ -131,7 +132,9 @@ class ProfileStatsService {
   }
 
   /// Calculate current profile stats including alcohol breakdown
-  Future<ProfileStats> calculateCurrentStats() async {
+  Future<ProfileStats> calculateCurrentStats([
+    Map<String, dynamic>? userInfo,
+  ]) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -143,27 +146,33 @@ class ProfileStatsService {
         today.add(const Duration(days: 1)),
       );
 
-      return _calculateStatsFromRecords(records, now, today);
+      return _calculateStatsFromRecords(records, now, today, userInfo);
     } catch (e) {
       return ProfileStats.empty();
     }
   }
 
   /// Calculate current profile stats stream
-  Stream<ProfileStats> calculateCurrentStatsStream() {
+  Stream<ProfileStats> calculateCurrentStatsStream([
+    Map<String, dynamic>? userInfo,
+  ]) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final startDate = today.subtract(const Duration(days: 30));
 
     return _drinkingRecordService
         .streamRecordsByDateRange(startDate, today.add(const Duration(days: 1)))
-        .map((records) => _calculateStatsFromRecords(records, now, today));
+        .map(
+          (records) =>
+              _calculateStatsFromRecords(records, now, today, userInfo),
+        );
   }
 
   ProfileStats _calculateStatsFromRecords(
     List<DrinkingRecord> records,
     DateTime now,
     DateTime today,
+    Map<String, dynamic>? userInfo,
   ) {
     // Group by date
     final recordsByDate = <String, List<DrinkingRecord>>{};
@@ -222,71 +231,19 @@ class ProfileStatsService {
         .toSet()
         .length;
 
-    if (todayRecords.isEmpty) {
-      return ProfileStats.empty().copyWith(
-        consecutiveSoberDays: consecutiveSoberDays,
-        consecutiveDrinkingDays: 0,
-        todayDrunkLevel: 0,
-        thisMonthDrinkingCount: thisMonthDrinkingCount,
-      );
-    }
-
-    // Get the most recent record to calculate current status
-    todayRecords.sort((a, b) => b.date.compareTo(a.date));
-    final latestRecord = todayRecords.first;
-
-    // Calculate total alcohol consumed today
-    double totalAlcoholGrams = 0;
-    for (final drink in latestRecord.drinkAmount) {
-      // Alcohol density: 0.789 g/ml
-      // Pure alcohol ml = amount * alcoholContent / 100
-      // Alcohol in grams = pure alcohol ml * 0.789
-      final pureAlcoholMl = drink.amount * (drink.alcoholContent / 100);
-      totalAlcoholGrams += pureAlcoholMl * 0.789;
-    }
-
-    // Calculate time elapsed since drinking
-    final hoursSinceDrinking = now.difference(latestRecord.date).inMinutes / 60;
-
-    // Average alcohol metabolism rate: ~7-10g per hour
-    // Using 8g per hour as average
-    const alcoholMetabolismRate = 8.0; // grams per hour
-    final alcoholProcessed = hoursSinceDrinking * alcoholMetabolismRate;
-    final alcoholRemaining = (totalAlcoholGrams - alcoholProcessed).clamp(
-      0.0,
-      totalAlcoholGrams,
+    // --- Alcohol Calculation using User Info and 3-day history ---
+    final alcoholStats = AlcoholCalculator.calculate(
+      userInfo: userInfo,
+      records: records,
+      now: now,
+      today: today,
     );
 
-    // Calculate time to sober (when alcohol hits 0)
-    final timeToSober = alcoholRemaining / alcoholMetabolismRate;
-
-    // Calculate progress percentage
-    final progressPercentage = totalAlcoholGrams > 0
-        ? ((alcoholProcessed / totalAlcoholGrams) * 100).clamp(0.0, 100.0)
-        : 0.0;
-
-    // Generate status message
-    String statusMessage;
-    if (alcoholRemaining <= 0) {
-      statusMessage = '깨끗한 상태입니다! 이미 모든 알콜이 분해되었어요 ☘';
-    } else if (timeToSober < 1) {
-      statusMessage = '곧 회복될 거예요! 조금만 더 기다리세요 ⏰';
-    } else if (timeToSober < 3) {
-      statusMessage = '${timeToSober.toStringAsFixed(1)}시간 후면 완전히 깰 거예요 🌱';
-    } else {
-      statusMessage =
-          '아직 ${timeToSober.toStringAsFixed(1)}시간이 필요해요. 충분히 쉬세요 💤';
-    }
-
     final breakdown = AlcoholBreakdown(
-      totalAlcoholConsumed: totalAlcoholGrams,
-      alcoholRemaining: alcoholRemaining,
-      alcoholProcessed: alcoholProcessed,
-      progressPercentage: progressPercentage,
-      lastDrinkTime: latestRecord.date,
-      estimatedSoberTime: now.add(
-        Duration(minutes: (timeToSober * 60).round()),
-      ),
+      alcoholRemaining: alcoholStats.currentAlcoholRemaining,
+      progressPercentage: alcoholStats.progressPercentage,
+      lastDrinkTime: alcoholStats.lastDrinkTime,
+      estimatedSoberTime: alcoholStats.estimatedSoberTime,
     );
 
     return ProfileStats(
@@ -294,9 +251,9 @@ class ProfileStatsService {
         0,
         100,
       ), // Convert 0-10 to 0-100
-      currentAlcoholInBody: alcoholRemaining,
-      timeToSober: timeToSober,
-      statusMessage: statusMessage,
+      currentAlcoholInBody: alcoholStats.currentAlcoholRemaining,
+      timeToSober: alcoholStats.timeToSober,
+      statusMessage: alcoholStats.statusMessage,
       breakdown: breakdown,
       consecutiveDrinkingDays: consecutiveDrinkingDays,
       consecutiveSoberDays: consecutiveSoberDays,

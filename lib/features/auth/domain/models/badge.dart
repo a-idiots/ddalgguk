@@ -22,7 +22,7 @@ class Badge extends Equatable {
   final DateTime achievedDay;
   final bool isPinned;
 
-  String get id => '${group}_${idx}';
+  String get id => '${group}_$idx';
 
   Badge copyWith({
     String? group,

@@ -657,17 +657,17 @@ class _AnimatedOnboardingBackground extends StatelessWidget {
 }
 
 class _CommonOnboardingPage extends StatelessWidget {
-  final String title;
-  final Widget content;
-  final VoidCallback? onNext;
-  final String buttonText;
-
   const _CommonOnboardingPage({
     required this.title,
     required this.content,
     this.onNext,
     required this.buttonText,
   });
+
+  final String title;
+  final Widget content;
+  final VoidCallback? onNext;
+  final String buttonText;
 
   @override
   Widget build(BuildContext context) {
@@ -720,15 +720,15 @@ class _CommonOnboardingPage extends StatelessWidget {
 }
 
 class _GenderButton extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
   const _GenderButton({
     required this.label,
     required this.isSelected,
     required this.onTap,
   });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -760,15 +760,15 @@ class _GenderButton extends StatelessWidget {
 }
 
 class _BodyInfoInput extends StatelessWidget {
-  final String label;
-  final ValueChanged<String> onChanged;
-  final String? initialValue;
-
   const _BodyInfoInput({
     required this.label,
     required this.onChanged,
     this.initialValue,
   });
+
+  final String label;
+  final ValueChanged<String> onChanged;
+  final String? initialValue;
 
   @override
   Widget build(BuildContext context) {

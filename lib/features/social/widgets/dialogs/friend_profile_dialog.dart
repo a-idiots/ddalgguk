@@ -95,11 +95,7 @@ class FriendProfileDialog extends ConsumerWidget {
       timeToSober: timeToSober,
       statusMessage: alcoholRemaining > 0 ? '분해 중' : '깨끗한 상태',
       breakdown: AlcoholBreakdown(
-        totalAlcoholConsumed: estimatedTotalAlcohol,
         alcoholRemaining: alcoholRemaining,
-        alcoholProcessed: alcoholProcessed
-            .clamp(0.0, estimatedTotalAlcohol)
-            .toDouble(),
         progressPercentage: progressPercentage,
         lastDrinkTime: lastDrinkDate,
         estimatedSoberTime: timeToSober > 0
