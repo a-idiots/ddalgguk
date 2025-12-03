@@ -22,10 +22,7 @@ final authStateProvider = StreamProvider<AppUser?>((ref) {
 
 /// Provider for current AppUser
 /// Returns AppUser when authenticated, null when not authenticated
-final currentUserProvider = FutureProvider<AppUser?>((ref) async {
-  final authState = await ref.watch(authStateProvider.future);
-  return authState;
-});
+final currentUserProvider = authStateProvider;
 
 /// Provider to check if user is authenticated
 final isAuthenticatedProvider = Provider<bool>((ref) {

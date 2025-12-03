@@ -25,12 +25,14 @@ class ProfileMainView extends ConsumerWidget {
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
 
     return currentUserAsync.when(
+      skipLoadingOnReload: true,
       data: (user) {
         if (user == null) {
           return const Center(child: Text('Please log in'));
         }
 
         return currentStatsAsync.when(
+          skipLoadingOnReload: true,
           data: (stats) {
             final thisMonthDrunkDays = stats.thisMonthDrunkDays;
             final theme = AppColors.getTheme(thisMonthDrunkDays);
@@ -76,7 +78,8 @@ class ProfileMainView extends ConsumerWidget {
                                         ),
                                       ),
                                       const TextSpan(text: ' 음주 중이네요!'),
-                                    ] else ...[
+                                    ] else if (stats.consecutiveSoberDays >
+                                        0) ...[
                                       TextSpan(
                                         text: '${stats.consecutiveSoberDays}일째',
                                         style: TextStyle(
@@ -84,6 +87,8 @@ class ProfileMainView extends ConsumerWidget {
                                         ),
                                       ),
                                       const TextSpan(text: ' 금주 중이네요!'),
+                                    ] else ...[
+                                      const TextSpan(text: '아직 기록이 없어요!'),
                                     ],
                                   ],
                                 ),

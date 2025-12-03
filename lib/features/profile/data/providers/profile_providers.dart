@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
@@ -10,6 +11,35 @@ import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 final profileStatsServiceProvider = Provider<ProfileStatsService>((ref) {
   final drinkingRecordService = ref.watch(drinkingRecordServiceProvider);
   return ProfileStatsService(drinkingRecordService);
+});
+
+/// User badges provider (real-time)
+final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return authRepository.appUserChanges.map((user) {
+    if (user == null) {
+      return [];
+    }
+
+    final pinnedBadges = user.pinnedBadges;
+    final badges = user.badges.map((b) {
+      final isPinned = pinnedBadges.contains(b.id);
+      return b.copyWith(isPinned: isPinned);
+    }).toList();
+
+    // Sort by pinned status (pinned first) then by date descending (newest first)
+    badges.sort((a, b) {
+      if (a.isPinned && !b.isPinned) {
+        return -1;
+      }
+      if (!a.isPinned && b.isPinned) {
+        return 1;
+      }
+      return b.achievedDay.compareTo(a.achievedDay);
+    });
+
+    return badges;
+  });
 });
 
 /// Weekly stats provider (last 7 days)
@@ -41,7 +71,8 @@ final weeklyStatsOffsetProvider = StreamProvider.family<WeeklyStats, int>((
 /// Current profile stats provider (alcohol breakdown, drunk level, etc.)
 final currentProfileStatsProvider = StreamProvider<ProfileStats>((ref) {
   final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateCurrentStatsStream();
+  final userInfoAsync = ref.watch(userPhysicalInfoProvider);
+  return service.calculateCurrentStatsStream(userInfoAsync.valueOrNull);
 });
 
 /// Achievements provider
@@ -109,7 +140,9 @@ final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
   ref,
 ) async {
   final user = await ref.watch(currentUserProvider.future);
-  if (user == null) return {};
+  if (user == null) {
+    return {};
+  }
 
   return {
     'gender': user.gender,
