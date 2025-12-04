@@ -141,13 +141,18 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+    return GestureDetector(
+      onTap: () {
+        // 키보드 내림
+        FocusScope.of(context).unfocus();
+      },
+      child: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             const SizedBox(height: 40),
             // Goal setting section
             const Text(
@@ -277,6 +282,7 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
           ],
         ),
       ),
+    ),
     );
   }
 

@@ -286,29 +286,60 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    _loadGender();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadGender();
+    });
+  }
+
+  // Convert DB value to UI display value
+  String? _dbToUi(String? dbValue) {
+    switch (dbValue) {
+      case 'male':
+        return '남성';
+      case 'female':
+        return '여성';
+      default:
+        return null;
+    }
+  }
+
+  // Convert UI display value to DB value
+  String? _uiToDb(String? uiValue) {
+    switch (uiValue) {
+      case '남성':
+        return 'male';
+      case '여성':
+        return 'female';
+      default:
+        return null;
+    }
   }
 
   Future<void> _loadGender() async {
+    // Invalidate both auth state and current user to ensure fresh data
+    ref.invalidate(authStateProvider);
+    ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
-        _selectedGender = currentUser?.gender;
+        _selectedGender = _dbToUi(currentUser?.gender);
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _saveGender() async {
+  Future<void> _handleSave() async {
     if (_selectedGender == null) {
+      _showSnackBar('성별을 선택해주세요');
       return;
     }
 
     try {
       final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.updateUserInfo(gender: _selectedGender);
+      await authRepository.updateUserInfo(gender: _uiToDb(_selectedGender));
 
       // Refresh user data
+      ref.invalidate(authStateProvider);
       ref.invalidate(currentUserProvider);
 
       if (mounted) {
@@ -319,11 +350,22 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
-        );
+        _showSnackBar('저장 실패: $e', isError: true);
       }
     }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : null,
+      ),
+    );
   }
 
   @override
@@ -370,11 +412,10 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
           const SettingsSectionDivider(),
           RadioGroup<String?>(
             groupValue: _selectedGender,
-            onChanged: (value) async {
+            onChanged: (value) {
               setState(() {
                 _selectedGender = value;
               });
-              await _saveGender();
             },
             child: Column(
               children: [
@@ -383,12 +424,11 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                     '남성',
                     style: TextStyle(fontFamily: 'Inter', fontSize: 16),
                   ),
-                  leading: Radio<String>(value: '남성'),
-                  onTap: () async {
+                  leading: Radio<String?>(value: '남성'),
+                  onTap: () {
                     setState(() {
                       _selectedGender = '남성';
                     });
-                    await _saveGender();
                   },
                 ),
                 ListTile(
@@ -396,15 +436,39 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                     '여성',
                     style: TextStyle(fontFamily: 'Inter', fontSize: 16),
                   ),
-                  leading: Radio<String>(value: '여성'),
-                  onTap: () async {
+                  leading: Radio<String?>(value: '여성'),
+                  onTap: () {
                     setState(() {
                       _selectedGender = '여성';
                     });
-                    await _saveGender();
                   },
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 48),
+          Center(
+            child: ElevatedButton(
+              onPressed: _handleSave,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: const Text(
+                '저장하기',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -429,7 +493,9 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPhysicalInfo();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPhysicalInfo();
+    });
   }
 
   @override
@@ -440,6 +506,9 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
   }
 
   Future<void> _loadPhysicalInfo() async {
+    // Invalidate both auth state and current user to ensure fresh data
+    ref.invalidate(authStateProvider);
+    ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
@@ -473,6 +542,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
       );
 
       // Refresh user data
+      ref.invalidate(authStateProvider);
       ref.invalidate(currentUserProvider);
 
       if (mounted) {
@@ -657,10 +727,15 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBirthDate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadBirthDate();
+    });
   }
 
   Future<void> _loadBirthDate() async {
+    // Invalidate both auth state and current user to ensure fresh data
+    ref.invalidate(authStateProvider);
+    ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted && currentUser?.birthDate != null) {
       setState(() {
@@ -707,6 +782,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
       await authRepository.updateUserInfo(birthDate: birthDate);
 
       // Refresh user data
+      ref.invalidate(authStateProvider);
       ref.invalidate(currentUserProvider);
 
       if (mounted) {
@@ -978,7 +1054,9 @@ class _DrinkingFrequencyScreenState
   @override
   void initState() {
     super.initState();
-    _loadFrequency();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFrequency();
+    });
   }
 
   @override
@@ -988,6 +1066,9 @@ class _DrinkingFrequencyScreenState
   }
 
   Future<void> _loadFrequency() async {
+    // Invalidate both auth state and current user to ensure fresh data
+    ref.invalidate(authStateProvider);
+    ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
@@ -1037,6 +1118,7 @@ class _DrinkingFrequencyScreenState
         );
 
         // Refresh user data
+        ref.invalidate(authStateProvider);
         ref.invalidate(currentUserProvider);
 
         if (mounted) {
@@ -1199,10 +1281,15 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
   @override
   void initState() {
     super.initState();
-    _loadFavoriteDrink();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFavoriteDrink();
+    });
   }
 
   Future<void> _loadFavoriteDrink() async {
+    // Invalidate both auth state and current user to ensure fresh data
+    ref.invalidate(authStateProvider);
+    ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
@@ -1239,6 +1326,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
         );
 
         // Refresh user data
+        ref.invalidate(authStateProvider);
         ref.invalidate(currentUserProvider);
 
         if (mounted) {
@@ -1437,10 +1525,15 @@ class _AlcoholToleranceScreenState
   @override
   void initState() {
     super.initState();
-    _loadMaxAlcohol();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMaxAlcohol();
+    });
   }
 
   Future<void> _loadMaxAlcohol() async {
+    // Invalidate both auth state and current user to ensure fresh data
+    ref.invalidate(authStateProvider);
+    ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
@@ -1520,6 +1613,7 @@ class _AlcoholToleranceScreenState
         );
 
         // Refresh user data
+        ref.invalidate(authStateProvider);
         ref.invalidate(currentUserProvider);
 
         if (mounted) {

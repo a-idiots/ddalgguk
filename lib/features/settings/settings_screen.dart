@@ -26,7 +26,7 @@ class SettingsScreen extends ConsumerWidget {
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter', color: Colors.red)),
           ),
-        ],
+        ], //집에 가고 싶다 집에 가고 싶다 집에 가고 싶다 집에 보내줘 집에 가고 싶어 집 집 집 집 침대 잠 불닭
       ),
     );
 
