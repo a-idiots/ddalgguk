@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/features/onboarding/widgets/info_input_page.dart';
-import 'package:ddalgguk/features/onboarding/widgets/goal_setting_page.dart';
+import 'package:ddalgguk/features/onboarding/widgets/drinking_goal_page.dart';
+import 'package:ddalgguk/features/onboarding/widgets/drinking_habits_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/intro_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/gender_page.dart';
@@ -178,20 +179,32 @@ class _OnboardingProfileScreenState
     }
   }
 
-  void _handleGoalSubmit({
+  void _handleDrinkingGoalSubmit({
     required bool goal,
-    required int favoriteDrink,
-    required double maxAlcohol,
     required int weeklyDrinkingFrequency,
   }) {
     setState(() {
       _goal = goal;
-      _favoriteDrink = favoriteDrink;
-      _maxAlcohol = maxAlcohol;
       _weeklyDrinkingFrequency = weeklyDrinkingFrequency;
     });
     _pageController.animateToPage(
       3,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+    _saveState();
+  }
+
+  void _handleDrinkingHabitsSubmit({
+    required int favoriteDrink,
+    required double maxAlcohol,
+  }) {
+    setState(() {
+      _favoriteDrink = favoriteDrink;
+      _maxAlcohol = maxAlcohol;
+    });
+    _pageController.animateToPage(
+      4,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -237,27 +250,11 @@ class _OnboardingProfileScreenState
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = keyboardHeight > 100;
 
-    final isWhiteBg =
-        (_pageController.hasClients
-            ? (_pageController.page ?? _currentPage.toDouble())
-            : _currentPage.toDouble()) >=
-        1.5;
-
-    final backIconColor = isWhiteBg ? Colors.black87 : Colors.white;
-
     return Scaffold(
       resizeToAvoidBottomInset:
           false, // Detect keyboard manually via MediaQuery
       body: Stack(
         children: [
-          // 🔥 페이지 스크롤에 맞춰 ‘배경’이 함께 이동하는 레이어
-          Positioned.fill(
-            child: _AnimatedOnboardingBackground(
-              controller: _pageController,
-              // 초기에는 controller.page가 null일 수 있으니 폴백 전달
-              fallbackPage: _currentPage,
-            ),
-          ),
           SafeArea(
             child: Stack(
               children: [
@@ -273,8 +270,7 @@ class _OnboardingProfileScreenState
                   children: [
                     // Page 1: Name input
                     InfoInputPage(
-                      title: '당신의 이름을 알려주세요!',
-                      speechBubbleText: '안녕 나는 사쿠!\n나는 너의 간의 정령이야',
+                      title: 'Your Name',
                       hintText: '행복한술고래',
                       onNext: _handleNameSubmit,
                       validator: _validateName,
@@ -283,38 +279,30 @@ class _OnboardingProfileScreenState
                     ),
                     // Page 2: ID input
                     InfoInputPage(
-                      title: '당신의 아이디를 알려주세요!',
-                      speechBubbleText: '안녕 $_name!\n앞으로 잘 부탁해 :)',
+                      title: 'ID',
                       hintText: 'username',
                       onNext: _handleIdSubmit,
                       validator: _validateId,
                       initialValue: _id,
                       inputType: InfoInputType.id,
                     ),
-                    // Page 3: Goal setting
-                    GoalSettingPage(
-                      onComplete:
-                          ({
-                            required goal,
-                            required favoriteDrink,
-                            required maxAlcohol,
-                            required weeklyDrinkingFrequency,
-                          }) => _handleGoalSubmit(
-                            goal: goal,
-                            favoriteDrink: favoriteDrink,
-                            maxAlcohol: maxAlcohol,
-                            weeklyDrinkingFrequency: weeklyDrinkingFrequency,
-                          ),
+                    // Page 2: Drinking Goal
+                    DrinkingGoalPage(
+                      onNext: _handleDrinkingGoalSubmit,
                       initialGoal: _goal,
+                      initialWeeklyDrinkingFrequency: _weeklyDrinkingFrequency,
+                    ),
+                    // Page 3: Drinking Habits
+                    DrinkingHabitsPage(
+                      onComplete: _handleDrinkingHabitsSubmit,
                       initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
-                      initialWeeklyDrinkingFrequency: _weeklyDrinkingFrequency,
                     ),
                     // Page 3: Intro
                     IntroPage(
                       onNext: () {
                         _pageController.animateToPage(
-                          4,
+                          5,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
@@ -331,7 +319,7 @@ class _OnboardingProfileScreenState
                       onNext: _gender != null
                           ? () {
                               _pageController.animateToPage(
-                                5,
+                                6,
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
                               );
@@ -349,7 +337,7 @@ class _OnboardingProfileScreenState
                       onNext: _birthDate != null
                           ? () {
                               _pageController.animateToPage(
-                                6,
+                                7,
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
                               );
@@ -373,7 +361,7 @@ class _OnboardingProfileScreenState
                       onNext: (_height != null && _weight != null)
                           ? () {
                               _pageController.animateToPage(
-                                7,
+                                8,
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,
                               );
@@ -403,20 +391,19 @@ class _OnboardingProfileScreenState
                   ],
                 ),
                 // Page indicator - Hidden when keyboard is visible or on page 3
-                if (!isKeyboardVisible && _currentPage != 2)
+                if (!isKeyboardVisible && _currentPage <= 3)
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 40,
+                    bottom: 100,
                     child: Center(
                       child: PageIndicator(
                         currentPage: _currentPage,
-                        pageCount: 3,
+                        pageCount: 4,
                       ),
                     ),
                   ),
-                // Back button (only show on pages 2 and 3)
-                if (_currentPage > 0)
+                if (_currentPage > 0 && _currentPage < 4)
                   Positioned(
                     top: 16,
                     left: 16,
@@ -430,7 +417,7 @@ class _OnboardingProfileScreenState
                           padding: const EdgeInsets.all(8),
                           child: Icon(
                             Icons.arrow_back,
-                            color: backIconColor,
+                            color: Colors.black,
                             size: 24,
                           ),
                         ),
@@ -512,62 +499,5 @@ class _OnboardingProfileScreenState
     }
 
     return null;
-  }
-}
-
-class _AnimatedOnboardingBackground extends StatelessWidget {
-  const _AnimatedOnboardingBackground({
-    required this.controller,
-    required this.fallbackPage,
-  });
-
-  final PageController controller;
-  final int fallbackPage;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-
-        return AnimatedBuilder(
-          animation: controller,
-          builder: (context, _) {
-            // 0,1,2 페이지 사이의 실시간 위치값 (ex. 1.0 -> 1.35 -> 2.0)
-            final page = controller.hasClients
-                ? (controller.page ?? fallbackPage.toDouble())
-                : fallbackPage.toDouble();
-
-            // 기본(0~1페이지) 배경: 그라데이션
-            const gradientBg = DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFFA3A3), Color(0xFFE35252)],
-                  stops: [0.0, 0.85],
-                ),
-              ),
-            );
-
-            // 2페이지(세 번째) 배경: 오른쪽에서 슬라이드 인 되는 화이트
-            // page = 1.0  -> dx = width (오른쪽 바깥)
-            // page = 2.0  -> dx = 0     (완전히 자리 잡음)
-            final dx = ((2 - page).clamp(0.0, 1.0)) * width;
-
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                gradientBg,
-                Transform.translate(
-                  offset: Offset(dx, 0),
-                  child: const ColoredBox(color: Colors.white),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 }

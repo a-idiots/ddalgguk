@@ -26,17 +26,17 @@ class CommonOnboardingPage extends StatelessWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const SizedBox(height: 40),
+            const SizedBox(height: 120),
             Text(
               title,
               style: const TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 80),
             const SakuCharacter(size: 120), // Default size
             const SizedBox(height: 40),
             Expanded(child: content),
