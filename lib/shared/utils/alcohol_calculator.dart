@@ -41,6 +41,10 @@ class AlcoholCalculator {
     }
     if (userInfo != null && userInfo['age'] != null) {
       age = (userInfo['age'] as num).toDouble();
+    } else if (userInfo != null && userInfo['birthDate'] != null) {
+      // Calculate age from birthDate if age is not provided
+      final birthDate = userInfo['birthDate'] as DateTime;
+      age = now.difference(birthDate).inDays / 365.25;
     }
 
     final tbw = (userInfo != null && userInfo['gender'] != null)
@@ -49,7 +53,10 @@ class AlcoholCalculator {
               : -2.097 + 0.1069 * height + 0.2466 * weight
         : 0.55 * weight + 4.9 * height - 4.7 * age;
 
-    final beta = 0.015;
+    // Use user's coefficient if available, otherwise use default beta value
+    final beta = (userInfo != null && userInfo['coefficient'] != null)
+        ? (userInfo['coefficient'] as num).toDouble()
+        : 0.015;
 
     // 2. Get records for today, yesterday, and day before
     final threeDaysAgo = today.subtract(const Duration(days: 2));

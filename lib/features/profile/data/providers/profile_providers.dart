@@ -149,5 +149,6 @@ final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
     'birthDate': user.birthDate,
     'height': user.height,
     'weight': user.weight,
+    'coefficient': user.coefficient,
   };
 });
