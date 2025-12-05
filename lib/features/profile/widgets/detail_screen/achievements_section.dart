@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/badge_data.dart';
-import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/widgets/reusable_section.dart';
 
 class AchievementsSection extends ConsumerWidget {
@@ -13,27 +14,20 @@ class AchievementsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentUserProvider);
+    final badgesAsync = ref.watch(userBadgesProvider);
 
-    return userAsync.when(
-      data: (user) {
-        if (user == null) {
-          return const SizedBox.shrink();
-        }
-
-        final badges = List<Badge>.from(user.badges);
-        // Sort by date descending (newest first)
-        badges.sort((a, b) => b.achievedDay.compareTo(a.achievedDay));
-
+    return badgesAsync.when(
+      skipLoadingOnReload: true,
+      data: (badges) {
         return ProfileSection(
           title: '나의 업적',
           titleOutside: true,
           subtitle: GestureDetector(
             onTap: () {
-              _showAllAchievements(context, user.badges);
+              _showAllAchievements(context, badges, ref);
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(20),
@@ -45,7 +39,7 @@ class AchievementsSection extends ConsumerWidget {
               child: Text(
                 '더 많은 뱃지 확인하기',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   color: theme.secondaryColor.withValues(alpha: 1),
                   fontWeight: FontWeight.w500,
                 ),
@@ -76,11 +70,20 @@ class AchievementsSection extends ConsumerWidget {
                           return const SizedBox.shrink();
                         }
 
+                        final pinnedCount = badges
+                            .where((b) => b.isPinned)
+                            .length;
+
                         return Padding(
-                          padding: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.only(right: 12, top: 8),
                           child: AchievementItem(
                             data: badgeData,
                             isUnlocked: true,
+                            isPinned: badge.isPinned,
+                            showPin: badge.isPinned || pinnedCount < 4,
+                            onPin: () => ref
+                                .read(authRepositoryProvider)
+                                .toggleBadgePin(badge.id),
                           ),
                         );
                       },
@@ -97,7 +100,11 @@ class AchievementsSection extends ConsumerWidget {
     );
   }
 
-  void _showAllAchievements(BuildContext context, List<Badge> userBadges) {
+  void _showAllAchievements(
+    BuildContext context,
+    List<Badge> userBadges,
+    WidgetRef ref,
+  ) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -187,9 +194,11 @@ class AchievementsSection extends ConsumerWidget {
       itemCount: badgeMap.length,
       itemBuilder: (context, index) {
         final badgeData = badgeMap[index]!;
-        final isUnlocked = userBadges.any(
-          (b) => b.group == group && b.idx == index,
-        );
+        // Find if user has this badge
+        final userBadge = userBadges
+            .where((b) => b.group == group && b.idx == index)
+            .firstOrNull;
+        final isUnlocked = userBadge != null;
 
         return AchievementItem(
           data: badgeData,
@@ -207,22 +216,54 @@ class AchievementItem extends StatelessWidget {
     required this.data,
     required this.isUnlocked,
     this.compact = false,
+    this.isPinned = false,
+    this.showPin = false,
+    this.onPin,
   });
 
   final BadgeData data;
   final bool isUnlocked;
   final bool compact;
+  final bool isPinned;
+  final bool showPin;
+  final VoidCallback? onPin;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AchievementIcon(
-          text1: data.iconText1,
-          text2: data.iconText2,
-          color: isUnlocked ? data.color : Colors.grey[300]!,
-          size: compact ? 50 : 60,
+        Stack(
+          alignment: Alignment.topRight,
+          clipBehavior: Clip.none,
+          children: [
+            AchievementIcon(
+              text1: data.iconText1,
+              text2: data.iconText2,
+              color: isUnlocked ? data.color : Colors.grey[300]!,
+              size: compact ? 50 : 60,
+            ),
+            if (showPin && !compact)
+              Positioned(
+                top: -10,
+                right: -5,
+                child: GestureDetector(
+                  onTap: onPin,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    color: Colors.transparent,
+                    child: Transform.rotate(
+                      angle: 0.785398, // 45 degrees in radians (π/4)
+                      child: Icon(
+                        isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(

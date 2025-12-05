@@ -19,7 +19,7 @@ class AlcoholBreakdownSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final breakdown = stats.breakdown;
-    final today = DateFormat('M월 d일').format(DateTime.now());
+    final today = DateFormat('MM.dd.').format(DateTime.now());
 
     return ProfileSection(
       title: '혈중 알콜 분해 현황',
@@ -29,7 +29,10 @@ class AlcoholBreakdownSection extends StatelessWidget {
           // Semicircular chart
           SemicircularChart(
             progress: breakdown.progressPercentage / 100,
-            centerText: _getTimeText(stats.timeToSober),
+            topLabel: stats.timeToSober <= 0
+                ? '완전 분해 완료'
+                : '완전 분해까지 ${_getTimeText(stats.timeToSober)}',
+            bottomLabel: '${breakdown.alcoholRemaining.toStringAsFixed(3)}%',
             activeColor: theme.primaryColor,
             size: 280,
           ),

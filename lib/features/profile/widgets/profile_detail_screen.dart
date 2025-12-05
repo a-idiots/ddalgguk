@@ -29,49 +29,10 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
 
 class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
   final ScrollController _scrollController = ScrollController();
-  double _overscrollDistance = 0;
-
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  bool _handleScrollNotification(ScrollNotification notification) {
-    if (notification is OverscrollNotification) {
-      // Only handle overscroll at the top (negative overscroll)
-      if (notification.overscroll < 0) {
-        setState(() {
-          _overscrollDistance += notification.overscroll.abs();
-        });
-      }
-    } else if (notification is ScrollEndNotification) {
-      // Check if should navigate back
-      final screenHeight = MediaQuery.of(context).size.height;
-      final threshold = screenHeight * 0.15;
-
-      if (_overscrollDistance > threshold) {
-        if (widget.onBack != null) {
-          widget.onBack!();
-        } else {
-          // If inside PageView, this might not be needed, but keeping for safety
-          // Navigator.of(context).pop();
-        }
-      }
-
-      setState(() {
-        _overscrollDistance = 0;
-      });
-    } else if (notification is ScrollUpdateNotification) {
-      // Reset if user starts scrolling down
-      if (notification.scrollDelta != null && notification.scrollDelta! > 0) {
-        setState(() {
-          _overscrollDistance = 0;
-        });
-      }
-    }
-
-    return false;
   }
 
   @override
@@ -81,12 +42,14 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
 
     return currentUserAsync.when(
+      skipLoadingOnReload: true,
       data: (user) {
         if (user == null) {
           return const Scaffold(body: Center(child: Text('Please log in')));
         }
 
         return currentStatsAsync.when(
+          skipLoadingOnReload: true,
           data: (currentStats) {
             final theme = AppColors.getTheme(currentStats.thisMonthDrunkDays);
 
@@ -96,75 +59,55 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                 theme: theme,
                 reversed: true,
                 child: SafeArea(
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: _handleScrollNotification,
-                    child: CustomScrollView(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        // Header (scrollable, not sticky)
-                        SliverToBoxAdapter(
-                          child: ProfileHeader(
-                            user: user,
-                            theme: theme,
-                            showCharacter: widget.showCharacter,
-                            drunkLevel: weeklyStatsAsync.when(
-                              data: (stats) => stats.averageDrunkLevel.round(),
-                              loading: () => 0,
-                              error: (_, __) => 0,
-                            ),
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      // Header (scrollable, not sticky)
+                      SliverToBoxAdapter(
+                        child: ProfileHeader(
+                          user: user,
+                          theme: theme,
+                          showCharacter: widget.showCharacter,
+                          drunkLevel: weeklyStatsAsync.when(
+                            skipLoadingOnReload: true,
+                            data: (stats) => stats.averageDrunkLevel.round(),
+                            loading: () => 0,
+                            error: (_, __) => 0,
                           ),
                         ),
-                        // Content
-                        SliverList(
-                          delegate: SliverChildListDelegate([
-                            // Section 2-1: Weekly Saku
-                            weeklyStatsAsync.when(
-                              data: (weeklyStats) => WeeklySakuSection(
-                                weeklyStats: weeklyStats,
-                                theme: theme,
-                              ),
-                              loading: () => const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(32.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              error: (error, stack) => const SizedBox.shrink(),
-                            ),
-                            const SizedBox(height: 8),
-                            // Section 2-2: Achievements
-                            // Section 2-2: Achievements
-                            AchievementsSection(theme: theme),
-                            const SizedBox(height: 8),
-                            // Section 2-3: Alcohol Breakdown
-                            AlcoholBreakdownSection(
-                              stats: currentStats,
+                      ),
+                      // Content
+                      SliverList(
+                        delegate: SliverChildListDelegate([
+                          // Section 2-1: Weekly Saku
+                          weeklyStatsAsync.when(
+                            skipLoadingOnReload: true,
+                            data: (weeklyStats) => WeeklySakuSection(
+                              weeklyStats: weeklyStats,
                               theme: theme,
                             ),
-                            const SizedBox(height: 8),
-                            // Section 2-4: Report Card
-                            /*
-                            ReportCardSection(
-                              theme: theme,
-                              onTap: () {
-                                if (widget.onNavigateToAnalytics != null) {
-                                  widget.onNavigateToAnalytics!();
-                                } else {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ReportScreen(),
-                                    ),
-                                  );
-                                }
-                              },
-                            ), */
-                            const SizedBox(height: 32),
-                          ]),
-                        ),
-                      ],
-                    ),
+                            loading: () => const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            error: (error, stack) => const SizedBox.shrink(),
+                          ),
+                          const SizedBox(height: 8),
+                          // Section 2-2: Achievements
+                          AchievementsSection(theme: theme),
+                          const SizedBox(height: 8),
+                          // Section 2-3: Alcohol Breakdown
+                          AlcoholBreakdownSection(
+                            stats: currentStats,
+                            theme: theme,
+                          ),
+                          const SizedBox(height: 32),
+                        ]),
+                      ),
+                    ],
                   ),
                 ),
               ),
