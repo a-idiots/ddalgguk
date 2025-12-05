@@ -292,7 +292,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         isLoading: _isLoading,
                       ),
                     ),
-                    const SizedBox(height: 96),
+                    const SizedBox(height: 48),
 
                     // Terms and Privacy Policy
                     Text(

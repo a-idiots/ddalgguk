@@ -5,13 +5,15 @@ class SemicircularChart extends StatelessWidget {
   const SemicircularChart({
     super.key,
     required this.progress, // 0.0 to 1.0
-    required this.centerText,
+    required this.topLabel,
+    required this.bottomLabel,
     required this.activeColor,
     this.size = 200,
   });
 
   final double progress;
-  final String centerText;
+  final String topLabel;
+  final String bottomLabel;
   final Color activeColor;
   final double size;
 
@@ -31,14 +33,28 @@ class SemicircularChart extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: 16,
-            child: Text(
-              centerText,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            bottom: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  topLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  bottomLabel,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

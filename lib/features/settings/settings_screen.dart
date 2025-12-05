@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
@@ -41,10 +40,8 @@ class SettingsScreen extends ConsumerWidget {
         final authRepository = ref.read(authRepositoryProvider);
         await authRepository.signOut();
 
-        if (context.mounted) {
-          // Navigation will be handled automatically by go_router redirect
-          context.go(Routes.login);
-        }
+        // Force provider update to trigger router redirect
+        ref.invalidate(authStateProvider);
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
