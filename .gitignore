@@ -82,7 +82,6 @@ gen/
 # Firebase configuration files
 **/android/app/google-services.json
 **/ios/Runner/GoogleService-Info.plist
-firebase_options.dart
 
 # Environment variables
 .env
