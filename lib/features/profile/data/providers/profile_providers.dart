@@ -109,7 +109,9 @@ final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
   ref,
 ) async {
   final user = await ref.watch(currentUserProvider.future);
-  if (user == null) return {};
+  if (user == null) {
+    return {};
+  }
 
   return {
     'gender': user.gender,
