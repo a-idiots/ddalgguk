@@ -7,7 +7,7 @@ import 'package:ddalgguk/features/social/widgets/friend_card.dart';
 import 'package:ddalgguk/features/social/widgets/screens/add_friends.dart';
 import 'package:ddalgguk/features/social/widgets/screens/postbox_screen.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
-import 'package:ddalgguk/shared/widgets/receipt_bottom_sheet.dart';
+import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -122,8 +122,8 @@ class SocialScreen extends ConsumerWidget {
                     );
                   }
                 : () {
-                    // 친구 프로필 미리보기 영수증 바텀 시트 표시
-                    showReceiptBottomSheet(
+                    // 친구 프로필 미리보기 바텀 시트 표시
+                    showBottomHandleDialogue(
                       context: context,
                       child: FriendProfileDialog(friendData: friendData),
                     );
