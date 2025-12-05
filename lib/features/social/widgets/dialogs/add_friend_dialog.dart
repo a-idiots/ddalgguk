@@ -4,6 +4,7 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,6 +24,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
   bool _isSearching = false;
   String? _foundUserName;
   String? _foundUserId;
+  AppUser? _foundUser;
   List<AppUser> _suggestions = [];
   Timer? _debounce;
   bool _showSuggestions = false;
@@ -132,6 +134,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
       _userIdController.text = '@${user.id ?? ''}';
       _foundUserName = user.name ?? 'Unknown';
       _foundUserId = user.uid;
+      _foundUser = user;
       _showSuggestions = false;
       _suggestions = [];
     });
@@ -160,6 +163,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
       if (user != null) {
         setState(() {
+          _foundUser = user;
           _foundUserName = user.name ?? 'Unknown';
           _foundUserId = user.uid;
           _showSuggestions = false;
@@ -173,6 +177,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
         setState(() {
           _foundUserName = null;
           _foundUserId = null;
+          _foundUser = null;
         });
       }
     } catch (e) {
@@ -246,6 +251,46 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Widget _buildProfileAvatar(AppUser user, {double size = 32}) {
+    final photoIndex = user.profilePhoto;
+
+    const alcoholIcons = [
+      'assets/alcohol_icons/soju.png',
+      'assets/alcohol_icons/beer.png',
+      'assets/alcohol_icons/cocktail.png',
+      'assets/alcohol_icons/wine.png',
+      'assets/alcohol_icons/makgulli.png',
+    ];
+
+    Widget avatar;
+    if (photoIndex <= 10) {
+      avatar = SakuCharacter(size: size, drunkLevel: photoIndex * 10);
+    } else {
+      final iconIndex = photoIndex - 11;
+      if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
+        avatar = Image.asset(
+          alcoholIcons[iconIndex],
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+        );
+      } else {
+        avatar = Icon(Icons.person, size: size * 0.7, color: Colors.grey[600]);
+      }
+    }
+
+    return Container(
+      width: size + 6,
+      height: size + 6,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Center(child: avatar),
+    );
   }
 
   @override
@@ -342,20 +387,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                           return ListTile(
                             dense: true,
                             onTap: () => _selectSuggestion(user),
-                            leading: CircleAvatar(
-                              radius: 16,
-                              backgroundColor: AppColors.primaryPink.withValues(
-                                alpha: 0.2,
-                              ),
-                              child: Text(
-                                (user.name ?? 'Unknown')[0].toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryPink,
-                                ),
-                              ),
-                            ),
+                            leading: _buildProfileAvatar(user, size: 30),
                             title: Text(
                               '@${user.id ?? ''}',
                               style: const TextStyle(
@@ -380,7 +412,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                 ],
               ),
               // 검색 결과
-              if (_foundUserName != null) ...[
+              if (_foundUserName != null && _foundUser != null) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -391,15 +423,32 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.green),
+                      _buildProfileAvatar(_foundUser!, size: 38),
                       const SizedBox(width: 12),
-                      Text(
-                        '사용자를 찾았습니다: $_foundUserName',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _foundUserName!,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '@${_foundUser!.id ?? ''}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.check_circle, color: Colors.green),
                     ],
                   ),
                 ),
