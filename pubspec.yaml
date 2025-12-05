@@ -41,7 +41,7 @@ dependencies:
   cloud_firestore: ^6.1.0
 
   # Social Login
-  google_sign_in: ^6.2.3
+  google_sign_in: 6.2.2
   sign_in_with_apple: ^6.1.4
   kakao_flutter_sdk_user: ^1.9.5
 
