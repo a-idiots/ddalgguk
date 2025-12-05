@@ -155,16 +155,16 @@ class SettingsScreen extends ConsumerWidget {
                     Container(
                       width: 64,
                       height: 64,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: _buildProfileAvatar(user.profilePhoto),
                     ),
-                    child: _buildProfileAvatar(user.profilePhoto),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             user.name ?? 'Unknown User',

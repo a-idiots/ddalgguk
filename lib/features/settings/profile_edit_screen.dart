@@ -122,11 +122,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        childAspectRatio: 1,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
+                            crossAxisCount: 4,
+                            childAspectRatio: 1,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
                       itemCount: 11,
                       itemBuilder: (context, index) {
                         final isSelected = _selectedProfilePhoto == index;
@@ -150,10 +150,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                               alignment: Alignment.center,
                               children: [
                                 // Saku character with different body based on index
-                                SakuCharacter(
-                                  size: 60,
-                                  drunkLevel: index * 10,
-                                ),
+                                SakuCharacter(size: 60, drunkLevel: index * 10),
                                 // Selection indicator (check only)
                                 if (isSelected)
                                   Positioned(
@@ -196,11 +193,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        childAspectRatio: 1,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
+                            crossAxisCount: 4,
+                            childAspectRatio: 1,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
                       itemCount: 5,
                       itemBuilder: (context, index) {
                         final profilePhotoIndex = 11 + index;
@@ -301,9 +298,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('프로필이 저장되었습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('프로필이 저장되었습니다')));
       }
     } catch (e) {
       if (mounted) {
