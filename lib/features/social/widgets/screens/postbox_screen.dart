@@ -4,6 +4,7 @@ import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:ddalgguk/shared/widgets/page_header.dart';
 
 /// 친구 요청 우편함 화면
 class PostboxScreen extends ConsumerWidget {
@@ -15,12 +16,7 @@ class PostboxScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('친구 요청'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
+      appBar: const CommonPageHeader(title: '친구 신청'),
       body: requestsAsync.when(
         data: (requests) {
           if (requests.isEmpty) {

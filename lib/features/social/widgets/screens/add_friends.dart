@@ -5,6 +5,7 @@ import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/page_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -310,12 +311,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('친구 추가'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
+      appBar: const CommonPageHeader(title: '친구 추가'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
