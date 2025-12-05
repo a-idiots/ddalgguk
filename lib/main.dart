@@ -21,6 +21,9 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // Hide Android bottom navigation bar (auto-hides after appearing)
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   // Load environment variables
   await dotenv.load(fileName: '.env');
 

@@ -1,4 +1,3 @@
-import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class AppBottomNavBar extends StatelessWidget {
@@ -13,24 +12,93 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      selectedItemColor: AppColors.primaryPink,
-      unselectedItemColor: Colors.grey,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      selectedIconTheme: const IconThemeData(size: 30),
-      unselectedIconTheme: const IconThemeData(size: 28),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.menu), label: ''),
-      ],
+    return Container(
+      height: 80, // Fixed height to prevent layout shifts
+      padding: const EdgeInsets.only(top: 6, bottom: 24, left: 4, right: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        border: Border(top: BorderSide(color: Colors.grey[300]!, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final itemWidth = constraints.maxWidth / 5;
+          final itemHeight = constraints.maxHeight;
+
+          return Stack(
+            children: [
+              // Sliding Highlight Pill
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                left: currentIndex * itemWidth,
+                top: 0,
+                width: itemWidth,
+                height: itemHeight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2F2F2F),
+                    borderRadius: BorderRadius.circular(50),
+                  ),
+                ),
+              ),
+              // Navigation Items
+              Row(
+                children: [
+                  _buildNavItem(0, Icons.person, '마이페이지', itemWidth),
+                  _buildNavItem(1, Icons.people, '친구', itemWidth),
+                  _buildNavItem(2, Icons.calendar_today, '캘린더', itemWidth),
+                  _buildNavItem(3, Icons.bar_chart, '리포트', itemWidth),
+                  _buildNavItem(4, Icons.settings, '설정', itemWidth),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label, double width) {
+    final isSelected = currentIndex == index;
+
+    // Colors
+    final color = isSelected ? const Color(0xFFF27B7B) : Colors.grey[400];
+
+    return SizedBox(
+      width: width,
+      child: GestureDetector(
+        onTap: () => onTap(index),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: icon == Icons.calendar_today ? 20 : 24,
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 8,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
