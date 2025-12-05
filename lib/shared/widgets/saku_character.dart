@@ -66,10 +66,10 @@ class _SakuCharacterState extends State<SakuCharacter>
       duration: const Duration(milliseconds: 200),
     );
 
-    _sizeAnimation = Tween<double>(begin: widget.size, end: widget.size)
-        .animate(
-          CurvedAnimation(parent: _sizeController, curve: Curves.easeInOut),
-        );
+    _sizeAnimation =
+        Tween<double>(begin: widget.size, end: widget.size).animate(
+      CurvedAnimation(parent: _sizeController, curve: Curves.easeInOut),
+    );
 
     _sizeAnimation.addListener(() {
       setState(() {

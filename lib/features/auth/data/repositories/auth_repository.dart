@@ -19,12 +19,12 @@ class AuthRepository {
     KakaoAuthService? kakaoAuthService,
     FirebaseFirestore? firestore,
     SecureStorageService? storageService,
-  }) : _firebaseAuthService = firebaseAuthService ?? FirebaseAuthService(),
-       _googleAuthService = googleAuthService ?? GoogleAuthService(),
-       _appleAuthService = appleAuthService ?? AppleAuthService(),
-       _kakaoAuthService = kakaoAuthService ?? KakaoAuthService(),
-       _firestore = firestore ?? FirebaseFirestore.instance,
-       _storageService = storageService ?? SecureStorageService.instance;
+  })  : _firebaseAuthService = firebaseAuthService ?? FirebaseAuthService(),
+        _googleAuthService = googleAuthService ?? GoogleAuthService(),
+        _appleAuthService = appleAuthService ?? AppleAuthService(),
+        _kakaoAuthService = kakaoAuthService ?? KakaoAuthService(),
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _storageService = storageService ?? SecureStorageService.instance;
 
   final FirebaseAuthService _firebaseAuthService;
   final GoogleAuthService _googleAuthService;
@@ -472,24 +472,23 @@ class AuthRepository {
         // Try to get last login provider from storage
         final lastProvider = await _storageService.getLastLoginProvider();
 
-        updatedUser =
-            AppUser.fromFirebaseUser(
-              uid: uid,
-              photoURL: firebaseUser.photoURL,
-              provider: lastProvider ?? LoginProvider.google,
-            ).copyWith(
-              id: id,
-              name: name,
-              goal: goal,
-              favoriteDrink: favoriteDrink,
-              maxAlcohol: maxAlcohol,
-              weeklyDrinkingFrequency: weeklyDrinkingFrequency,
-              hasCompletedProfileSetup: true,
-              gender: gender,
-              birthDate: birthDate,
-              height: height,
-              weight: weight,
-            );
+        updatedUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          photoURL: firebaseUser.photoURL,
+          provider: lastProvider ?? LoginProvider.google,
+        ).copyWith(
+          id: id,
+          name: name,
+          goal: goal,
+          favoriteDrink: favoriteDrink,
+          maxAlcohol: maxAlcohol,
+          weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+          hasCompletedProfileSetup: true,
+          gender: gender,
+          birthDate: birthDate,
+          height: height,
+          weight: weight,
+        );
       }
 
       // Save to Firestore

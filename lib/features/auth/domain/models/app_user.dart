@@ -43,8 +43,7 @@ class AppUser {
   factory AppUser.fromJson(Map<String, dynamic> json) {
     return AppUser(
       uid: json['uid'] as String,
-      provider:
-          LoginProvider.fromString(json['provider'] as String?) ??
+      provider: LoginProvider.fromString(json['provider'] as String?) ??
           LoginProvider.google,
       photoURL: json['photoURL'] as String?,
       hasCompletedProfileSetup:
@@ -74,8 +73,8 @@ class AppUser {
           : null,
       badges: json['badge'] != null
           ? (json['badge'] as List)
-                .map((e) => Badge.fromJson(e as Map<String, dynamic>))
-                .toList()
+              .map((e) => Badge.fromJson(e as Map<String, dynamic>))
+              .toList()
           : const [],
       pinnedBadges: json['pinnedBadges'] != null
           ? List<String>.from(json['pinnedBadges'] as List)
@@ -86,15 +85,13 @@ class AppUser {
       gender: json['gender'] as String?,
       birthDate: json['birthDate'] != null
           ? (json['birthDate'] is Timestamp
-                ? (json['birthDate'] as Timestamp).toDate()
-                : DateTime.tryParse(json['birthDate'].toString()))
+              ? (json['birthDate'] as Timestamp).toDate()
+              : DateTime.tryParse(json['birthDate'].toString()))
           : null,
-      height: json['height'] != null
-          ? (json['height'] as num).toDouble()
-          : null,
-      weight: json['weight'] != null
-          ? (json['weight'] as num).toDouble()
-          : null,
+      height:
+          json['height'] != null ? (json['height'] as num).toDouble() : null,
+      weight:
+          json['weight'] != null ? (json['weight'] as num).toDouble() : null,
     );
   }
 
@@ -116,7 +113,7 @@ class AppUser {
   // Recent Drink Info
   final int? currentDrunkLevel; // 현재 술 레벨 (0-10)
   final List<int>?
-  weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
+      weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
   final DateTime? lastDrinkDate; // 마지막 음주 날짜
 
   // Daily Status

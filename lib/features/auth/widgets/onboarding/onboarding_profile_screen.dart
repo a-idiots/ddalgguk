@@ -233,8 +233,7 @@ class _OnboardingProfileScreenState
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = keyboardHeight > 100;
 
-    final isWhiteBg =
-        (_pageController.hasClients
+    final isWhiteBg = (_pageController.hasClients
             ? (_pageController.page ?? _currentPage.toDouble())
             : _currentPage.toDouble()) >=
         1.5;
@@ -289,18 +288,18 @@ class _OnboardingProfileScreenState
                     ),
                     // Page 3: Goal setting
                     GoalSettingPage(
-                      onComplete:
-                          ({
-                            required goal,
-                            required favoriteDrink,
-                            required maxAlcohol,
-                            required weeklyDrinkingFrequency,
-                          }) => _handleGoalSubmit(
-                            goal: goal,
-                            favoriteDrink: favoriteDrink,
-                            maxAlcohol: maxAlcohol,
-                            weeklyDrinkingFrequency: weeklyDrinkingFrequency,
-                          ),
+                      onComplete: ({
+                        required goal,
+                        required favoriteDrink,
+                        required maxAlcohol,
+                        required weeklyDrinkingFrequency,
+                      }) =>
+                          _handleGoalSubmit(
+                        goal: goal,
+                        favoriteDrink: favoriteDrink,
+                        maxAlcohol: maxAlcohol,
+                        weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+                      ),
                       initialGoal: _goal,
                       initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
@@ -700,9 +699,8 @@ class _CommonOnboardingPage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onNext,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: onNext != null
-                      ? Colors.black
-                      : Colors.grey[300],
+                  backgroundColor:
+                      onNext != null ? Colors.black : Colors.grey[300],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),

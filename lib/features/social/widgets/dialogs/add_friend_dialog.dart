@@ -425,9 +425,8 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () => Navigator.of(context).pop(),
+                    onPressed:
+                        _isLoading ? null : () => Navigator.of(context).pop(),
                     child: const Text('취소'),
                   ),
                   const SizedBox(width: 8),

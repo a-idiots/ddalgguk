@@ -24,8 +24,8 @@ Widget logoFlightShuttleBuilder(
       final gradientOpacity = t < 0.25
           ? 0.0
           : t > 0.6
-          ? 1.0
-          : (t - 0.25) / 0.35;
+              ? 1.0
+              : (t - 0.25) / 0.35;
 
       final startColor = Color.lerp(
         const Color(0xFFEA6B6B),
@@ -125,11 +125,11 @@ class _AnimatedLoginTransitionState extends State<AnimatedLoginTransition>
 
     _logoPosition =
         Tween<Offset>(begin: Offset.zero, end: const Offset(0, -0.6)).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.33, 0.67, curve: Curves.easeInOut),
-          ),
-        );
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.33, 0.67, curve: Curves.easeInOut),
+      ),
+    );
 
     // Buttons fade-in: 70~100% 구간에서 순차 등장 (카카오 → 구글 → 애플)
     _kakaoButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(

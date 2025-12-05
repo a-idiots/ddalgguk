@@ -18,7 +18,8 @@ class KakaoLoginButton extends BaseSocialLoginButton {
   Color get backgroundColor => const Color(0xFFFEE500); // Kakao Yellow #FEE500
 
   @override
-  Color get foregroundColor => Colors.black.withValues(alpha: 0.85); // 85% opacity
+  Color get foregroundColor =>
+      Colors.black.withValues(alpha: 0.85); // 85% opacity
 
   @override
   String get logoAssetPath => 'assets/login_icon/kakao_logo.svg';

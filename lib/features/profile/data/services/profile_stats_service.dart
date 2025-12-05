@@ -99,8 +99,7 @@ class ProfileStatsService {
       for (final drink in record.drinkAmount) {
         // Aggregate drink type stats
         final type = drink.drinkType;
-        final currentStat =
-            drinkTypeStatsMap[type] ??
+        final currentStat = drinkTypeStatsMap[type] ??
             DrinkTypeStat(
               drinkType: type,
               totalAmountMl: 0,
@@ -113,8 +112,7 @@ class ProfileStatsService {
           maxAmountMl: drink.amount > currentStat.maxAmountMl
               ? drink.amount.toDouble()
               : currentStat.maxAmountMl,
-          pureAlcoholMl:
-              currentStat.pureAlcoholMl +
+          pureAlcoholMl: currentStat.pureAlcoholMl +
               (drink.amount * (drink.alcoholContent / 100)),
         );
       }
@@ -308,9 +306,8 @@ class ProfileStatsService {
 
       // Achievement 3: Low Level Drinker
       final avgDrunkLevel = weeklyStats.averageDrunkLevel;
-      final lowLevelProgress = avgDrunkLevel <= 5
-          ? 1.0
-          : (5 / avgDrunkLevel).clamp(0.0, 1.0);
+      final lowLevelProgress =
+          avgDrunkLevel <= 5 ? 1.0 : (5 / avgDrunkLevel).clamp(0.0, 1.0);
       achievements.add(
         Achievement(
           id: 'moderate_drinker',

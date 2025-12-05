@@ -1073,8 +1073,8 @@ class _DrinkingFrequencyScreenState
     if (mounted) {
       setState(() {
         if (currentUser?.weeklyDrinkingFrequency != null) {
-          _frequencyController.text = currentUser!.weeklyDrinkingFrequency
-              .toString();
+          _frequencyController.text =
+              currentUser!.weeklyDrinkingFrequency.toString();
         }
         _isLoading = false;
       });
@@ -1489,9 +1489,8 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.black87
-                                  : Colors.black54,
+                              color:
+                                  isSelected ? Colors.black87 : Colors.black54,
                             ),
                           ),
                         ],

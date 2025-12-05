@@ -11,9 +11,9 @@ class DrinkingRecordService {
     FirebaseFirestore? firestore,
     FirebaseAuth? firebaseAuth,
     FriendService? friendService,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _auth = firebaseAuth ?? FirebaseAuth.instance,
-       _friendService = friendService ?? FriendService();
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = firebaseAuth ?? FirebaseAuth.instance,
+        _friendService = friendService ?? FriendService();
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -244,9 +244,8 @@ class DrinkingRecordService {
           0,
           (total, r) => total + r.drunkLevel,
         );
-        final avgDrunkLevel = records.isNotEmpty
-            ? (totalDrunkLevel / records.length).round()
-            : 0;
+        final avgDrunkLevel =
+            records.isNotEmpty ? (totalDrunkLevel / records.length).round() : 0;
 
         await _friendService.updateMyDrinkingData(
           drunkLevel: avgDrunkLevel,
@@ -389,24 +388,23 @@ class DrinkingRecordService {
         .where('yearMonth', isEqualTo: yearMonthStr)
         .snapshots()
         .handleError((error) {
-          debugPrint('ERROR in streamRecordsByMonth: $error');
-        })
-        .map((snapshot) {
-          final records = snapshot.docs
-              .map((doc) => DrinkingRecord.fromFirestore(doc))
-              .toList();
+      debugPrint('ERROR in streamRecordsByMonth: $error');
+    }).map((snapshot) {
+      final records = snapshot.docs
+          .map((doc) => DrinkingRecord.fromFirestore(doc))
+          .toList();
 
-          // 메모리에서 정렬
-          records.sort((a, b) {
-            final dateCompare = a.date.compareTo(b.date);
-            if (dateCompare != 0) {
-              return dateCompare;
-            }
-            return a.sessionNumber.compareTo(b.sessionNumber);
-          });
+      // 메모리에서 정렬
+      records.sort((a, b) {
+        final dateCompare = a.date.compareTo(b.date);
+        if (dateCompare != 0) {
+          return dateCompare;
+        }
+        return a.sessionNumber.compareTo(b.sessionNumber);
+      });
 
-          return records;
-        });
+      return records;
+    });
   }
 
   /// 실시간 음주 기록 스트림 (특정 기간)

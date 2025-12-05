@@ -270,8 +270,8 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
 
         final maxAmount =
             displayItems.isNotEmpty && displayItems.first.totalAmountMl > 0
-            ? displayItems.first.totalAmountMl
-            : 1.0; // Avoid division by zero
+                ? displayItems.first.totalAmountMl
+                : 1.0; // Avoid division by zero
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

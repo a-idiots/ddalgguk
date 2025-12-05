@@ -366,13 +366,11 @@ class _DrinkingRecordItem extends StatelessWidget {
     if (amounts.isEmpty) {
       return '';
     }
-    return amounts
-        .map((a) {
-          final typeName = _getDrinkTypeName(a.drinkType);
-          final amountStr = _formatAmount(a.amount);
-          return '$typeName $amountStr';
-        })
-        .join(', ');
+    return amounts.map((a) {
+      final typeName = _getDrinkTypeName(a.drinkType);
+      final amountStr = _formatAmount(a.amount);
+      return '$typeName $amountStr';
+    }).join(', ');
   }
 
   String _getDrinkTypeName(int type) {
