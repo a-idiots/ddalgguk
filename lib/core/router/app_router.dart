@@ -94,7 +94,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             ? now.difference(notifier.logoutTime!)
             : const Duration(days: 999);
 
-        final shouldWait = bootElapsed < kSplashMinDisplay ||
+        final shouldWait =
+            bootElapsed < kSplashMinDisplay ||
             logoutElapsed < kSplashMinDisplay;
 
         if (shouldWait) {
@@ -153,17 +154,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             reverseTransitionDuration: const Duration(milliseconds: 300),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              return HeroControllerScope(
-                controller: HeroController(
-                  createRectTween: (begin, end) =>
-                      MaterialRectArcTween(begin: begin, end: end),
-                ),
-                child: _CircularRevealTransition(
-                  animation: animation,
-                  child: child,
-                ),
-              );
-            },
+                  return HeroControllerScope(
+                    controller: HeroController(
+                      createRectTween: (begin, end) =>
+                          MaterialRectArcTween(begin: begin, end: end),
+                    ),
+                    child: _CircularRevealTransition(
+                      animation: animation,
+                      child: child,
+                    ),
+                  );
+                },
           );
         },
       ),
@@ -178,19 +179,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             transitionDuration: const Duration(milliseconds: 450),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              // Slide from Right to Left
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOut;
-              final tween = Tween(
-                begin: begin,
-                end: end,
-              ).chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: child,
-              );
-            },
+                  // Slide from Right to Left
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  final tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
           );
         },
       ),
@@ -206,19 +207,19 @@ final routerProvider = Provider<GoRouter>((ref) {
             transitionDuration: const Duration(milliseconds: 450),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              // Slide from Right to Left
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOut;
-              final tween = Tween(
-                begin: begin,
-                end: end,
-              ).chain(CurveTween(curve: curve));
-              return SlideTransition(
-                position: animation.drive(tween),
-                child: child,
-              );
-            },
+                  // Slide from Right to Left
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOut;
+                  final tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
           );
         },
       ),

@@ -217,16 +217,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final textColor = isOutsideMonth
         ? Colors.grey
         : isToday
-            ? Colors.red
-            : Colors.black87;
+        ? Colors.red
+        : Colors.black87;
 
     // 기록 유무 및 평균 취함 정도 확인
     final records = _getRecordsForDay(date);
     final hasRecord = records.isNotEmpty;
     final avgDrunkLevel = hasRecord
         ? (records.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
-                records.length)
-            .round()
+                  records.length)
+              .round()
         : 0;
 
     const sakuSize = 44.0;

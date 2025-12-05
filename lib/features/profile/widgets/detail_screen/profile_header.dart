@@ -25,8 +25,9 @@ class ProfileHeader extends StatelessWidget {
       return '$glasses잔';
     } else {
       // If integer, show as integer. If decimal, show as decimal.
-      final formatted =
-          amount % 1 == 0 ? amount.toInt().toString() : amount.toString();
+      final formatted = amount % 1 == 0
+          ? amount.toInt().toString()
+          : amount.toString();
       return '$formatted병';
     }
   }

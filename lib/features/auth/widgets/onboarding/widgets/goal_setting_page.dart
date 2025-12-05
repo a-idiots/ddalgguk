@@ -17,7 +17,8 @@ class GoalSettingPage extends StatefulWidget {
     required int favoriteDrink,
     required double maxAlcohol,
     required int weeklyDrinkingFrequency,
-  }) onComplete;
+  })
+  onComplete;
 
   final bool? initialGoal;
   final int? initialFavoriteDrink;
@@ -319,8 +320,9 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                 height: 12,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:
-                      isSelected ? const Color(0xFFFF6B6B) : Colors.transparent,
+                  color: isSelected
+                      ? const Color(0xFFFF6B6B)
+                      : Colors.transparent,
                 ),
               ),
             ),
@@ -402,8 +404,9 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color:
-                                  isSelected ? Colors.black87 : Colors.black54,
+                              color: isSelected
+                                  ? Colors.black87
+                                  : Colors.black54,
                             ),
                           ),
                         ],

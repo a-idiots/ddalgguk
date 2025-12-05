@@ -99,39 +99,41 @@ final monthlySpendingProvider = Provider.family<AsyncValue<int>, DateTime>((
 /// Negative value means spent more (spent more than last month)
 final monthlySpendingComparisonProvider =
     Provider.family<AsyncValue<int>, DateTime>((ref, date) {
-  final currentAsync = ref.watch(monthRecordsProvider(date));
+      final currentAsync = ref.watch(monthRecordsProvider(date));
 
-  // Calculate previous month correctly (handle January -> December)
-  final prevMonth = date.month == 1 ? 12 : date.month - 1;
-  final prevYear = date.month == 1 ? date.year - 1 : date.year;
-  final prevDate = DateTime(prevYear, prevMonth);
+      // Calculate previous month correctly (handle January -> December)
+      final prevMonth = date.month == 1 ? 12 : date.month - 1;
+      final prevYear = date.month == 1 ? date.year - 1 : date.year;
+      final prevDate = DateTime(prevYear, prevMonth);
 
-  final prevAsync = ref.watch(monthRecordsProvider(prevDate));
+      final prevAsync = ref.watch(monthRecordsProvider(prevDate));
 
-  if (currentAsync.isLoading || prevAsync.isLoading) {
-    return const AsyncValue.loading();
-  }
+      if (currentAsync.isLoading || prevAsync.isLoading) {
+        return const AsyncValue.loading();
+      }
 
-  if (currentAsync.hasError) {
-    return AsyncValue.error(currentAsync.error!, currentAsync.stackTrace!);
-  }
-  if (prevAsync.hasError) {
-    return AsyncValue.error(prevAsync.error!, prevAsync.stackTrace!);
-  }
+      if (currentAsync.hasError) {
+        return AsyncValue.error(currentAsync.error!, currentAsync.stackTrace!);
+      }
+      if (prevAsync.hasError) {
+        return AsyncValue.error(prevAsync.error!, prevAsync.stackTrace!);
+      }
 
-  final currentSum = currentAsync.valueOrNull?.fold<int>(
-        0,
-        (sum, record) => sum + record.cost,
-      ) ??
-      0;
-  final prevSum = prevAsync.valueOrNull?.fold<int>(
-        0,
-        (sum, record) => sum + record.cost,
-      ) ??
-      0;
+      final currentSum =
+          currentAsync.valueOrNull?.fold<int>(
+            0,
+            (sum, record) => sum + record.cost,
+          ) ??
+          0;
+      final prevSum =
+          prevAsync.valueOrNull?.fold<int>(
+            0,
+            (sum, record) => sum + record.cost,
+          ) ??
+          0;
 
-  return AsyncValue.data(prevSum - currentSum);
-});
+      return AsyncValue.data(prevSum - currentSum);
+    });
 
 /// Provider for user physical info
 final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((

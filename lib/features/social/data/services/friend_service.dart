@@ -10,8 +10,8 @@ import 'package:flutter/foundation.dart';
 /// 친구 관계 및 친구 요청 관리 서비스
 class FriendService {
   FriendService({FirebaseFirestore? firestore, auth.FirebaseAuth? firebaseAuth})
-      : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = firebaseAuth ?? auth.FirebaseAuth.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = firebaseAuth ?? auth.FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore;
   final auth.FirebaseAuth _auth;
@@ -34,7 +34,10 @@ class FriendService {
   /// 친구 목록 스트림
   Stream<List<Friend>> streamFriends() {
     try {
-      return _getFriendsCollection().orderBy('name').snapshots().map(
+      return _getFriendsCollection()
+          .orderBy('name')
+          .snapshots()
+          .map(
             (snapshot) =>
                 snapshot.docs.map((doc) => Friend.fromFirestore(doc)).toList(),
           );
@@ -94,8 +97,10 @@ class FriendService {
       final now = DateTime.now();
 
       // 현재 사용자의 Firestore 데이터 가져오기 (name 필드 사용)
-      final currentUserDoc =
-          await _firestore.collection('users').doc(_currentUserId).get();
+      final currentUserDoc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
 
@@ -232,8 +237,10 @@ class FriendService {
     }
 
     try {
-      final doc =
-          await _firestore.collection('users').doc(_currentUserId).get();
+      final doc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       final data = doc.data();
       if (data != null && data['dailyStatus'] != null) {
         final status = DailyStatus.fromFirestore(
@@ -260,8 +267,10 @@ class FriendService {
     }
 
     try {
-      final doc =
-          await _firestore.collection('users').doc(_currentUserId).get();
+      final doc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       debugPrint('Document exists: ${doc.exists}');
 
       if (!doc.exists) {
@@ -466,8 +475,10 @@ class FriendService {
 
     try {
       // 현재 사용자의 Firestore 데이터 가져오기 (name 필드 사용)
-      final currentUserDoc =
-          await _firestore.collection('users').doc(_currentUserId).get();
+      final currentUserDoc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
       final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
@@ -535,8 +546,10 @@ class FriendService {
 
     try {
       // 요청 보낸 사용자 정보 조회
-      final friendDoc =
-          await _firestore.collection('users').doc(request.fromUserId).get();
+      final friendDoc = await _firestore
+          .collection('users')
+          .doc(request.fromUserId)
+          .get();
       if (!friendDoc.exists) {
         throw Exception('Friend user not found');
       }
@@ -546,7 +559,8 @@ class FriendService {
         uid: request.fromUserId,
         name: friendData['name'] as String?,
         photoURL: friendData['photoURL'] as String?,
-        provider: LoginProvider.fromString(friendData['provider'] as String?) ??
+        provider:
+            LoginProvider.fromString(friendData['provider'] as String?) ??
             LoginProvider.google,
         hasCompletedProfileSetup: true,
       );
@@ -607,7 +621,8 @@ class FriendService {
           uid: doc.id,
           name: data['name'] as String?,
           photoURL: data['photoURL'] as String?,
-          provider: LoginProvider.fromString(data['provider'] as String?) ??
+          provider:
+              LoginProvider.fromString(data['provider'] as String?) ??
               LoginProvider.google,
           hasCompletedProfileSetup:
               data['hasCompletedProfileSetup'] as bool? ?? false,
@@ -632,7 +647,8 @@ class FriendService {
     try {
       // Firestore의 범위 쿼리를 사용하여 prefix 검색
       // prefix로 시작하는 모든 문서를 찾기 위해 '>=' 와 '<' 사용
-      final String endPrefix = prefix.substring(0, prefix.length - 1) +
+      final String endPrefix =
+          prefix.substring(0, prefix.length - 1) +
           String.fromCharCode(prefix.codeUnitAt(prefix.length - 1) + 1);
 
       final snapshot = await _firestore
@@ -656,7 +672,8 @@ class FriendService {
             uid: doc.id,
             name: data['name'] as String?,
             photoURL: data['photoURL'] as String?,
-            provider: LoginProvider.fromString(data['provider'] as String?) ??
+            provider:
+                LoginProvider.fromString(data['provider'] as String?) ??
                 LoginProvider.google,
             hasCompletedProfileSetup:
                 data['hasCompletedProfileSetup'] as bool? ?? false,

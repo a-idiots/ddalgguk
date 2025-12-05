@@ -72,8 +72,8 @@ class FriendProfileDialog extends ConsumerWidget {
         .toDouble();
     final progressPercentage = estimatedTotalAlcohol > 0
         ? ((alcoholProcessed / estimatedTotalAlcohol) * 100)
-            .clamp(0.0, 100.0)
-            .toDouble()
+              .clamp(0.0, 100.0)
+              .toDouble()
         : 100.0;
     final timeToSober = alcoholRemaining > 0 ? alcoholRemaining / 7 : 0.0;
 

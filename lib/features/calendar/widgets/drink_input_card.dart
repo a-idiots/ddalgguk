@@ -127,19 +127,19 @@ class DrinkInputCard extends StatelessWidget {
                         onSelected: onUnitChange,
                         itemBuilder: (BuildContext context) =>
                             <PopupMenuEntry<String>>[
-                          const PopupMenuItem<String>(
-                            value: '병',
-                            child: Text('병'),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: '잔',
-                            child: Text('잔'),
-                          ),
-                          const PopupMenuItem<String>(
-                            value: 'ml',
-                            child: Text('ml'),
-                          ),
-                        ],
+                              const PopupMenuItem<String>(
+                                value: '병',
+                                child: Text('병'),
+                              ),
+                              const PopupMenuItem<String>(
+                                value: '잔',
+                                child: Text('잔'),
+                              ),
+                              const PopupMenuItem<String>(
+                                value: 'ml',
+                                child: Text('ml'),
+                              ),
+                            ],
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

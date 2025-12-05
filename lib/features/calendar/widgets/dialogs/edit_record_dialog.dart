@@ -173,8 +173,9 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
         yearMonth: widget.record.yearMonth, // 기존 yearMonth 유지
         drinkAmount: drinkAmounts,
         memo: {'text': _memoController.text},
-        cost:
-            _costController.text.isEmpty ? 0 : int.parse(_costController.text),
+        cost: _costController.text.isEmpty
+            ? 0
+            : int.parse(_costController.text),
       );
 
       final service = DrinkingRecordService();
@@ -325,8 +326,8 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
                             overlayColor: AppColors.primaryPink.withValues(
                               alpha: 0.2,
                             ),
-                            inactiveTrackColor:
-                                AppColors.primaryPink.withValues(alpha: 0.3),
+                            inactiveTrackColor: AppColors.primaryPink
+                                .withValues(alpha: 0.3),
                           ),
                           child: Slider(
                             value: _drunkLevel,

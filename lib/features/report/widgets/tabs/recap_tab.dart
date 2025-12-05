@@ -24,8 +24,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   Future<void> _captureAndSave() async {
     try {
-      final RenderRepaintBoundary boundary = _globalKey.currentContext!
-          .findRenderObject() as RenderRepaintBoundary;
+      final RenderRepaintBoundary boundary =
+          _globalKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
@@ -108,11 +109,11 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                       final avgDrunkLevel = records.isEmpty
                           ? 0
                           : (records
-                                      .map((r) => r.drunkLevel)
-                                      .reduce((a, b) => a + b) /
-                                  records.length *
-                                  10)
-                              .round();
+                                        .map((r) => r.drunkLevel)
+                                        .reduce((a, b) => a + b) /
+                                    records.length *
+                                    10)
+                                .round();
 
                       return Column(
                         children: [
@@ -154,8 +155,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
                       // Calculate stats
                       try {
-                        final drunkCount =
-                            records.where((r) => r.drunkLevel >= 7).length;
+                        final drunkCount = records
+                            .where((r) => r.drunkLevel >= 7)
+                            .length;
 
                         double totalBottles = 0;
                         for (var r in records) {
@@ -171,17 +173,18 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                             : (totalBottles / records.length).clamp(0, 100);
 
                         // Consecutive days
-                        final sortedDates = records
-                            .map(
-                              (r) => DateTime(
-                                r.date.year,
-                                r.date.month,
-                                r.date.day,
-                              ),
-                            )
-                            .toSet()
-                            .toList()
-                          ..sort();
+                        final sortedDates =
+                            records
+                                .map(
+                                  (r) => DateTime(
+                                    r.date.year,
+                                    r.date.month,
+                                    r.date.day,
+                                  ),
+                                )
+                                .toSet()
+                                .toList()
+                              ..sort();
 
                         int maxConsecutive = sortedDates.isEmpty ? 0 : 1;
                         if (sortedDates.length > 1) {

@@ -70,8 +70,9 @@ class AchievementsSection extends ConsumerWidget {
                           return const SizedBox.shrink();
                         }
 
-                        final pinnedCount =
-                            badges.where((b) => b.isPinned).length;
+                        final pinnedCount = badges
+                            .where((b) => b.isPinned)
+                            .length;
 
                         return Padding(
                           padding: const EdgeInsets.only(right: 12, top: 8),
@@ -323,8 +324,9 @@ class AchievementIcon extends StatelessWidget {
               style: TextStyle(
                 color: Colors.white,
                 // Use large font only if 2 chars AND no subtitle
-                fontSize:
-                    (isTwoChars && !hasSubtitle) ? size * 0.4 : size * 0.3,
+                fontSize: (isTwoChars && !hasSubtitle)
+                    ? size * 0.4
+                    : size * 0.3,
                 fontWeight: (isTwoChars && !hasSubtitle)
                     ? FontWeight.w300
                     : FontWeight.w400,

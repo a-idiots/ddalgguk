@@ -67,7 +67,8 @@ class _InfoInputPageState extends State<InfoInputPage> {
               );
 
               // Calculate cursor position (approximate)
-              final cursorX = textFieldPosition.dx +
+              final cursorX =
+                  textFieldPosition.dx +
                   _controller.selection.baseOffset * 8.0; // Approximate
               final cursorY =
                   textFieldPosition.dy + textFieldRenderBox.size.height / 2;
@@ -165,8 +166,9 @@ class _InfoInputPageState extends State<InfoInputPage> {
                       // 🔥 placeholder가 너무 왼쪽에 붙지 않도록 padding 삽입
                       // prefix 바로 옆에서 시작하되 내부 여백은 유지
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal:
-                            widget.inputType == InfoInputType.id ? 0 : 24,
+                        horizontal: widget.inputType == InfoInputType.id
+                            ? 0
+                            : 24,
                         vertical: 16,
                       ),
 

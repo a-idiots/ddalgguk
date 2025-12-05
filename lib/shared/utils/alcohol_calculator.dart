@@ -43,8 +43,8 @@ class AlcoholCalculator {
 
     final tbw = (userInfo != null && userInfo['gender'] != null)
         ? (userInfo['gender'] == 'male')
-            ? 2.447 - 0.09516 * age + 0.1074 * height + 0.3362 * weight
-            : -2.097 + 0.1069 * height + 0.2466 * weight
+              ? 2.447 - 0.09516 * age + 0.1074 * height + 0.3362 * weight
+              : -2.097 + 0.1069 * height + 0.2466 * weight
         : 0.55 * weight + 4.9 * height - 4.7 * age;
 
     final beta = 0.015;
