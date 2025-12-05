@@ -669,6 +669,52 @@ class FriendService {
     }
   }
 
+  /// 보낸 친구 요청 취소 (보낸 사람이 취소)
+  Future<void> cancelSentFriendRequest({
+    required String requestId,
+    required String toUserId,
+  }) async {
+    if (_currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      // 보낸 요청 여부 확인
+      final myRequestRef = _getFriendRequestsCollection().doc(requestId);
+      final snapshot = await myRequestRef.get();
+      if (!snapshot.exists) {
+        throw Exception('Request not found');
+      }
+      final data = snapshot.data()!;
+      final fromUserId = data['fromUserId'] as String?;
+      if (fromUserId != _currentUserId) {
+        throw Exception('Not request owner');
+      }
+
+      final theirRequestRef = _firestore
+          .collection('users')
+          .doc(toUserId)
+          .collection('friendRequests')
+          .doc(requestId);
+
+      final batch = _firestore.batch();
+      batch.update(
+        myRequestRef,
+        {'status': FriendRequestStatus.declined.name},
+      );
+      batch.update(
+        theirRequestRef,
+        {'status': FriendRequestStatus.declined.name},
+      );
+
+      await batch.commit();
+      debugPrint('Friend request cancelled: $requestId');
+    } catch (e) {
+      debugPrint('Error cancelling friend request: $e');
+      rethrow;
+    }
+  }
+
   /// 친구 요청 삭제
   Future<void> deleteFriendRequest(String requestId) async {
     try {

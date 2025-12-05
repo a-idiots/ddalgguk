@@ -223,7 +223,7 @@ class PostboxScreen extends ConsumerWidget {
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final request = requests[index];
-          return _SentFriendRequestCard(request: request);
+          return _SentFriendRequestCard(request: request, ref: ref);
         },
       ),
     );
@@ -287,15 +287,121 @@ class PostboxScreen extends ConsumerWidget {
 }
 
 /// 보낸 친구 요청 카드
-class _SentFriendRequestCard extends StatelessWidget {
-  const _SentFriendRequestCard({required this.request});
+class _SentFriendRequestCard extends StatefulWidget {
+  const _SentFriendRequestCard({required this.request, required this.ref});
 
   final FriendRequest request;
+  final WidgetRef ref;
+
+  @override
+  State<_SentFriendRequestCard> createState() => _SentFriendRequestCardState();
+}
+
+class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
+  bool _isProcessing = false;
+
+  Future<void> _cancelRequest() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${widget.request.toUserName ?? widget.request.toUserId}님께 보낸 친구 신청을 취소하시겠어요?',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.grey[200],
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        '유지하기',
+                        style: TextStyle(color: Colors.black87),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryPink,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text('계속하기'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isProcessing = true);
+    try {
+      final friendService = widget.ref.read(friendServiceProvider);
+      await friendService.cancelSentFriendRequest(
+        requestId: widget.request.id,
+        toUserId: widget.request.toUserId,
+      );
+      widget.ref.invalidate(sentFriendRequestsProvider);
+      widget.ref.invalidate(friendRequestsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('친구 신청을 취소했습니다')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('취소 실패: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy.MM.dd');
-    final formattedDate = dateFormat.format(request.createdAt);
+    final formattedDate = dateFormat.format(widget.request.createdAt);
+    final isPending =
+        widget.request.status == FriendRequestStatus.pending;
+    final statusLabel = widget.request.status == FriendRequestStatus.pending
+        ? '대기중'
+        : widget.request.status == FriendRequestStatus.accepted
+            ? '수락됨'
+            : '취소됨';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -327,7 +433,7 @@ class _SentFriendRequestCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      request.toUserName ?? request.toUserId,
+                      widget.request.toUserName ?? widget.request.toUserId,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -350,11 +456,7 @@ class _SentFriendRequestCard extends StatelessWidget {
                   border: Border.all(color: Colors.orange[200]!),
                 ),
                 child: Text(
-                  request.status == FriendRequestStatus.pending
-                      ? '대기중'
-                      : request.status == FriendRequestStatus.accepted
-                          ? '수락됨'
-                          : '거절됨',
+                  statusLabel,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -372,10 +474,32 @@ class _SentFriendRequestCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              request.message,
+              widget.request.message,
               style: const TextStyle(fontSize: 14, color: Colors.black87),
             ),
           ),
+          if (isPending) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _isProcessing ? null : _cancelRequest,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.black87,
+                  side: BorderSide(color: Colors.grey[300]!),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+                child: _isProcessing
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('취소하기'),
+              ),
+            ),
+          ],
         ],
       ),
     );
