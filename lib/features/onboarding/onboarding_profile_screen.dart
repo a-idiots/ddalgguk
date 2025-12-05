@@ -7,11 +7,7 @@ import 'package:ddalgguk/features/onboarding/widgets/info_input_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_goal_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_habits_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
-import 'package:ddalgguk/features/onboarding/widgets/intro_page.dart';
-import 'package:ddalgguk/features/onboarding/widgets/gender_page.dart';
-import 'package:ddalgguk/features/onboarding/widgets/birth_date_page.dart';
-import 'package:ddalgguk/features/onboarding/widgets/body_info_page.dart';
-import 'package:ddalgguk/features/onboarding/widgets/outro_page.dart';
+import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 
 /// Main onboarding profile screen with PageView
@@ -245,16 +241,30 @@ class _OnboardingProfileScreenState
     super.dispose();
   }
 
+  Widget _buildBackground() {
+    if (_currentPage < 4) {
+      return Positioned.fill(child: Container(color: Colors.white));
+    }
+
+    return Positioned.fill(
+      child: Image.asset(
+        'assets/onboarding/bg.png',
+        fit: BoxFit.cover,
+        alignment: Alignment.center,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardVisible = keyboardHeight > 100;
 
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, // Detect keyboard manually via MediaQuery
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
+          _buildBackground(),
           SafeArea(
             child: Stack(
               children: [
@@ -298,54 +308,21 @@ class _OnboardingProfileScreenState
                       initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
                     ),
-                    // Page 3: Intro
-                    IntroPage(
-                      onNext: () {
-                        _pageController.animateToPage(
-                          5,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                    // Page 4: Gender
-                    GenderPage(
+                    // Page 4: Unified Profile Setup
+                    UnifiedProfileSetupPage(
+                      userName: _name,
                       selectedGender: _gender,
                       onGenderSelected: (gender) {
                         setState(() {
                           _gender = gender;
                         });
                       },
-                      onNext: _gender != null
-                          ? () {
-                              _pageController.animateToPage(
-                                6,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          : null,
-                    ),
-                    // Page 5: BirthDate
-                    BirthDatePage(
                       selectedDate: _birthDate,
                       onDateSelected: (date) {
                         setState(() {
                           _birthDate = date;
                         });
                       },
-                      onNext: _birthDate != null
-                          ? () {
-                              _pageController.animateToPage(
-                                7,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          : null,
-                    ),
-                    // Page 6: BodyInfo
-                    BodyInfoPage(
                       height: _height,
                       weight: _weight,
                       onHeightChanged: (value) {
@@ -358,19 +335,19 @@ class _OnboardingProfileScreenState
                           _weight = double.tryParse(value);
                         });
                       },
-                      onNext: (_height != null && _weight != null)
-                          ? () {
-                              _pageController.animateToPage(
-                                8,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          : null,
-                    ),
-                    // Page 7: Outro
-                    OutroPage(
-                      onStart: () {
+                      onComplete: () {
+                        debugPrint('Checking completion conditions:');
+                        debugPrint('Goal: $_goal');
+                        debugPrint('FavoriteDrink: $_favoriteDrink');
+                        debugPrint('MaxAlcohol: $_maxAlcohol');
+                        debugPrint(
+                          'WeeklyFrequency: $_weeklyDrinkingFrequency',
+                        );
+                        debugPrint('Gender: $_gender');
+                        debugPrint('BirthDate: $_birthDate');
+                        debugPrint('Height: $_height');
+                        debugPrint('Weight: $_weight');
+
                         if (_goal != null &&
                             _favoriteDrink != null &&
                             _maxAlcohol != null &&
@@ -385,7 +362,17 @@ class _OnboardingProfileScreenState
                             maxAlcohol: _maxAlcohol!,
                             weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
                           );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('모든 정보를 입력해주세요.')),
+                          );
                         }
+                      },
+                      onBack: () {
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
                       },
                     ),
                   ],

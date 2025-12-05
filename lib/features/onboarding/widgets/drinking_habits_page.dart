@@ -155,7 +155,7 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
                       color: Colors.black54,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildAlcoholSlider(),
                   const SizedBox(height: 12),
                   const Text(
