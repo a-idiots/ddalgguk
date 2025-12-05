@@ -558,7 +558,7 @@ class FriendService {
       final friendUser = AppUser(
         uid: request.fromUserId,
         name: friendData['name'] as String?,
-        photoURL: friendData['photoURL'] as String?,
+        profilePhoto: friendData['profilePhoto'] as int? ?? 0,
         provider:
             LoginProvider.fromString(friendData['provider'] as String?) ??
             LoginProvider.google,
@@ -620,7 +620,7 @@ class FriendService {
         return AppUser(
           uid: doc.id,
           name: data['name'] as String?,
-          photoURL: data['photoURL'] as String?,
+          profilePhoto: data['profilePhoto'] as int? ?? 0,
           provider:
               LoginProvider.fromString(data['provider'] as String?) ??
               LoginProvider.google,
@@ -671,7 +671,7 @@ class FriendService {
           AppUser(
             uid: doc.id,
             name: data['name'] as String?,
-            photoURL: data['photoURL'] as String?,
+            profilePhoto: data['profilePhoto'] as int? ?? 0,
             provider:
                 LoginProvider.fromString(data['provider'] as String?) ??
                 LoginProvider.google,

@@ -4,6 +4,8 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
+import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -104,6 +106,34 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  Widget _buildProfileAvatar(int profilePhoto) {
+    if (profilePhoto <= 10) {
+      return SakuCharacter(size: 55, drunkLevel: profilePhoto * 10);
+    }
+
+    const alcoholIcons = [
+      'assets/alcohol_icons/soju.png',
+      'assets/alcohol_icons/beer.png',
+      'assets/alcohol_icons/cocktail.png',
+      'assets/alcohol_icons/wine.png',
+      'assets/alcohol_icons/makgulli.png',
+    ];
+    final iconIndex = profilePhoto - 11;
+
+    if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
+      return Center(
+        child: Image.asset(
+          alcoholIcons[iconIndex],
+          width: 50,
+          height: 50,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    return const SakuCharacter(size: 55);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
@@ -122,19 +152,19 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundImage: user.photoURL != null
-                          ? NetworkImage(user.photoURL!)
-                          : null,
-                      child: user.photoURL == null
-                          ? const Icon(Icons.person, size: 32)
-                          : null,
+                    Container(
+                      width: 64,
+                      height: 64,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    child: _buildProfileAvatar(user.profilePhoto),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             user.name ?? 'Unknown User',
@@ -156,12 +186,13 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
+                      onPressed: () async {
+                        await Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const EditInfoScreen(),
+                            builder: (context) => const ProfileEditScreen(),
                           ),
                         );
+                        ref.invalidate(currentUserProvider);
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFF0A9A9)),
