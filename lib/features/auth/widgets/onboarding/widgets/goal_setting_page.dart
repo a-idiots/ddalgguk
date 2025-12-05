@@ -141,140 +141,146 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 40),
-            // Goal setting section
-            const Text(
-              '당신의 목표는 무엇인가요?',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
+    return GestureDetector(
+      onTap: () {
+        // 키보드 내림
+        FocusScope.of(context).unfocus();
+      },
+      child: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
+              // Goal setting section
+              const Text(
+                '당신의 목표는 무엇인가요?',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _buildSimpleGoalOptions(),
-            const SizedBox(height: 12),
-            // Divider
-            const Divider(color: Colors.black26, thickness: 0.5),
-            const SizedBox(height: 12),
-            _buildDrinkSelectionCards(),
-            const SizedBox(height: 24),
-            // Slider section - only visible when both goal and drink are selected
-            Visibility(
-              visible: _selectedGoal != null && _selectedDrink != null,
-              maintainSize: true,
-              maintainAnimation: true,
-              maintainState: true,
-              child: Column(
-                children: [
-                  const Text(
-                    '소주 주량을 입력해주세요.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _buildAlcoholSlider(),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '음주 백과💡 소주 1병은 약 7잔이다.',
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(),
-            // Weekly drinking frequency input
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '나는 일주일에',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 60,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black26),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
+              const SizedBox(height: 12),
+              _buildSimpleGoalOptions(),
+              const SizedBox(height: 12),
+              // Divider
+              const Divider(color: Colors.black26, thickness: 0.5),
+              const SizedBox(height: 12),
+              _buildDrinkSelectionCards(),
+              const SizedBox(height: 24),
+              // Slider section - only visible when both goal and drink are selected
+              Visibility(
+                visible: _selectedGoal != null && _selectedDrink != null,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Column(
+                  children: [
+                    const Text(
+                      '소주 주량을 입력해주세요.',
+                      style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black54,
                       ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      onChanged: (value) {
-                        final frequency = int.tryParse(value);
-                        setState(() {
-                          _weeklyDrinkingFrequency = frequency;
-                        });
-                      },
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    '번 술을 마신다',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 6),
+                    _buildAlcoholSlider(),
+                    const SizedBox(height: 12),
+                    const Text(
+                      '음주 백과💡 소주 1병은 약 7잔이다.',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 36),
-            // Page indicator
-            const PageIndicator(currentPage: 2, pageCount: 3),
-            const SizedBox(height: 32),
-            // Complete button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isFormComplete ? _handleComplete : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B6B),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.withValues(alpha: 0.3),
-                  disabledForegroundColor: Colors.grey,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  '입력 완료',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const Spacer(),
+              // Weekly drinking frequency input
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '나는 일주일에',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 60,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black26),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        onChanged: (value) {
+                          final frequency = int.tryParse(value);
+                          setState(() {
+                            _weeklyDrinkingFrequency = frequency;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      '번 술을 마신다',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 36),
+              // Page indicator
+              const PageIndicator(currentPage: 2, pageCount: 3),
+              const SizedBox(height: 32),
+              // Complete button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isFormComplete ? _handleComplete : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF6B6B),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.withValues(alpha: 0.3),
+                    disabledForegroundColor: Colors.grey,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '입력 완료',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

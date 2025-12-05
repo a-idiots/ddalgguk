@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/widgets/settings_widgets.dart';
+import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
+import 'package:ddalgguk/features/settings/edit_info_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -10,18 +13,24 @@ class SettingsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('정말 로그아웃 하시겠습니까?'),
+        title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter')),
+        content: const Text(
+          '정말 로그아웃 하시겠습니까?',
+          style: TextStyle(fontFamily: 'Inter'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
+            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              '로그아웃',
+              style: TextStyle(fontFamily: 'Inter', color: Colors.red),
+            ),
           ),
-        ],
+        ], //집에 가고 싶다 집에 가고 싶다 집에 가고 싶다 집에 보내줘 집에 가고 싶어 집 집 집 집 침대 잠 불닭
       ),
     );
 
@@ -42,12 +51,65 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleAccountDeletion(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('회원 탈퇴', style: TextStyle(fontFamily: 'Inter')),
+        content: const Text(
+          '정말 탈퇴하시겠습니까?\n\n모든 데이터가 삭제되며 복구할 수 없습니다.',
+          style: TextStyle(fontFamily: 'Inter'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              '탈퇴',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final authRepository = ref.read(authRepositoryProvider);
+        await authRepository.deleteAccount();
+
+        // Force provider update to trigger router redirect
+        ref.invalidate(authStateProvider);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('회원 탈퇴 실패: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(),
       body: ListView(
         children: [
           // User Info Section
@@ -56,66 +118,126 @@ class SettingsScreen extends ConsumerWidget {
               if (user == null) {
                 return const SizedBox.shrink();
               }
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: user.photoURL != null
-                      ? NetworkImage(user.photoURL!)
-                      : null,
-                  child: user.photoURL == null
-                      ? const Icon(Icons.person)
-                      : null,
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundImage: user.photoURL != null
+                          ? NetworkImage(user.photoURL!)
+                          : null,
+                      child: user.photoURL == null
+                          ? const Icon(Icons.person, size: 32)
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name ?? 'Unknown User',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '@${user.id ?? ''}',
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const EditInfoScreen(),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFF0A9A9)),
+                        foregroundColor: const Color(0xFFF0A9A9),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
+                      child: const Text(
+                        '프로필 편집',
+                        style: TextStyle(fontFamily: 'Inter', fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
-                title: Text(user.name ?? 'Unknown User'),
-                subtitle: Text(user.id ?? ''),
               );
             },
-            loading: () => const ListTile(
-              leading: CircleAvatar(child: CircularProgressIndicator()),
-              title: Text('Loading...'),
+            loading: () => const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(radius: 32, child: CircularProgressIndicator()),
+                  SizedBox(width: 16),
+                  Text('Loading...', style: TextStyle(fontFamily: 'Inter')),
+                ],
+              ),
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
-          const Divider(),
+          const SettingsSectionDivider(),
 
-          // Settings Options
-          ListTile(
-            leading: const Icon(Icons.notifications),
-            title: const Text('알림 설정'),
-            trailing: const Icon(Icons.chevron_right),
+          // Account Settings Section
+          const SettingsSectionHeader(title: '계정 설정'),
+          SettingsListTile(
+            title: '정보 수정',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const EditInfoScreen()),
+              );
+            },
+          ),
+          SettingsListTile(
+            title: '알림 설정',
             onTap: () {
               // TODO: Navigate to notification settings
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip),
-            title: const Text('개인정보 처리방침'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to privacy policy
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.description),
-            title: const Text('서비스 이용약관'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to terms of service
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('앱 정보'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to app info
-            },
-          ),
-          const Divider(),
+          const SettingsSectionDivider(),
 
-          // Logout Button
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+          // Usage Guide Section
+          const SettingsSectionHeader(title: '이용 안내'),
+          SettingsListTile(
+            title: '앱 버전',
+            onTap: () => showVersionDialog(context),
+          ),
+          SettingsListTile(
+            title: '문의하기',
+            onTap: () => showContactDialog(context),
+          ),
+          SettingsListTile(
+            title: '공지사항',
+            onTap: () {
+              // TODO: Navigate to notices
+            },
+          ),
+          const SettingsSectionDivider(),
+
+          // Other Section
+          const SettingsSectionHeader(title: '기타'),
+          SettingsListTile(
+            title: '회원 탈퇴',
+            onTap: () => _handleAccountDeletion(context, ref),
+          ),
+          SettingsListTile(
+            title: '로그아웃',
             onTap: () => _handleLogout(context, ref),
           ),
         ],

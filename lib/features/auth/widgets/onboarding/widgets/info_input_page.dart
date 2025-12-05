@@ -155,11 +155,9 @@ class _InfoInputPageState extends State<InfoInputPage> {
                     key: _textFieldKey,
                     controller: _controller,
                     focusNode: _focusNode,
-
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _focusNode.unfocus(),
                     onEditingComplete: () => _focusNode.unfocus(),
-
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,

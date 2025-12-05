@@ -379,6 +379,54 @@ class AuthRepository {
     }
   }
 
+  /// Update user information in Firestore
+  Future<void> updateUserInfo({
+    String? gender,
+    DateTime? birthDate,
+    double? height,
+    double? weight,
+  }) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final updates = <String, dynamic>{};
+      if (gender != null) {
+        updates['gender'] = gender;
+      }
+      if (birthDate != null) {
+        updates['birthDate'] = Timestamp.fromDate(birthDate);
+      }
+      if (height != null) {
+        updates['height'] = height;
+      }
+      if (weight != null) {
+        updates['weight'] = weight;
+      }
+
+      if (updates.isNotEmpty) {
+        await _usersCollection.doc(uid).update(updates);
+
+        // Update cache
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            gender: gender ?? currentUser.gender,
+            birthDate: birthDate ?? currentUser.birthDate,
+            height: height ?? currentUser.height,
+            weight: weight ?? currentUser.weight,
+          );
+          await _storageService.saveUserCache(updatedUser);
+        }
+      }
+    } catch (e) {
+      debugPrint('Update user info error: $e');
+      rethrow;
+    }
+  }
+
   /// Save profile data (onboarding completion)
   Future<void> saveProfileData({
     required String id,

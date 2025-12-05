@@ -52,7 +52,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: Routes.splash,
     debugLogDiagnostics: false,
-
     redirect: (context, state) async {
       final current = state.matchedLocation;
 
@@ -135,9 +134,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return current == Routes.profileSetup ? null : Routes.profileSetup;
       }
     },
-
     refreshListenable: notifier,
-
     routes: [
       GoRoute(
         path: Routes.splash,
