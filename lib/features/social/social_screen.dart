@@ -1,10 +1,10 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
-import 'package:ddalgguk/features/social/widgets/dialogs/add_friend_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/friend_profile_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/friend_card.dart';
+import 'package:ddalgguk/features/social/widgets/screens/add_friends.dart';
 import 'package:ddalgguk/features/social/widgets/screens/postbox_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -99,9 +99,10 @@ class SocialScreen extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const AddFriendDialog(),
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AddFriendScreen(),
+                  ),
                 );
               },
               child: const Icon(Icons.add, size: 32, color: Colors.black),
@@ -200,9 +201,10 @@ class SocialScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const AddFriendDialog(),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AddFriendScreen(),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.person_add),
