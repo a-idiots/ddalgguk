@@ -12,7 +12,7 @@ class ReceiptBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final sheetHeight = screenHeight * 0.8; // 화면의 80% 높이
+    final sheetHeight = screenHeight * 0.83; // 화면의 80% 높이
 
     return Container(
       height: sheetHeight,
