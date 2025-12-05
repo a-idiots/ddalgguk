@@ -462,6 +462,28 @@ class FriendService {
     }
   }
 
+  /// 보낸 친구 요청 조회 (collectionGroup 사용)
+  Future<List<FriendRequest>> getSentFriendRequests() async {
+    if (_currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      final snapshot = await _getFriendRequestsCollection()
+          .where('fromUserId', isEqualTo: _currentUserId)
+          .where('status', isEqualTo: FriendRequestStatus.pending.name)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => FriendRequest.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting sent friend requests: $e');
+      return [];
+    }
+  }
+
   /// 친구 요청 보내기
   Future<void> sendFriendRequest({
     required String toUserId,
@@ -501,9 +523,10 @@ class FriendService {
       // 이미 요청을 보냈는지 확인
       final existingRequest = await _firestore
           .collection('users')
-          .doc(toUserId)
+          .doc(_currentUserId)
           .collection('friendRequests')
           .where('fromUserId', isEqualTo: _currentUserId)
+          .where('toUserId', isEqualTo: toUserId)
           .where('status', isEqualTo: FriendRequestStatus.pending.name)
           .get();
 
@@ -511,25 +534,38 @@ class FriendService {
         throw Exception('이미 친구 신청을 보낸 유저입니다');
       }
 
-      // 상대방의 friendRequests 컬렉션에 요청 추가
+      // 요청 데이터
       final request = {
         'fromUserId': _currentUserId,
         'fromUserName': currentUserName,
         'fromUserPhoto': currentUserPhotoURL,
         'toUserId': toUserId,
+        'toUserName': toUserName,
         'message': message,
         'createdAt': Timestamp.now(),
         'status': FriendRequestStatus.pending.name,
       };
 
-      debugPrint('Request data: $request');
-      debugPrint('Target path: users/$toUserId/friendRequests');
-
-      await _firestore
+      // 양쪽 friendRequests 컬렉션에 동일한 ID로 기록
+      final myRequestRef = _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .collection('friendRequests')
+          .doc();
+      final theirRequestRef = _firestore
           .collection('users')
           .doc(toUserId)
           .collection('friendRequests')
-          .add(request);
+          .doc(myRequestRef.id);
+
+      debugPrint('Request data: $request');
+      debugPrint('My path: users/$_currentUserId/friendRequests/${myRequestRef.id}');
+      debugPrint('Their path: users/$toUserId/friendRequests/${theirRequestRef.id}');
+
+      final batch = _firestore.batch();
+      batch.set(myRequestRef, request);
+      batch.set(theirRequestRef, request);
+      await batch.commit();
 
       debugPrint('✅ Friend request sent successfully to: $toUserId');
     } catch (e) {
@@ -568,8 +604,25 @@ class FriendService {
       // 친구 관계 생성
       await addFriend(request.fromUserId, friendUser);
 
-      // 친구 관계가 생성되었으므로 요청을 삭제
-      await _getFriendRequestsCollection().doc(request.id).delete();
+      // 상태를 accepted로 업데이트 (내 컬렉션)
+      final myRequestRef = _getFriendRequestsCollection().doc(request.id);
+      // 상대방 컬렉션의 동일한 ID
+      final theirRequestRef = _firestore
+          .collection('users')
+          .doc(request.fromUserId)
+          .collection('friendRequests')
+          .doc(request.id);
+
+      final batch = _firestore.batch();
+      batch.update(
+        myRequestRef,
+        {'status': FriendRequestStatus.accepted.name},
+      );
+      batch.update(
+        theirRequestRef,
+        {'status': FriendRequestStatus.accepted.name},
+      );
+      await batch.commit();
 
       debugPrint('Friend request accepted and deleted: ${request.id}');
     } catch (e) {
@@ -581,8 +634,33 @@ class FriendService {
   /// 친구 요청 거절
   Future<void> declineFriendRequest(String requestId) async {
     try {
-      // 거절한 요청은 삭제
-      await _getFriendRequestsCollection().doc(requestId).delete();
+      final myRequestRef = _getFriendRequestsCollection().doc(requestId);
+      final snapshot = await myRequestRef.get();
+      if (!snapshot.exists) {
+        return;
+      }
+      final data = snapshot.data()!;
+      final fromUserId = data['fromUserId'] as String?;
+
+      final batch = _firestore.batch();
+      batch.update(
+        myRequestRef,
+        {'status': FriendRequestStatus.declined.name},
+      );
+
+      if (fromUserId != null) {
+        final theirRequestRef = _firestore
+            .collection('users')
+            .doc(fromUserId)
+            .collection('friendRequests')
+            .doc(requestId);
+        batch.update(
+          theirRequestRef,
+          {'status': FriendRequestStatus.declined.name},
+        );
+      }
+
+      await batch.commit();
 
       debugPrint('Friend request declined and deleted: $requestId');
     } catch (e) {

@@ -61,6 +61,13 @@ final friendRequestsProvider = FutureProvider.autoDispose<List<FriendRequest>>((
   return friendService.getReceivedFriendRequests();
 });
 
+/// 보낸 친구 요청 프로바이더
+final sentFriendRequestsProvider =
+    FutureProvider.autoDispose<List<FriendRequest>>((ref) async {
+  final friendService = ref.watch(friendServiceProvider);
+  return friendService.getSentFriendRequests();
+});
+
 /// 친구 요청 개수 프로바이더
 final friendRequestCountProvider = Provider.autoDispose<int>((ref) {
   final friendRequestsAsync = ref.watch(friendRequestsProvider);

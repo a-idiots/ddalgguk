@@ -36,7 +36,7 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
         onPressed: backAction,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         icon: const Icon(
-          Icons.chevron_left,
+          Icons.chevron_left, // 뒤로가기 아이콘 (< 모양임)
           size: 26,
           color: Colors.black87,
         ),
