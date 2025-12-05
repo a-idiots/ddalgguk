@@ -5,7 +5,7 @@ import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart'
 import 'package:ddalgguk/features/report/widgets/tabs/alcohol_intake_tab.dart';
 import 'package:ddalgguk/features/report/widgets/tabs/recap_tab.dart';
 import 'package:ddalgguk/features/report/widgets/tabs/spending_tab.dart';
-
+import 'package:ddalgguk/shared/widgets/page_header.dart';
 import 'package:go_router/go_router.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
@@ -52,17 +52,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 length: 3,
                 child: Scaffold(
                   backgroundColor: Colors.white,
-                  appBar: AppBar(
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    title: const Text(
-                      'Analytics',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  appBar: TabPageHeader(
+                    title: 'Analytics',
+                    fontSize: 24,
                     centerTitle: false,
                     bottom: PreferredSize(
                       preferredSize: const Size.fromHeight(30),

@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
 import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/page_header.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -139,7 +140,7 @@ class SettingsScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: const TabPageHeader(title: 'Settings'),
       body: ListView(
         children: [
           // User Info Section

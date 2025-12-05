@@ -232,7 +232,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
     if (_foundUserId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('먼저 사용자를 검색해주세요')));
+      ).showSnackBar(const SnackBar(content: Text('사용자를 먼저 검색해주세요')));
       return;
     }
 

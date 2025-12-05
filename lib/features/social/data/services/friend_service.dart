@@ -604,9 +604,8 @@ class FriendService {
       // 친구 관계 생성
       await addFriend(request.fromUserId, friendUser);
 
-      // 상태를 accepted로 업데이트 (내 컬렉션)
+      // 양쪽 friendRequests에서 삭제
       final myRequestRef = _getFriendRequestsCollection().doc(request.id);
-      // 상대방 컬렉션의 동일한 ID
       final theirRequestRef = _firestore
           .collection('users')
           .doc(request.fromUserId)
@@ -614,14 +613,8 @@ class FriendService {
           .doc(request.id);
 
       final batch = _firestore.batch();
-      batch.update(
-        myRequestRef,
-        {'status': FriendRequestStatus.accepted.name},
-      );
-      batch.update(
-        theirRequestRef,
-        {'status': FriendRequestStatus.accepted.name},
-      );
+      batch.delete(myRequestRef);
+      batch.delete(theirRequestRef);
       await batch.commit();
 
       debugPrint('Friend request accepted and deleted: ${request.id}');
@@ -643,10 +636,7 @@ class FriendService {
       final fromUserId = data['fromUserId'] as String?;
 
       final batch = _firestore.batch();
-      batch.update(
-        myRequestRef,
-        {'status': FriendRequestStatus.declined.name},
-      );
+      batch.delete(myRequestRef);
 
       if (fromUserId != null) {
         final theirRequestRef = _firestore
@@ -654,10 +644,7 @@ class FriendService {
             .doc(fromUserId)
             .collection('friendRequests')
             .doc(requestId);
-        batch.update(
-          theirRequestRef,
-          {'status': FriendRequestStatus.declined.name},
-        );
+        batch.delete(theirRequestRef);
       }
 
       await batch.commit();
@@ -698,14 +685,8 @@ class FriendService {
           .doc(requestId);
 
       final batch = _firestore.batch();
-      batch.update(
-        myRequestRef,
-        {'status': FriendRequestStatus.declined.name},
-      );
-      batch.update(
-        theirRequestRef,
-        {'status': FriendRequestStatus.declined.name},
-      );
+      batch.delete(myRequestRef);
+      batch.delete(theirRequestRef);
 
       await batch.commit();
       debugPrint('Friend request cancelled: $requestId');
