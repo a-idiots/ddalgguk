@@ -463,7 +463,9 @@ class AuthRepository {
         'hasCompletedProfileSetup: ${firestoreData['hasCompletedProfileSetup']}',
       );
 
-      await _usersCollection.doc(uid).set(firestoreData, SetOptions(merge: true));
+      await _usersCollection
+          .doc(uid)
+          .set(firestoreData, SetOptions(merge: true));
 
       // Save to cache
       await _storageService.saveUserCache(updatedUser);

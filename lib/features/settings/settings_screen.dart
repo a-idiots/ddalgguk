@@ -16,7 +16,10 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter')),
-        content: const Text('정말 로그아웃 하시겠습니까?', style: TextStyle(fontFamily: 'Inter')),
+        content: const Text(
+          '정말 로그아웃 하시겠습니까?',
+          style: TextStyle(fontFamily: 'Inter'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -24,7 +27,10 @@ class SettingsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter', color: Colors.red)),
+            child: const Text(
+              '로그아웃',
+              style: TextStyle(fontFamily: 'Inter', color: Colors.red),
+            ),
           ),
         ], //집에 가고 싶다 집에 가고 싶다 집에 가고 싶다 집에 보내줘 집에 가고 싶어 집 집 집 집 침대 잠 불닭
       ),
@@ -49,7 +55,10 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleAccountDeletion(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleAccountDeletion(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -68,7 +77,11 @@ class SettingsScreen extends ConsumerWidget {
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text(
               '탈퇴',
-              style: TextStyle(fontFamily: 'Inter', color: Colors.red, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontFamily: 'Inter',
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -87,7 +100,10 @@ class SettingsScreen extends ConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('회원 탈퇴 실패: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('회원 탈퇴 실패: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -163,10 +179,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Text(
                         '프로필 편집',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(fontFamily: 'Inter', fontSize: 12),
                       ),
                     ),
                   ],
@@ -193,9 +206,7 @@ class SettingsScreen extends ConsumerWidget {
             title: '정보 수정',
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const EditInfoScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const EditInfoScreen()),
               );
             },
           ),

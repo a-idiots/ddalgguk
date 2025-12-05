@@ -33,10 +33,7 @@ class SettingsSectionDivider extends StatelessWidget {
 
 /// Section header widget
 class SettingsSectionHeader extends StatelessWidget {
-  const SettingsSectionHeader({
-    super.key,
-    required this.title,
-  });
+  const SettingsSectionHeader({super.key, required this.title});
 
   final String title;
 

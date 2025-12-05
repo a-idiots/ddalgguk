@@ -5,10 +5,7 @@ import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 /// Reusable dialog widget for settings information displays
 /// Shows Saku character with a speech bubble containing custom content
 class SakuInfoDialog extends StatelessWidget {
-  const SakuInfoDialog({
-    super.key,
-    required this.content,
-  });
+  const SakuInfoDialog({super.key, required this.content});
 
   /// Content to display inside the speech bubble
   final Widget content;
@@ -17,9 +14,7 @@ class SakuInfoDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Stack(
@@ -53,12 +48,7 @@ class SakuInfoDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   // Saku character
-                  const Center(
-                    child: SakuCharacter(
-                      size: 84,
-                      drunkLevel: 0,
-                    ),
-                  ),
+                  const Center(child: SakuCharacter(size: 84, drunkLevel: 0)),
                 ],
               ),
             ),
