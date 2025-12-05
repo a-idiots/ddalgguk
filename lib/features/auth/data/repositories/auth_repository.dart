@@ -431,6 +431,33 @@ class AuthRepository {
     }
   }
 
+  /// Update current drunk level in Firestore
+  /// This is used to show friend's drunk level in social tab
+  Future<void> updateCurrentDrunkLevel(int drunkLevel) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        return; // Silently fail if not authenticated
+      }
+
+      await _usersCollection.doc(uid).update({
+        'currentDrunkLevel': drunkLevel,
+      });
+
+      // Update cache
+      final currentUser = await getCurrentUser();
+      if (currentUser != null) {
+        final updatedUser = currentUser.copyWith(
+          currentDrunkLevel: drunkLevel,
+        );
+        await _storageService.saveUserCache(updatedUser);
+      }
+    } catch (e) {
+      debugPrint('Update current drunk level error: $e');
+      // Don't rethrow, this is a background operation
+    }
+  }
+
   /// Save profile data (onboarding completion)
   Future<void> saveProfileData({
     required String id,

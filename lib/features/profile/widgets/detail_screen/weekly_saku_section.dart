@@ -53,15 +53,19 @@ class _WeeklySakuSectionState extends ConsumerState<WeeklySakuSection> {
     // Calculate date range for the current visible week
     final offset = _getOffsetFromPageIndex(_currentPageIndex);
 
-    // We need the stats for the current offset to get the date range
-    // Since we might not have the async data yet for title update during swipe,
-    // we can calculate dates manually.
+    // Calculate dates based on Monday-Sunday week
     final now = DateTime.now();
-    final endDate = now.subtract(Duration(days: 7 * offset));
-    final startDate = endDate.subtract(const Duration(days: 6));
+    final normalized = DateTime(now.year, now.month, now.day);
+    final weekday = normalized.weekday; // 1=Monday, 7=Sunday
+    final mondayOffset = weekday - 1;
+    final thisWeekMonday = normalized.subtract(Duration(days: mondayOffset));
+
+    // Go back by offset weeks
+    final targetWeekMonday = thisWeekMonday.subtract(Duration(days: 7 * offset));
+    final targetWeekSunday = targetWeekMonday.add(const Duration(days: 6));
 
     final dateRangeText =
-        '${DateFormat('MM.dd.').format(startDate)} ~ ${DateFormat('MM.dd.').format(endDate)}';
+        '${DateFormat('MM.dd.').format(targetWeekMonday)} ~ ${DateFormat('MM.dd.').format(targetWeekSunday)}';
 
     return ProfileSection(
       title: '지난 일주일',

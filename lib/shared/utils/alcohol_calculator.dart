@@ -8,6 +8,7 @@ class AlcoholCalculationResult {
     required this.progressPercentage,
     required this.statusMessage,
     required this.estimatedSoberTime,
+    required this.currentDrunkLevel,
     this.lastDrinkTime,
   });
 
@@ -16,6 +17,7 @@ class AlcoholCalculationResult {
   final double progressPercentage;
   final String statusMessage;
   final DateTime estimatedSoberTime;
+  final double currentDrunkLevel;
   final DateTime? lastDrinkTime;
 }
 
@@ -73,7 +75,7 @@ class AlcoholCalculator {
         );
 
         final duration = now.difference(recordedTime);
-        final hoursPassed = duration.inMinutes / 60.0;
+        final hoursPassed = (duration.inMinutes / 60.0).clamp(0.0, double.infinity);
 
         // Add new alcohol from this record
         double recordAlcoholGrams = 0;
@@ -100,7 +102,11 @@ class AlcoholCalculator {
         ? (100.0 - (currentAlcoholRemaining / 0.3) * 100).clamp(0.0, 100.0)
         : 100.0; // If no alcohol, 100% recovered
 
+    // Calculate drunk level (0-100, where 100 is most drunk)
+    final currentDrunkLevel = ((currentAlcoholRemaining / 0.3) * 100).clamp(0.0, 100.0);
+
     debugPrint('progressPercentage: $progressPercentage');
+    debugPrint('currentDrunkLevel: $currentDrunkLevel');
 
     // Generate status message
     String statusMessage;
@@ -123,6 +129,7 @@ class AlcoholCalculator {
       estimatedSoberTime: now.add(
         Duration(minutes: (timeToSober * 60).round()),
       ),
+      currentDrunkLevel: currentDrunkLevel,
       lastDrinkTime: recentRecords.isNotEmpty ? recentRecords.last.date : now,
     );
   }
