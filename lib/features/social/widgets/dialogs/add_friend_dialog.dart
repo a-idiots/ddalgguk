@@ -270,25 +270,15 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
     } else {
       final iconIndex = photoIndex - 11;
       if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
-        avatar = Image.asset(
-          alcoholIcons[iconIndex],
-          width: size,
-          height: size,
-          fit: BoxFit.contain,
-        );
+        avatar = Image.asset(alcoholIcons[iconIndex], fit: BoxFit.contain);
       } else {
         avatar = Icon(Icons.person, size: size * 0.7, color: Colors.grey[600]);
       }
     }
 
-    return Container(
-      width: size + 6,
-      height: size + 6,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: Colors.grey[300]!),
-      ),
+    return SizedBox(
+      width: size,
+      height: size,
       child: Center(child: avatar),
     );
   }
@@ -318,46 +308,38 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _userIdController,
-                          focusNode: _focusNode,
-                          decoration: InputDecoration(
-                            hintText: '@ 사용자 ID',
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
+                  SizedBox(
+                    height: 44,
+                    child: TextField(
+                      controller: _userIdController,
+                      focusNode: _focusNode,
+                      onSubmitted: (_) => _isSearching ? null : _searchUser(),
+                      style: const TextStyle(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: '@ 사용자 ID',
+                        hintStyle: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        suffixIcon: IconButton(
+                          onPressed: _isSearching ? null : _searchUser,
+                          icon: Icon(
+                            Icons.search,
+                            color: Colors.black.withValues(alpha: 0.8),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _isSearching ? null : _searchUser,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryPink,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                        child: _isSearching
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('검색'),
                       ),
-                    ],
+                    ),
                   ),
                   // 자동완성 제안 리스트
                   if (_showSuggestions && _suggestions.isNotEmpty) ...[
@@ -368,13 +350,6 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey[300]!),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: ListView.separated(
                         shrinkWrap: true,
@@ -386,20 +361,24 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                           final user = _suggestions[index];
                           return ListTile(
                             dense: true,
+                            visualDensity:
+                                const VisualDensity(horizontal: -2, vertical: -3),
                             onTap: () => _selectSuggestion(user),
                             leading: _buildProfileAvatar(user, size: 30),
                             title: Text(
                               '@${user.id ?? ''}',
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
+                                height: 1.6,
                               ),
                             ),
                             subtitle: user.name != null
                                 ? Text(
                                     user.name!,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 11,
+                                      height: 1.25,
                                       color: Colors.grey[600],
                                     ),
                                   )
