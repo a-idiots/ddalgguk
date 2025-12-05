@@ -26,6 +26,8 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
   String? _foundUserId;
   AppUser? _foundUser;
   List<AppUser> _suggestions = [];
+  bool _skipNextSearch = false;
+  bool _hasConfirmedSelection = false;
   Timer? _debounce;
   bool _showSuggestions = false;
 
@@ -56,11 +58,19 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
   void _onFocusChanged() {
     if (!_focusNode.hasFocus) {
-      setState(() => _showSuggestions = false);
+      setState(() {
+        _showSuggestions = false;
+        _suggestions = [];
+      });
     }
   }
 
   void _onTextChanged() {
+    if (_skipNextSearch) {
+      _skipNextSearch = false;
+      return;
+    }
+    _hasConfirmedSelection = false;
     final text = _userIdController.text;
 
     // @ 기호가 없으면 추가
@@ -108,6 +118,14 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
     setState(() => _isSearching = true);
 
     try {
+      if (_hasConfirmedSelection || !_focusNode.hasFocus) {
+        setState(() {
+          _suggestions = [];
+          _showSuggestions = false;
+        });
+        return;
+      }
+
       final friendService = ref.read(friendServiceProvider);
       final users = await friendService.searchUsersByIdPrefix(
         prefix,
@@ -115,6 +133,14 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
       );
 
       if (mounted) {
+        if (_hasConfirmedSelection || !_focusNode.hasFocus) {
+          setState(() {
+            _suggestions = [];
+            _showSuggestions = false;
+          });
+          return;
+        }
+
         setState(() {
           _suggestions = users;
           _showSuggestions = users.isNotEmpty;
@@ -130,6 +156,9 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
   }
 
   void _selectSuggestion(AppUser user) {
+    _debounce?.cancel();
+    _skipNextSearch = true;
+    _hasConfirmedSelection = true;
     setState(() {
       _userIdController.text = '@${user.id ?? ''}';
       _foundUserName = user.name ?? 'Unknown';
@@ -162,6 +191,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
       final user = await friendService.searchUserById(userId);
 
       if (user != null) {
+        _hasConfirmedSelection = true;
         setState(() {
           _foundUser = user;
           _foundUserName = user.name ?? 'Unknown';
@@ -178,6 +208,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
           _foundUserName = null;
           _foundUserId = null;
           _foundUser = null;
+          _hasConfirmedSelection = false;
         });
       }
     } catch (e) {
