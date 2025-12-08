@@ -12,6 +12,9 @@ class FriendCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   void _showFullStatus(BuildContext context, String status) {
+    final isDefaultStatus = status == 'zZZ';
+    final statusColor = isDefaultStatus ? Colors.grey : Colors.black87;
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -27,7 +30,7 @@ class FriendCard extends StatelessWidget {
                 child: SpeechBubble(
                   text: status,
                   backgroundColor: Colors.white,
-                  textColor: Colors.black87,
+                  textColor: statusColor,
                   fontSize: 14,
                 ),
               ),
@@ -43,6 +46,10 @@ class FriendCard extends StatelessWidget {
     final drunkLevel = friendData.displayDrunkLevel; // 이미 0-100 범위
     final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
     final status = friendData.displayStatus;
+
+    // 기본 메시지 여부 확인
+    final isDefaultStatus = status == 'zZZ';
+    final statusColor = isDefaultStatus ? Colors.grey : Colors.black87;
 
     // 마지막 음주 이후 일수 계산
     String daysSinceText = '최근 음주: ?일 전';
@@ -71,7 +78,7 @@ class FriendCard extends StatelessWidget {
                     child: SpeechBubble(
                       text: status,
                       backgroundColor: Colors.white,
-                      textColor: Colors.black87,
+                      textColor: statusColor,
                       fontSize: 11,
                       maxLines: 1,
                       onTap: () => _showFullStatus(context, status),
