@@ -153,6 +153,9 @@ class _SakuCharacterState extends State<SakuCharacter>
     } else if (widget.status == -1) {
       bodyImagePath = 'assets/calendar/empty_date.png';
       showEyes = true;
+    } else if (widget.status == -2) {
+      bodyImagePath = 'assets/saku/onboarding_saku.png';
+      showEyes = true;
     } else {
       bodyImagePath = getBodyImagePath(widget.drunkLevel);
       showEyes = true;
