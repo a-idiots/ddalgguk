@@ -82,7 +82,10 @@ class AlcoholCalculator {
         );
 
         final duration = now.difference(recordedTime);
-        final hoursPassed = (duration.inMinutes / 60.0).clamp(0.0, double.infinity);
+        final hoursPassed = (duration.inMinutes / 60.0).clamp(
+          0.0,
+          double.infinity,
+        );
 
         // Add new alcohol from this record
         double recordAlcoholGrams = 0;
@@ -110,7 +113,10 @@ class AlcoholCalculator {
         : 100.0; // If no alcohol, 100% recovered
 
     // Calculate drunk level (0-100, where 100 is most drunk)
-    final currentDrunkLevel = ((currentAlcoholRemaining / 0.3) * 100).clamp(0.0, 100.0);
+    final currentDrunkLevel = ((currentAlcoholRemaining / 0.3) * 100).clamp(
+      0.0,
+      100.0,
+    );
 
     debugPrint('progressPercentage: $progressPercentage');
     debugPrint('currentDrunkLevel: $currentDrunkLevel');

@@ -61,7 +61,9 @@ class _WeeklySakuSectionState extends ConsumerState<WeeklySakuSection> {
     final thisWeekMonday = normalized.subtract(Duration(days: mondayOffset));
 
     // Go back by offset weeks
-    final targetWeekMonday = thisWeekMonday.subtract(Duration(days: 7 * offset));
+    final targetWeekMonday = thisWeekMonday.subtract(
+      Duration(days: 7 * offset),
+    );
     final targetWeekSunday = targetWeekMonday.add(const Duration(days: 6));
 
     final dateRangeText =

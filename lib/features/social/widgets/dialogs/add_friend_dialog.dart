@@ -394,8 +394,10 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
                           final user = _suggestions[index];
                           return ListTile(
                             dense: true,
-                            visualDensity:
-                                const VisualDensity(horizontal: -2, vertical: -3),
+                            visualDensity: const VisualDensity(
+                              horizontal: -2,
+                              vertical: -3,
+                            ),
                             onTap: () => _selectSuggestion(user),
                             leading: _buildProfileAvatar(user, size: 30),
                             title: Text(

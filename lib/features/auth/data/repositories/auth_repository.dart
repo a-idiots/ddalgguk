@@ -440,16 +440,12 @@ class AuthRepository {
         return; // Silently fail if not authenticated
       }
 
-      await _usersCollection.doc(uid).update({
-        'currentDrunkLevel': drunkLevel,
-      });
+      await _usersCollection.doc(uid).update({'currentDrunkLevel': drunkLevel});
 
       // Update cache
       final currentUser = await getCurrentUser();
       if (currentUser != null) {
-        final updatedUser = currentUser.copyWith(
-          currentDrunkLevel: drunkLevel,
-        );
+        final updatedUser = currentUser.copyWith(currentDrunkLevel: drunkLevel);
         await _storageService.saveUserCache(updatedUser);
       }
     } catch (e) {

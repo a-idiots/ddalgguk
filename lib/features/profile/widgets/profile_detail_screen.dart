@@ -71,7 +71,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                           user: user,
                           theme: theme,
                           showCharacter: widget.showCharacter,
-                          drunkLevel: widget.drunkLevel ?? currentStats.todayDrunkLevel,
+                          drunkLevel:
+                              widget.drunkLevel ?? currentStats.todayDrunkLevel,
                         ),
                       ),
                       // Content

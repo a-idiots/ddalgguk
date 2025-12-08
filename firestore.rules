@@ -1,0 +1,65 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isFriend(userId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId));
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // 모든 인증된 사용자는 다른 사용자 프로필 읽기 가능 (친구 검색, 프로필 보기)
+      allow read: if isAuthenticated();
+
+      // 본인만 자신의 문서 생성/수정 가능
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // Friends subcollection
+      match /friends/{friendId} {
+        // 본인의 친구 목록만 읽기 가능
+        allow read: if isOwner(userId);
+
+        // 본인의 친구 목록만 수정 가능
+        allow write: if isOwner(userId);
+      }
+
+      // Friend Requests subcollection
+      match /friendRequests/{requestId} {
+        // 본인에게 온 요청 또는 본인이 보낸 요청만 읽기 가능
+        allow read: if isOwner(userId);
+
+        // 요청 생성: 요청을 보내는 사람(fromUserId) 또는 받는 사람(toUserId) 본인만 가능
+        allow create: if isAuthenticated() &&
+                         (request.resource.data.fromUserId == request.auth.uid ||
+                          request.resource.data.toUserId == request.auth.uid);
+
+        // 요청 수정/삭제: 본인의 friendRequests 컬렉션만 가능
+        allow update, delete: if isOwner(userId);
+      }
+
+      // Drinking Records subcollection
+      match /drinkingRecords/{recordId} {
+        // 본인의 음주 기록만 읽기/쓰기 가능
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // 기본적으로 모든 접근 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

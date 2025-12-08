@@ -246,12 +246,83 @@ class FriendService {
         final status = DailyStatus.fromFirestore(
           data['dailyStatus'] as Map<String, dynamic>,
         );
-        return status.isExpired ? null : status;
+
+        // 만료된 경우 데이터베이스에서도 삭제
+        if (status.isExpired) {
+          await _deleteMyDailyStatus();
+          return null;
+        }
+
+        return status;
       }
     } catch (e) {
       debugPrint('Error getting my daily status: $e');
     }
     return null;
+  }
+
+  /// 나의 일일 상태 삭제 (내부용)
+  Future<void> _deleteMyDailyStatus() async {
+    if (_currentUserId == null) {
+      return;
+    }
+
+    try {
+      await _firestore.collection('users').doc(_currentUserId).update({
+        'dailyStatus': FieldValue.delete(),
+      });
+      debugPrint('✅ Expired daily status deleted from my profile');
+    } catch (e) {
+      debugPrint('❌ Error deleting daily status: $e');
+    }
+  }
+
+  /// 모든 친구들의 만료된 일일 상태를 정리
+  /// 소셜 화면 접속 시 호출
+  Future<void> cleanupExpiredDailyStatuses(List<String> friendUserIds) async {
+    debugPrint('=== cleanupExpiredDailyStatuses START ===');
+    debugPrint('Checking ${friendUserIds.length} friends...');
+
+    try {
+      final batch = _firestore.batch();
+      int deleteCount = 0;
+
+      for (final userId in friendUserIds) {
+        final doc = await _firestore.collection('users').doc(userId).get();
+        final data = doc.data();
+
+        if (data != null && data['dailyStatus'] != null) {
+          try {
+            final status = DailyStatus.fromFirestore(
+              data['dailyStatus'] as Map<String, dynamic>,
+            );
+
+            if (status.isExpired) {
+              batch.update(_firestore.collection('users').doc(userId), {
+                'dailyStatus': FieldValue.delete(),
+              });
+              deleteCount++;
+              debugPrint(
+                'Marked for deletion: $userId (expired ${DateTime.now().difference(status.expiresAt).inHours}h ago)',
+              );
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error parsing dailyStatus for $userId: $e');
+          }
+        }
+      }
+
+      if (deleteCount > 0) {
+        await batch.commit();
+        debugPrint('✅ Deleted $deleteCount expired daily statuses');
+      } else {
+        debugPrint('✅ No expired statuses to delete');
+      }
+
+      debugPrint('=== cleanupExpiredDailyStatuses END ===');
+    } catch (e) {
+      debugPrint('❌ Error cleaning up expired statuses: $e');
+    }
   }
 
   // ==================== 나의 프로필 ====================
@@ -559,8 +630,12 @@ class FriendService {
           .doc(myRequestRef.id);
 
       debugPrint('Request data: $request');
-      debugPrint('My path: users/$_currentUserId/friendRequests/${myRequestRef.id}');
-      debugPrint('Their path: users/$toUserId/friendRequests/${theirRequestRef.id}');
+      debugPrint(
+        'My path: users/$_currentUserId/friendRequests/${myRequestRef.id}',
+      );
+      debugPrint(
+        'Their path: users/$toUserId/friendRequests/${theirRequestRef.id}',
+      );
 
       final batch = _firestore.batch();
       batch.set(myRequestRef, request);

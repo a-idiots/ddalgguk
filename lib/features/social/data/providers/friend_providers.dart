@@ -50,6 +50,17 @@ final friendsProvider = FutureProvider.autoDispose<List<FriendWithData>>((
     }
   }
 
+  // 만료된 상태 메시지 정리 (백그라운드에서 실행, 결과를 기다리지 않음)
+  // 나 + 모든 친구들의 userId 수집
+  final allUserIds = friendsWithData.map((f) => f.userId).toList();
+  if (allUserIds.isNotEmpty) {
+    // 백그라운드에서 비동기 실행 (await 없이)
+    friendService.cleanupExpiredDailyStatuses(allUserIds).catchError((error) {
+      // 에러가 발생해도 무시 (로그만 출력됨)
+      return;
+    });
+  }
+
   return friendsWithData;
 });
 
@@ -64,9 +75,9 @@ final friendRequestsProvider = FutureProvider.autoDispose<List<FriendRequest>>((
 /// 보낸 친구 요청 프로바이더
 final sentFriendRequestsProvider =
     FutureProvider.autoDispose<List<FriendRequest>>((ref) async {
-  final friendService = ref.watch(friendServiceProvider);
-  return friendService.getSentFriendRequests();
-});
+      final friendService = ref.watch(friendServiceProvider);
+      return friendService.getSentFriendRequests();
+    });
 
 /// 친구 요청 개수 프로바이더
 final friendRequestCountProvider = Provider.autoDispose<int>((ref) {

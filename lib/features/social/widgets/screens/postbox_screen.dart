@@ -362,7 +362,9 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
       ),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
 
     setState(() => _isProcessing = true);
     try {
@@ -374,15 +376,15 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
       widget.ref.invalidate(sentFriendRequestsProvider);
       widget.ref.invalidate(friendRequestsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('친구 신청을 취소했습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('친구 신청을 취소했습니다')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('취소 실패: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('취소 실패: $e')));
       }
     } finally {
       if (mounted) {
@@ -395,13 +397,12 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy.MM.dd');
     final formattedDate = dateFormat.format(widget.request.createdAt);
-    final isPending =
-        widget.request.status == FriendRequestStatus.pending;
+    final isPending = widget.request.status == FriendRequestStatus.pending;
     final statusLabel = widget.request.status == FriendRequestStatus.pending
         ? '대기중'
         : widget.request.status == FriendRequestStatus.accepted
-            ? '수락됨'
-            : '취소됨';
+        ? '수락됨'
+        : '취소됨';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -425,7 +426,11 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: Colors.grey[200],
-                child: const Icon(Icons.person, size: 28, color: Colors.black45),
+                child: const Icon(
+                  Icons.person,
+                  size: 28,
+                  color: Colors.black45,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -448,8 +453,10 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.orange[50],
                   borderRadius: BorderRadius.circular(12),
@@ -487,8 +494,10 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.black87,
                   side: BorderSide(color: Colors.grey[300]!),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
                 child: _isProcessing
                     ? const SizedBox(
