@@ -796,6 +796,12 @@ class FriendService {
 
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first;
+
+        // 자기 자신은 검색 결과에서 제외
+        if (doc.id == _currentUserId) {
+          return null;
+        }
+
         final data = doc.data();
         return AppUser(
           uid: doc.id,
