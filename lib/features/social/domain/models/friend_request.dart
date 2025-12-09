@@ -15,6 +15,7 @@ class FriendRequest {
     required this.fromUserName,
     this.fromUserPhoto,
     required this.toUserId,
+    this.toUserName,
     required this.message,
     required this.createdAt,
     required this.status,
@@ -31,6 +32,7 @@ class FriendRequest {
       fromUserName: data['fromUserName'] as String,
       fromUserPhoto: data['fromUserPhoto'] as String?,
       toUserId: data['toUserId'] as String,
+      toUserName: data['toUserName'] as String?,
       message: data['message'] as String,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       status: FriendRequestStatus.values.firstWhere(
@@ -48,6 +50,7 @@ class FriendRequest {
   final String fromUserName; // 요청 보낸 사용자 이름
   final String? fromUserPhoto; // 요청 보낸 사용자 프로필 사진
   final String toUserId; // 요청 받은 사용자 ID
+  final String? toUserName; // 요청 받은 사용자 이름 (선택)
   final String message; // 요청 메시지
   final DateTime createdAt; // 요청 생성 시간
   final FriendRequestStatus status; // 요청 상태
@@ -59,6 +62,7 @@ class FriendRequest {
       'fromUserName': fromUserName,
       'fromUserPhoto': fromUserPhoto,
       'toUserId': toUserId,
+      'toUserName': toUserName,
       'message': message,
       'createdAt': Timestamp.fromDate(createdAt),
       'status': status.name,
@@ -81,6 +85,7 @@ class FriendRequest {
     String? fromUserName,
     String? fromUserPhoto,
     String? toUserId,
+    String? toUserName,
     String? message,
     DateTime? createdAt,
     FriendRequestStatus? status,
@@ -91,6 +96,7 @@ class FriendRequest {
       fromUserName: fromUserName ?? this.fromUserName,
       fromUserPhoto: fromUserPhoto ?? this.fromUserPhoto,
       toUserId: toUserId ?? this.toUserId,
+      toUserName: toUserName ?? this.toUserName,
       message: message ?? this.message,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,

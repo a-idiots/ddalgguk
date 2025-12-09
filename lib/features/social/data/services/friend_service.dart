@@ -246,12 +246,83 @@ class FriendService {
         final status = DailyStatus.fromFirestore(
           data['dailyStatus'] as Map<String, dynamic>,
         );
-        return status.isExpired ? null : status;
+
+        // 만료된 경우 데이터베이스에서도 삭제
+        if (status.isExpired) {
+          await _deleteMyDailyStatus();
+          return null;
+        }
+
+        return status;
       }
     } catch (e) {
       debugPrint('Error getting my daily status: $e');
     }
     return null;
+  }
+
+  /// 나의 일일 상태 삭제 (내부용)
+  Future<void> _deleteMyDailyStatus() async {
+    if (_currentUserId == null) {
+      return;
+    }
+
+    try {
+      await _firestore.collection('users').doc(_currentUserId).update({
+        'dailyStatus': FieldValue.delete(),
+      });
+      debugPrint('✅ Expired daily status deleted from my profile');
+    } catch (e) {
+      debugPrint('❌ Error deleting daily status: $e');
+    }
+  }
+
+  /// 모든 친구들의 만료된 일일 상태를 정리
+  /// 소셜 화면 접속 시 호출
+  Future<void> cleanupExpiredDailyStatuses(List<String> friendUserIds) async {
+    debugPrint('=== cleanupExpiredDailyStatuses START ===');
+    debugPrint('Checking ${friendUserIds.length} friends...');
+
+    try {
+      final batch = _firestore.batch();
+      int deleteCount = 0;
+
+      for (final userId in friendUserIds) {
+        final doc = await _firestore.collection('users').doc(userId).get();
+        final data = doc.data();
+
+        if (data != null && data['dailyStatus'] != null) {
+          try {
+            final status = DailyStatus.fromFirestore(
+              data['dailyStatus'] as Map<String, dynamic>,
+            );
+
+            if (status.isExpired) {
+              batch.update(_firestore.collection('users').doc(userId), {
+                'dailyStatus': FieldValue.delete(),
+              });
+              deleteCount++;
+              debugPrint(
+                'Marked for deletion: $userId (expired ${DateTime.now().difference(status.expiresAt).inHours}h ago)',
+              );
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error parsing dailyStatus for $userId: $e');
+          }
+        }
+      }
+
+      if (deleteCount > 0) {
+        await batch.commit();
+        debugPrint('✅ Deleted $deleteCount expired daily statuses');
+      } else {
+        debugPrint('✅ No expired statuses to delete');
+      }
+
+      debugPrint('=== cleanupExpiredDailyStatuses END ===');
+    } catch (e) {
+      debugPrint('❌ Error cleaning up expired statuses: $e');
+    }
   }
 
   // ==================== 나의 프로필 ====================
@@ -462,6 +533,28 @@ class FriendService {
     }
   }
 
+  /// 보낸 친구 요청 조회 (collectionGroup 사용)
+  Future<List<FriendRequest>> getSentFriendRequests() async {
+    if (_currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      final snapshot = await _getFriendRequestsCollection()
+          .where('fromUserId', isEqualTo: _currentUserId)
+          .where('status', isEqualTo: FriendRequestStatus.pending.name)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => FriendRequest.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting sent friend requests: $e');
+      return [];
+    }
+  }
+
   /// 친구 요청 보내기
   Future<void> sendFriendRequest({
     required String toUserId,
@@ -501,9 +594,10 @@ class FriendService {
       // 이미 요청을 보냈는지 확인
       final existingRequest = await _firestore
           .collection('users')
-          .doc(toUserId)
+          .doc(_currentUserId)
           .collection('friendRequests')
           .where('fromUserId', isEqualTo: _currentUserId)
+          .where('toUserId', isEqualTo: toUserId)
           .where('status', isEqualTo: FriendRequestStatus.pending.name)
           .get();
 
@@ -511,25 +605,42 @@ class FriendService {
         throw Exception('이미 친구 신청을 보낸 유저입니다');
       }
 
-      // 상대방의 friendRequests 컬렉션에 요청 추가
+      // 요청 데이터
       final request = {
         'fromUserId': _currentUserId,
         'fromUserName': currentUserName,
         'fromUserPhoto': currentUserPhotoURL,
         'toUserId': toUserId,
+        'toUserName': toUserName,
         'message': message,
         'createdAt': Timestamp.now(),
         'status': FriendRequestStatus.pending.name,
       };
 
-      debugPrint('Request data: $request');
-      debugPrint('Target path: users/$toUserId/friendRequests');
-
-      await _firestore
+      // 양쪽 friendRequests 컬렉션에 동일한 ID로 기록
+      final myRequestRef = _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .collection('friendRequests')
+          .doc();
+      final theirRequestRef = _firestore
           .collection('users')
           .doc(toUserId)
           .collection('friendRequests')
-          .add(request);
+          .doc(myRequestRef.id);
+
+      debugPrint('Request data: $request');
+      debugPrint(
+        'My path: users/$_currentUserId/friendRequests/${myRequestRef.id}',
+      );
+      debugPrint(
+        'Their path: users/$toUserId/friendRequests/${theirRequestRef.id}',
+      );
+
+      final batch = _firestore.batch();
+      batch.set(myRequestRef, request);
+      batch.set(theirRequestRef, request);
+      await batch.commit();
 
       debugPrint('✅ Friend request sent successfully to: $toUserId');
     } catch (e) {
@@ -558,7 +669,7 @@ class FriendService {
       final friendUser = AppUser(
         uid: request.fromUserId,
         name: friendData['name'] as String?,
-        photoURL: friendData['photoURL'] as String?,
+        profilePhoto: friendData['profilePhoto'] as int? ?? 0,
         provider:
             LoginProvider.fromString(friendData['provider'] as String?) ??
             LoginProvider.google,
@@ -568,8 +679,18 @@ class FriendService {
       // 친구 관계 생성
       await addFriend(request.fromUserId, friendUser);
 
-      // 친구 관계가 생성되었으므로 요청을 삭제
-      await _getFriendRequestsCollection().doc(request.id).delete();
+      // 양쪽 friendRequests에서 삭제
+      final myRequestRef = _getFriendRequestsCollection().doc(request.id);
+      final theirRequestRef = _firestore
+          .collection('users')
+          .doc(request.fromUserId)
+          .collection('friendRequests')
+          .doc(request.id);
+
+      final batch = _firestore.batch();
+      batch.delete(myRequestRef);
+      batch.delete(theirRequestRef);
+      await batch.commit();
 
       debugPrint('Friend request accepted and deleted: ${request.id}');
     } catch (e) {
@@ -581,12 +702,71 @@ class FriendService {
   /// 친구 요청 거절
   Future<void> declineFriendRequest(String requestId) async {
     try {
-      // 거절한 요청은 삭제
-      await _getFriendRequestsCollection().doc(requestId).delete();
+      final myRequestRef = _getFriendRequestsCollection().doc(requestId);
+      final snapshot = await myRequestRef.get();
+      if (!snapshot.exists) {
+        return;
+      }
+      final data = snapshot.data()!;
+      final fromUserId = data['fromUserId'] as String?;
+
+      final batch = _firestore.batch();
+      batch.delete(myRequestRef);
+
+      if (fromUserId != null) {
+        final theirRequestRef = _firestore
+            .collection('users')
+            .doc(fromUserId)
+            .collection('friendRequests')
+            .doc(requestId);
+        batch.delete(theirRequestRef);
+      }
+
+      await batch.commit();
 
       debugPrint('Friend request declined and deleted: $requestId');
     } catch (e) {
       debugPrint('Error declining friend request: $e');
+      rethrow;
+    }
+  }
+
+  /// 보낸 친구 요청 취소 (보낸 사람이 취소)
+  Future<void> cancelSentFriendRequest({
+    required String requestId,
+    required String toUserId,
+  }) async {
+    if (_currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      // 보낸 요청 여부 확인
+      final myRequestRef = _getFriendRequestsCollection().doc(requestId);
+      final snapshot = await myRequestRef.get();
+      if (!snapshot.exists) {
+        throw Exception('Request not found');
+      }
+      final data = snapshot.data()!;
+      final fromUserId = data['fromUserId'] as String?;
+      if (fromUserId != _currentUserId) {
+        throw Exception('Not request owner');
+      }
+
+      final theirRequestRef = _firestore
+          .collection('users')
+          .doc(toUserId)
+          .collection('friendRequests')
+          .doc(requestId);
+
+      final batch = _firestore.batch();
+      batch.delete(myRequestRef);
+      batch.delete(theirRequestRef);
+
+      await batch.commit();
+      debugPrint('Friend request cancelled: $requestId');
+    } catch (e) {
+      debugPrint('Error cancelling friend request: $e');
       rethrow;
     }
   }
@@ -616,11 +796,17 @@ class FriendService {
 
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first;
+
+        // 자기 자신은 검색 결과에서 제외
+        if (doc.id == _currentUserId) {
+          return null;
+        }
+
         final data = doc.data();
         return AppUser(
           uid: doc.id,
           name: data['name'] as String?,
-          photoURL: data['photoURL'] as String?,
+          profilePhoto: data['profilePhoto'] as int? ?? 0,
           provider:
               LoginProvider.fromString(data['provider'] as String?) ??
               LoginProvider.google,
@@ -671,7 +857,7 @@ class FriendService {
           AppUser(
             uid: doc.id,
             name: data['name'] as String?,
-            photoURL: data['photoURL'] as String?,
+            profilePhoto: data['profilePhoto'] as int? ?? 0,
             provider:
                 LoginProvider.fromString(data['provider'] as String?) ??
                 LoginProvider.google,

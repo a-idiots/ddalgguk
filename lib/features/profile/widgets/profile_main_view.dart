@@ -7,22 +7,39 @@ import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProfileMainView extends ConsumerWidget {
+class ProfileMainView extends ConsumerStatefulWidget {
   const ProfileMainView({
     super.key,
     this.showCharacter = true,
     this.characterKey,
     this.opacity = 1.0,
+    this.onDrunkLevelChanged,
   });
 
   final bool showCharacter;
   final GlobalKey? characterKey;
   final double opacity;
+  final ValueChanged<int>? onDrunkLevelChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileMainView> createState() => _ProfileMainViewState();
+}
+
+class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
+  @override
+  Widget build(BuildContext context) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final currentStatsAsync = ref.watch(currentProfileStatsProvider);
+
+    // Listen to stats changes and update currentDrunkLevel in database
+    ref.listen(currentProfileStatsProvider, (previous, next) {
+      next.whenData((stats) {
+        final authRepository = ref.read(authRepositoryProvider);
+        authRepository.updateCurrentDrunkLevel(stats.todayDrunkLevel);
+        // Notify parent about drunk level change
+        widget.onDrunkLevelChanged?.call(stats.todayDrunkLevel);
+      });
+    });
 
     return currentUserAsync.when(
       skipLoadingOnReload: true,
@@ -34,6 +51,11 @@ class ProfileMainView extends ConsumerWidget {
         return currentStatsAsync.when(
           skipLoadingOnReload: true,
           data: (stats) {
+            // Notify parent about drunk level when data is available
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              widget.onDrunkLevelChanged?.call(stats.todayDrunkLevel);
+            });
+
             final thisMonthDrunkDays = stats.thisMonthDrunkDays;
             final theme = AppColors.getTheme(thisMonthDrunkDays);
 
@@ -100,12 +122,12 @@ class ProfileMainView extends ConsumerWidget {
                           SizedBox(
                             width: 150,
                             height: 150,
-                            child: showCharacter
+                            child: widget.showCharacter
                                 ? SakuCharacter(
                                     size: 150,
                                     drunkLevel: stats.todayDrunkLevel,
                                   )
-                                : Container(key: characterKey),
+                                : Container(key: widget.characterKey),
                           ),
 
                           const Spacer(flex: 2),
@@ -118,7 +140,7 @@ class ProfileMainView extends ConsumerWidget {
                       left: 0,
                       right: 0,
                       child: Opacity(
-                        opacity: opacity,
+                        opacity: widget.opacity,
                         child: const AnimatedScrollIndicator(),
                       ),
                     ),

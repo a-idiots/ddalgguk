@@ -1,11 +1,13 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
-import 'package:ddalgguk/features/social/widgets/dialogs/add_friend_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/friend_profile_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/friend_card.dart';
+import 'package:ddalgguk/features/social/widgets/screens/add_friends.dart';
 import 'package:ddalgguk/features/social/widgets/screens/postbox_screen.dart';
+import 'package:ddalgguk/shared/widgets/page_header.dart';
+import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,35 +23,38 @@ class SocialScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: TabPageHeader(
+        title: 'SAKU Village',
+        fontSize: 28,
+        height: 64,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AddFriendScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.add, size: 32, color: Colors.black),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
-          SafeArea(
-            child: Column(
-              children: [
-                // 헤더 (우체통 아이콘 제거, 친구 추가 버튼만)
-                _buildHeader(context, ref),
-                // 친구 목록
-                Expanded(
-                  child: friendsAsync.when(
-                    data: (friends) {
-                      // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
-                      if (friends.isEmpty) {
-                        return _buildEmptyStateWithRefresh(context, ref);
-                      }
-                      // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
-                      return _buildFriendsGridWithRefresh(ref, friends);
-                    },
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primaryPink,
-                      ),
-                    ),
-                    error: (error, stack) =>
-                        _buildErrorStateWithRefresh(ref, error),
-                  ),
-                ),
-              ],
+          friendsAsync.when(
+            data: (friends) {
+              // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
+              if (friends.isEmpty) {
+                return _buildEmptyStateWithRefresh(context, ref);
+              }
+              // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
+              return _buildFriendsGridWithRefresh(ref, friends);
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryPink),
             ),
+            error: (error, stack) => _buildErrorStateWithRefresh(ref, error),
           ),
           // 우체통 아이콘 - 네비게이션 바 바로 위 우측 하단
           Positioned(
@@ -70,41 +75,6 @@ class SocialScreen extends ConsumerWidget {
                 width: postboxSize,
                 height: postboxSize,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Stack(
-        children: [
-          // 타이틀 (중앙)
-          Align(
-            alignment: Alignment.center,
-            child: const Text(
-              'SAKU Village',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          // 친구 추가 버튼 (우측)
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const AddFriendDialog(),
-                );
-              },
-              child: const Icon(Icons.add, size: 32, color: Colors.black),
             ),
           ),
         ],
@@ -152,12 +122,10 @@ class SocialScreen extends ConsumerWidget {
                     );
                   }
                 : () {
-                    // 친구 프로필 미리보기 다이얼로그 표시
-                    showDialog(
+                    // 친구 프로필 미리보기 바텀 시트 표시
+                    showBottomHandleDialogue(
                       context: context,
-                      barrierColor: Colors.black.withValues(alpha: 0.7),
-                      builder: (context) =>
-                          FriendProfileDialog(friendData: friendData),
+                      child: FriendProfileDialog(friendData: friendData),
                     );
                   },
           );
@@ -200,9 +168,10 @@ class SocialScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const AddFriendDialog(),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AddFriendScreen(),
+                      ),
                     );
                   },
                   icon: const Icon(Icons.person_add),

@@ -16,11 +16,13 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
     this.onBack,
     this.onNavigateToAnalytics,
     this.showCharacter = true,
+    this.drunkLevel,
   });
 
   final VoidCallback? onBack;
   final VoidCallback? onNavigateToAnalytics;
   final bool showCharacter;
+  final int? drunkLevel;
 
   @override
   ConsumerState<ProfileDetailScreen> createState() =>
@@ -69,12 +71,8 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                           user: user,
                           theme: theme,
                           showCharacter: widget.showCharacter,
-                          drunkLevel: weeklyStatsAsync.when(
-                            skipLoadingOnReload: true,
-                            data: (stats) => stats.averageDrunkLevel.round(),
-                            loading: () => 0,
-                            error: (_, __) => 0,
-                          ),
+                          drunkLevel:
+                              widget.drunkLevel ?? currentStats.todayDrunkLevel,
                         ),
                       ),
                       // Content

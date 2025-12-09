@@ -257,7 +257,7 @@ class ProfileStatsService {
       breakdown: breakdown,
       consecutiveDrinkingDays: consecutiveDrinkingDays,
       consecutiveSoberDays: consecutiveSoberDays,
-      todayDrunkLevel: todayDrunkLevel * 10,
+      todayDrunkLevel: alcoholStats.currentDrunkLevel.round(),
       thisMonthDrinkingCount: thisMonthDrinkingCount,
     );
   }
