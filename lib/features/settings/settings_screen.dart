@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
 import 'package:ddalgguk/features/settings/notice_screen.dart';
 import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
+import 'package:ddalgguk/features/settings/notification_settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
 
@@ -192,7 +193,11 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '알림 설정',
             onTap: () {
-              // TODO: Navigate to notification settings
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
             },
           ),
           const SettingsSectionDivider(),

@@ -1,5 +1,6 @@
 import 'package:ddalgguk/core/services/notification_config.dart';
 import 'package:ddalgguk/core/services/notification_service.dart';
+import 'package:ddalgguk/core/services/notification_preferences.dart';
 
 /// Notification manager for scheduling and managing notifications
 class NotificationManager {
@@ -10,6 +11,7 @@ class NotificationManager {
   static final NotificationManager _instance = NotificationManager._internal();
 
   final NotificationService _service = NotificationService();
+  final NotificationPreferences _preferences = NotificationPreferences();
 
   /// Initialize notification manager
   Future<void> initialize() async {
@@ -36,6 +38,14 @@ class NotificationManager {
     NotificationType type, {
     String userName = '사용자',
   }) async {
+    // Check if this notification type is enabled
+    final isEnabled = await _preferences.isNotificationEnabled(type);
+    if (!isEnabled) {
+      // If disabled, cancel any existing notifications
+      await cancelNotificationsForType(type);
+      return;
+    }
+
     // Get schedules for this type
     final schedules = NotificationConfig.getSchedules(type);
 
@@ -57,6 +67,29 @@ class NotificationManager {
         repeatDaily: schedule.repeatDaily,
       );
     }
+  }
+
+  /// Toggle notification for a specific type
+  Future<void> toggleNotification(
+    NotificationType type, {
+    required bool enabled,
+    String userName = '사용자',
+  }) async {
+    // Save preference
+    await _preferences.setNotificationEnabled(type, enabled);
+
+    if (enabled) {
+      // Schedule notification
+      await scheduleNotificationsForType(type, userName: userName);
+    } else {
+      // Cancel notification
+      await cancelNotificationsForType(type);
+    }
+  }
+
+  /// Check if a notification type is enabled in preferences
+  Future<bool> isNotificationEnabled(NotificationType type) async {
+    return _preferences.isNotificationEnabled(type);
   }
 
   /// Cancel notifications for a specific type
@@ -93,6 +126,24 @@ class NotificationManager {
       title: message.title,
       body: message.body,
       type: type,
+    );
+  }
+
+  /// Show delayed notification for testing (useful for iOS)
+  Future<void> showDelayedTestNotification({
+    NotificationType type = NotificationType.recordAlarm,
+    String userName = '사용자',
+    int delaySeconds = 5,
+  }) async {
+    final message = NotificationConfig.getMessage(type, userName: userName);
+    final notificationId = NotificationConfig.getNotificationId(type, 999);
+
+    await _service.showDelayedNotification(
+      id: notificationId,
+      title: message.title,
+      body: message.body,
+      type: type,
+      delaySeconds: delaySeconds,
     );
   }
 

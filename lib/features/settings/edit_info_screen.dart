@@ -453,10 +453,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                 ),
                 child: const Text(
                   '저장하기',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -479,7 +476,8 @@ class _GenderButton extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  Color get mainColor => label == '남' ? const Color(0xFF7A86F5) : const Color(0xFFE35252);
+  Color get mainColor =>
+      label == '남' ? const Color(0xFF7A86F5) : const Color(0xFFE35252);
 
   @override
   Widget build(BuildContext context) {
@@ -671,10 +669,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
                   ),
                   child: const Text(
                     '저장하기',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -688,10 +683,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
 }
 
 class _BodyInfoInput extends StatelessWidget {
-  const _BodyInfoInput({
-    required this.label,
-    required this.controller,
-  });
+  const _BodyInfoInput({required this.label, required this.controller});
 
   final String label;
   final TextEditingController controller;
@@ -870,10 +862,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
                 ),
                 child: const Text(
                   '저장하기',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -1073,8 +1062,7 @@ class _DrinkingFrequencyScreenState
                               if (currentValue != null && currentValue > 7) {
                                 _frequencyController.text = '7';
                                 setState(() {
-                                  _errorMessage =
-                                      '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
+                                  _errorMessage = '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
                                 });
                               } else if (currentValue != null &&
                                   currentValue >= 0) {
@@ -1108,8 +1096,10 @@ class _DrinkingFrequencyScreenState
                                   width: 2,
                                 ),
                               ),
-                              contentPadding:
-                                  EdgeInsets.only(left: 3, bottom: 1),
+                              contentPadding: EdgeInsets.only(
+                                left: 3,
+                                bottom: 1,
+                              ),
                             ),
                           ),
                         ),

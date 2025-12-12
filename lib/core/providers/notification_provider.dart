@@ -33,8 +33,10 @@ final initializeNotificationsProvider = FutureProvider<void>((ref) async {
 });
 
 /// Provider for rescheduling notifications when user name changes
-final rescheduleNotificationsProvider =
-    FutureProvider.family<void, String>((ref, userName) async {
+final rescheduleNotificationsProvider = FutureProvider.family<void, String>((
+  ref,
+  userName,
+) async {
   final manager = ref.read(notificationManagerProvider);
   await manager.rescheduleAllNotifications(userName: userName);
 });
@@ -52,6 +54,22 @@ final showTestNotificationProvider = Provider<Future<void> Function()>((ref) {
     );
   };
 });
+
+/// Provider for showing delayed test notification (useful for iOS)
+final showDelayedTestNotificationProvider =
+    Provider<Future<void> Function({int delaySeconds})>((ref) {
+      return ({int delaySeconds = 5}) async {
+        final manager = ref.read(notificationManagerProvider);
+        final currentUser = await ref.read(currentUserProvider.future);
+        final userName = currentUser?.name ?? '사용자';
+
+        await manager.showDelayedTestNotification(
+          type: NotificationType.recordAlarm,
+          userName: userName,
+          delaySeconds: delaySeconds,
+        );
+      };
+    });
 
 /// Provider for getting pending notification count
 final pendingNotificationCountProvider = FutureProvider<int>((ref) async {
@@ -71,6 +89,34 @@ final cancelAllNotificationsProvider = Provider<Future<void> Function()>((ref) {
 /// Provider for checking if a notification type is scheduled
 final isNotificationTypeScheduledProvider =
     FutureProvider.family<bool, NotificationType>((ref, type) async {
-  final manager = ref.read(notificationManagerProvider);
-  return manager.isNotificationTypeScheduled(type);
-});
+      final manager = ref.read(notificationManagerProvider);
+      return manager.isNotificationTypeScheduled(type);
+    });
+
+/// Provider for checking if a notification type is enabled
+final isNotificationEnabledProvider =
+    FutureProvider.family<bool, NotificationType>((ref, type) async {
+      final manager = ref.read(notificationManagerProvider);
+      return manager.isNotificationEnabled(type);
+    });
+
+/// Provider for toggling notification
+final toggleNotificationProvider =
+    Provider<Future<void> Function(NotificationType, bool)>((ref) {
+      return (NotificationType type, bool enabled) async {
+        final manager = ref.read(notificationManagerProvider);
+        final currentUser = await ref.read(currentUserProvider.future);
+        final userName = currentUser?.name ?? '사용자';
+
+        await manager.toggleNotification(
+          type,
+          enabled: enabled,
+          userName: userName,
+        );
+
+        // Invalidate relevant providers
+        ref.invalidate(isNotificationEnabledProvider(type));
+        ref.invalidate(isNotificationTypeScheduledProvider(type));
+        ref.invalidate(pendingNotificationCountProvider);
+      };
+    });

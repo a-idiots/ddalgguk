@@ -5,11 +5,7 @@ import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 /// Reusable dialog widget for settings information displays
 /// Shows Saku character with a speech bubble containing custom content
 class SakuInfoDialog extends StatelessWidget {
-  const SakuInfoDialog({
-    super.key,
-    required this.content,
-    this.bottomButtons,
-  });
+  const SakuInfoDialog({super.key, required this.content, this.bottomButtons});
 
   /// Content to display inside the speech bubble
   final Widget content;
@@ -198,10 +194,7 @@ Future<bool?> showLogoutDialog(BuildContext context) {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 48,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -259,10 +252,7 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 48,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),

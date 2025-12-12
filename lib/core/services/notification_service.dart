@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -27,7 +28,9 @@ class NotificationService {
     tz.setLocalLocation(tz.getLocation('Asia/Seoul'));
 
     // Android initialization settings
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
 
     // iOS initialization settings
     const iosSettings = DarwinInitializationSettings(
@@ -55,12 +58,16 @@ class NotificationService {
       await initialize();
     }
 
+    debugPrint('🔔 Requesting notification permissions...');
+
     // Request Android permissions (Android 13+)
-    final androidPlugin =
-        _notificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidPlugin != null) {
       final granted = await androidPlugin.requestNotificationsPermission();
+      debugPrint('📱 Android permission granted: $granted');
       if (granted != true) {
         return false;
       }
@@ -69,13 +76,15 @@ class NotificationService {
     // Request iOS permissions
     final iosPlugin = _notificationsPlugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (iosPlugin != null) {
       final granted = await iosPlugin.requestPermissions(
         alert: true,
         badge: true,
         sound: true,
       );
+      debugPrint('🍎 iOS permission granted: $granted');
       if (granted != true) {
         return false;
       }
@@ -191,6 +200,22 @@ class NotificationService {
       await initialize();
     }
 
+    debugPrint('🔔 Showing notification: id=$id, title=$title, body=$body');
+
+    // Check iOS permissions
+    final iosPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (iosPlugin != null) {
+      final granted = await iosPlugin.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      debugPrint('🍎 iOS notification permission status: $granted');
+    }
+
     final androidDetails = AndroidNotificationDetails(
       NotificationConfig.getChannelId(type),
       NotificationConfig.getChannelName(type),
@@ -210,11 +235,69 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _notificationsPlugin.show(
-      id,
-      title,
-      body,
-      notificationDetails,
+    try {
+      await _notificationsPlugin.show(id, title, body, notificationDetails);
+      debugPrint('✅ Notification API called successfully');
+    } catch (e) {
+      debugPrint('❌ Error showing notification: $e');
+      rethrow;
+    }
+  }
+
+  /// Schedule notification after delay (for testing)
+  Future<void> showDelayedNotification({
+    required int id,
+    required String title,
+    required String body,
+    required NotificationType type,
+    required int delaySeconds,
+  }) async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    debugPrint(
+      '🔔 Scheduling notification in $delaySeconds seconds: id=$id, title=$title',
     );
+
+    final scheduledDate = tz.TZDateTime.now(
+      tz.local,
+    ).add(Duration(seconds: delaySeconds));
+
+    final androidDetails = AndroidNotificationDetails(
+      NotificationConfig.getChannelId(type),
+      NotificationConfig.getChannelName(type),
+      channelDescription: NotificationConfig.getChannelDescription(type),
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    try {
+      await _notificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+      debugPrint('✅ Notification scheduled successfully for $scheduledDate');
+    } catch (e) {
+      debugPrint('❌ Error scheduling notification: $e');
+      rethrow;
+    }
   }
 }

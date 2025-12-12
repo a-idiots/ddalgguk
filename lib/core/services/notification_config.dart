@@ -1,16 +1,9 @@
 /// Notification types enum
-enum NotificationType {
-  recordAlarm,
-  socialAlarm,
-  recapAlarm,
-}
+enum NotificationType { recordAlarm, socialAlarm, recapAlarm }
 
 /// Notification message configuration
 class NotificationMessage {
-  const NotificationMessage({
-    required this.title,
-    required this.body,
-  });
+  const NotificationMessage({required this.title, required this.body});
 
   final String title;
   final String body;
@@ -75,10 +68,7 @@ class NotificationConfig {
   }) {
     final messageList = messages[type];
     if (messageList == null || messageList.isEmpty) {
-      return const NotificationMessage(
-        title: '딸꾹',
-        body: '새로운 알림이 도착했습니다.',
-      );
+      return const NotificationMessage(title: '딸꾹', body: '새로운 알림이 도착했습니다.');
     }
 
     final message = messageList.first;
