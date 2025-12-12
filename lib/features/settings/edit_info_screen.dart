@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
@@ -407,36 +408,27 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          const SettingsSectionDivider(),
-          RadioGroup<String?>(
-            groupValue: _selectedGender,
-            onChanged: (value) {
-              setState(() {
-                _selectedGender = value;
-              });
-            },
-            child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ListTile(
-                  title: const Text(
-                    '남성',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                  ),
-                  leading: Radio<String?>(value: '남성'),
+                _GenderButton(
+                  label: '남',
+                  isSelected: _selectedGender == '남성',
                   onTap: () {
                     setState(() {
                       _selectedGender = '남성';
                     });
                   },
                 ),
-                ListTile(
-                  title: const Text(
-                    '여성',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                  ),
-                  leading: Radio<String?>(value: '여성'),
+                const SizedBox(width: 36),
+                _GenderButton(
+                  label: '여',
+                  isSelected: _selectedGender == '여성',
                   onTap: () {
                     setState(() {
                       _selectedGender = '여성';
@@ -445,33 +437,71 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 48),
-          Center(
-            child: ElevatedButton(
-              onPressed: _handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
-                  vertical: 12,
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-              child: const Text(
-                '저장하기',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                child: const Text(
+                  '저장하기',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GenderButton extends StatelessWidget {
+  const _GenderButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  Color get mainColor => label == '남' ? const Color(0xFF7A86F5) : const Color(0xFFE35252);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: isSelected ? mainColor : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: mainColor, width: 1),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : mainColor,
           ),
-        ],
+        ),
       ),
     );
   }
@@ -583,129 +613,120 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          '신체 정보',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
           ),
+          title: const Text(
+            '신체 정보',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Text(
-                      '키',
-                      style: TextStyle(fontFamily: 'Inter', fontSize: 16),
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              Row(
+                children: [
+                  Expanded(
+                    child: _BodyInfoInput(
+                      label: '키 (cm)',
+                      controller: _heightController,
                     ),
-                    const SizedBox(width: 120),
-                    Expanded(
-                      child: TextField(
-                        controller: _heightController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '입력',
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                      ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _BodyInfoInput(
+                      label: '몸무게 (kg)',
+                      controller: _weightController,
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'cm',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _handleSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    const Text(
-                      '몸무게',
-                      style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                    ),
-                    const SizedBox(width: 88),
-                    Expanded(
-                      child: TextField(
-                        controller: _weightController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '입력',
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'kg',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '저장하기',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BodyInfoInput extends StatelessWidget {
+  const _BodyInfoInput({
+    required this.label,
+    required this.controller,
+  });
+
+  final String label;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -719,9 +740,7 @@ class BirthDateScreen extends ConsumerStatefulWidget {
 }
 
 class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
-  int? _year;
-  int? _month;
-  int? _day;
+  DateTime? _selectedDate;
   bool _isLoading = true;
 
   @override
@@ -737,49 +756,25 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
     ref.invalidate(authStateProvider);
     ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
-    if (mounted && currentUser?.birthDate != null) {
+    if (mounted) {
       setState(() {
-        _year = currentUser!.birthDate!.year;
-        _month = currentUser.birthDate!.month;
-        _day = currentUser.birthDate!.day;
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
+        _selectedDate = currentUser?.birthDate ?? DateTime(2007, 1, 1);
         _isLoading = false;
       });
     }
-  }
-
-  List<int> _getYears() {
-    final currentYear = DateTime.now().year;
-    return List.generate(100, (index) => currentYear - index);
-  }
-
-  List<int> _getMonths() {
-    return List.generate(12, (index) => index + 1);
-  }
-
-  List<int> _getDays() {
-    if (_year == null || _month == null) {
-      return List.generate(31, (index) => index + 1);
-    }
-    final daysInMonth = DateTime(_year!, _month! + 1, 0).day;
-    return List.generate(daysInMonth, (index) => index + 1);
   }
 
   Future<void> _handleSave() async {
-    if (_year == null || _month == null || _day == null) {
+    if (_selectedDate == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('모든 항목을 선택해주세요')));
+      ).showSnackBar(const SnackBar(content: Text('생년월일을 선택해주세요')));
       return;
     }
 
     try {
-      final birthDate = DateTime(_year!, _month!, _day!);
       final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.updateUserInfo(birthDate: birthDate);
+      await authRepository.updateUserInfo(birthDate: _selectedDate);
 
       // Refresh user data
       ref.invalidate(authStateProvider);
@@ -839,199 +834,52 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                const Text(
-                  '연도',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _year,
-                      hint: const Text(
-                        '선택',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      isExpanded: true,
-                      items: _getYears().map((year) {
-                        return DropdownMenuItem(
-                          value: year,
-                          child: Text(
-                            '$year년',
-                            style: const TextStyle(fontFamily: 'Inter'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _year = value;
-                          if (_day != null && _month != null) {
-                            final daysInMonth = DateTime(
-                              _year!,
-                              _month! + 1,
-                              0,
-                            ).day;
-                            if (_day! > daysInMonth) {
-                              _day = daysInMonth;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  '월',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _month,
-                      hint: const Text(
-                        '선택',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      isExpanded: true,
-                      items: _getMonths().map((month) {
-                        return DropdownMenuItem(
-                          value: month,
-                          child: Text(
-                            '$month월',
-                            style: const TextStyle(fontFamily: 'Inter'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _month = value;
-                          if (_day != null && _year != null && _month != null) {
-                            final daysInMonth = DateTime(
-                              _year!,
-                              _month! + 1,
-                              0,
-                            ).day;
-                            if (_day! > daysInMonth) {
-                              _day = daysInMonth;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  '일',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _day,
-                      hint: const Text(
-                        '선택',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      isExpanded: true,
-                      items: _getDays().map((day) {
-                        return DropdownMenuItem(
-                          value: day,
-                          child: Text(
-                            '$day일',
-                            style: const TextStyle(fontFamily: 'Inter'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _day = value;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            SizedBox(
+              height: 200,
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _selectedDate ?? DateTime(2007, 1, 1),
+                minimumDate: DateTime(1900),
+                maximumDate: DateTime.now(),
+                dateOrder: DatePickerDateOrder.ymd,
+                onDateTimeChanged: (DateTime newDate) {
+                  setState(() {
+                    _selectedDate = newDate;
+                  });
+                },
+              ),
             ),
-          ),
-        ],
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  '저장하기',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
