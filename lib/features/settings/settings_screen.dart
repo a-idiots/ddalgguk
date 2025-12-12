@@ -14,29 +14,7 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter')),
-        content: const Text(
-          '정말 로그아웃 하시겠습니까?',
-          style: TextStyle(fontFamily: 'Inter'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              '로그아웃',
-              style: TextStyle(fontFamily: 'Inter', color: Colors.red),
-            ),
-          ),
-        ], //집에 가고 싶다 집에 가고 싶다 집에 가고 싶다 집에 보내줘 집에 가고 싶어 집 집 집 집 침대 잠 불닭
-      ),
-    );
+    final confirmed = await showLogoutDialog(context);
 
     if (confirmed == true && context.mounted) {
       try {
@@ -60,33 +38,7 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
   ) async {
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('회원 탈퇴', style: TextStyle(fontFamily: 'Inter')),
-        content: const Text(
-          '정말 탈퇴하시겠습니까?\n\n모든 데이터가 삭제되며 복구할 수 없습니다.',
-          style: TextStyle(fontFamily: 'Inter'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              '탈퇴',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    final confirmed = await showAccountDeletionDialog(context);
 
     if (confirmed == true && context.mounted) {
       try {
