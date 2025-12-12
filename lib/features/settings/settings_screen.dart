@@ -4,6 +4,7 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
+import 'package:ddalgguk/features/settings/notice_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -225,7 +226,9 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '공지사항',
             onTap: () {
-              // TODO: Navigate to notices
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const NoticeScreen()),
+              );
             },
           ),
           const SettingsSectionDivider(),
