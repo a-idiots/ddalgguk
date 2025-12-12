@@ -8,7 +8,7 @@ class AppUser {
   const AppUser({
     required this.uid,
     required this.provider,
-    this.photoURL,
+    this.profilePhoto = 0,
     this.hasCompletedProfileSetup = false,
     this.id,
     this.name,
@@ -33,10 +33,9 @@ class AppUser {
   /// Create AppUser from Firebase User
   factory AppUser.fromFirebaseUser({
     required String uid,
-    required String? photoURL,
     required LoginProvider provider,
   }) {
-    return AppUser(uid: uid, photoURL: photoURL, provider: provider);
+    return AppUser(uid: uid, provider: provider, profilePhoto: 0);
   }
 
   /// Create AppUser from JSON (Firestore)
@@ -46,7 +45,7 @@ class AppUser {
       provider:
           LoginProvider.fromString(json['provider'] as String?) ??
           LoginProvider.google,
-      photoURL: json['photoURL'] as String?,
+      profilePhoto: json['profilePhoto'] as int? ?? 0,
       hasCompletedProfileSetup:
           json['hasCompletedProfileSetup'] as bool? ?? false,
       id: json['id'] as String?,
@@ -101,7 +100,7 @@ class AppUser {
   // Stats (Basic user info)
   final String uid;
   final LoginProvider provider;
-  final String? photoURL;
+  final int profilePhoto; // 0-9: saku gradient background index
   final bool hasCompletedProfileSetup;
   final String? id;
   final String? name;
@@ -155,7 +154,7 @@ class AppUser {
     return {
       'uid': uid,
       'provider': provider.value,
-      'photoURL': photoURL,
+      'profilePhoto': profilePhoto,
       'hasCompletedProfileSetup': hasCompletedProfileSetup,
       'id': id,
       'name': name,
@@ -195,7 +194,7 @@ class AppUser {
   AppUser copyWith({
     String? uid,
     LoginProvider? provider,
-    String? photoURL,
+    int? profilePhoto,
     bool? hasCompletedProfileSetup,
     String? id,
     String? name,
@@ -219,7 +218,7 @@ class AppUser {
     return AppUser(
       uid: uid ?? this.uid,
       provider: provider ?? this.provider,
-      photoURL: photoURL ?? this.photoURL,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
       hasCompletedProfileSetup:
           hasCompletedProfileSetup ?? this.hasCompletedProfileSetup,
       id: id ?? this.id,
@@ -258,7 +257,7 @@ class AppUser {
     return other is AppUser &&
         other.uid == uid &&
         other.provider == provider &&
-        other.photoURL == photoURL &&
+        other.profilePhoto == profilePhoto &&
         other.hasCompletedProfileSetup == hasCompletedProfileSetup &&
         other.id == id &&
         other.name == name &&
@@ -286,7 +285,7 @@ class AppUser {
   int get hashCode {
     return uid.hashCode ^
         provider.hashCode ^
-        photoURL.hashCode ^
+        profilePhoto.hashCode ^
         hasCompletedProfileSetup.hashCode ^
         id.hashCode ^
         name.hashCode ^

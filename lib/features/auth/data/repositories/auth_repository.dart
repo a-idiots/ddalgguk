@@ -69,7 +69,6 @@ class AuthRepository {
         // New user - create with basic info
         appUser = AppUser.fromFirebaseUser(
           uid: uid,
-          photoURL: userCredential.user!.photoURL,
           provider: LoginProvider.google,
         );
         debugPrint(
@@ -124,7 +123,6 @@ class AuthRepository {
         // New user - create with basic info
         appUser = AppUser.fromFirebaseUser(
           uid: uid,
-          photoURL: userCredential.user!.photoURL,
           provider: LoginProvider.apple,
         );
         debugPrint(
@@ -160,9 +158,6 @@ class AuthRepository {
 
       final uid = userCredential.user!.uid;
 
-      // Get Kakao user info for profile data
-      final kakaoUser = await _kakaoAuthService.getKakaoUser();
-
       // Check if user already exists in Firestore
       debugPrint('=== Sign in with Kakao - checking Firestore ===');
       final doc = await _usersCollection.doc(uid).get();
@@ -183,7 +178,6 @@ class AuthRepository {
         // New user - create with basic info from Kakao
         appUser = AppUser.fromFirebaseUser(
           uid: uid,
-          photoURL: kakaoUser.kakaoAccount?.profile?.profileImageUrl,
           provider: LoginProvider.kakao,
         );
         debugPrint(
@@ -355,7 +349,7 @@ class AuthRepository {
   }
 
   /// Update user profile in Firestore
-  Future<void> updateUserProfile({String? name, String? photoURL}) async {
+  Future<void> updateUserProfile({String? name, int? profilePhoto}) async {
     try {
       final uid = _firebaseAuthService.userId;
       if (uid == null) {
@@ -366,12 +360,22 @@ class AuthRepository {
       if (name != null) {
         updates['name'] = name;
       }
-      if (photoURL != null) {
-        updates['photoURL'] = photoURL;
+      if (profilePhoto != null) {
+        updates['profilePhoto'] = profilePhoto;
       }
 
       if (updates.isNotEmpty) {
         await _usersCollection.doc(uid).update(updates);
+
+        // Update cache
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            name: name ?? currentUser.name,
+            profilePhoto: profilePhoto ?? currentUser.profilePhoto,
+          );
+          await _storageService.saveUserCache(updatedUser);
+        }
       }
     } catch (e) {
       debugPrint('Update user profile error: $e');
@@ -427,6 +431,29 @@ class AuthRepository {
     }
   }
 
+  /// Update current drunk level in Firestore
+  /// This is used to show friend's drunk level in social tab
+  Future<void> updateCurrentDrunkLevel(int drunkLevel) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        return; // Silently fail if not authenticated
+      }
+
+      await _usersCollection.doc(uid).update({'currentDrunkLevel': drunkLevel});
+
+      // Update cache
+      final currentUser = await getCurrentUser();
+      if (currentUser != null) {
+        final updatedUser = currentUser.copyWith(currentDrunkLevel: drunkLevel);
+        await _storageService.saveUserCache(updatedUser);
+      }
+    } catch (e) {
+      debugPrint('Update current drunk level error: $e');
+      // Don't rethrow, this is a background operation
+    }
+  }
+
   /// Save profile data (onboarding completion)
   Future<void> saveProfileData({
     required String id,
@@ -475,7 +502,6 @@ class AuthRepository {
         updatedUser =
             AppUser.fromFirebaseUser(
               uid: uid,
-              photoURL: firebaseUser.photoURL,
               provider: lastProvider ?? LoginProvider.google,
             ).copyWith(
               id: id,

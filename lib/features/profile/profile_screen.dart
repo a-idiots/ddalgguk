@@ -25,6 +25,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // Layout state
   Offset? _mainCharacterPosition;
+  int? _mainCharacterDrunkLevel;
 
   @override
   void initState() {
@@ -139,6 +140,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 showCharacter: showMainStatic,
                 characterKey: _mainCharacterKey,
                 opacity: (1.0 - progress).clamp(0.0, 1.0),
+                onDrunkLevelChanged: (drunkLevel) {
+                  if (mounted) {
+                    setState(() {
+                      _mainCharacterDrunkLevel = drunkLevel;
+                    });
+                  }
+                },
               ),
               // Page 1: Detail View
               ProfileDetailScreen(
@@ -151,6 +159,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 },
                 onNavigateToAnalytics: _handleNavigateToAnalytics,
                 showCharacter: showDetailStatic,
+                drunkLevel: _mainCharacterDrunkLevel,
               ),
             ],
           ),
@@ -163,14 +172,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               width: currentSize,
               height: currentSize,
               child: IgnorePointer(
-                child: currentStatsAsync.when(
-                  data: (stats) => SakuCharacter(
-                    size: currentSize,
-                    drunkLevel: stats.todayDrunkLevel,
-                  ),
-                  loading: () => SakuCharacter(size: currentSize),
-                  error: (_, __) => SakuCharacter(size: currentSize),
-                ),
+                child: _mainCharacterDrunkLevel != null
+                    ? SakuCharacter(
+                        size: currentSize,
+                        drunkLevel: _mainCharacterDrunkLevel!,
+                      )
+                    : currentStatsAsync.when(
+                        data: (stats) => SakuCharacter(
+                          size: currentSize,
+                          drunkLevel: stats.todayDrunkLevel,
+                        ),
+                        loading: () => SakuCharacter(size: currentSize),
+                        error: (_, __) => SakuCharacter(size: currentSize),
+                      ),
               ),
             ),
         ],

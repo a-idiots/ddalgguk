@@ -11,7 +11,7 @@ class FriendWithData {
   /// 편의성을 위한 getter들
   String get userId => friend.userId;
   String get name => userData.name ?? friend.name;
-  String? get photoURL => userData.photoURL;
+  int get profilePhoto => userData.profilePhoto;
   DateTime? get lastDrinkDate => userData.lastDrinkDate;
   int? get currentDrunkLevel => userData.currentDrunkLevel;
   List<int>? get weeklyDrunkLevels => userData.weeklyDrunkLevels;

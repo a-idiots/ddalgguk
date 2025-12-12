@@ -4,9 +4,7 @@ import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/achievements_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/alcohol_breakdown_section.dart';
-import 'package:ddalgguk/features/profile/widgets/detail_screen/profile_header.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/weekly_saku_section.dart';
-import 'package:ddalgguk/features/profile/widgets/gradient_background.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
 import 'package:flutter/material.dart';
@@ -212,116 +210,82 @@ class FriendProfileDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final daysSince = friendData.daysSinceLastDrink ?? 999;
-    final theme = AppColors.getTheme(daysSince == 0 ? 1 : 0);
     final weeklyStats = _createWeeklyStats();
     final profileStats = _createProfileStats();
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.85,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
-          child: ProfileGradientBackground(
-            theme: theme,
-            child: Stack(
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
               children: [
-                SafeArea(
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 48),
-                              ProfileHeader(
-                                user: friendData.userData,
-                                theme: theme,
-                                showCharacter: true,
-                              ),
-                              const SizedBox(height: 16),
-                              WeeklySakuSection(
-                                weeklyStats: weeklyStats,
-                                theme: theme,
-                              ),
-                              const SizedBox(height: 8),
-                              AchievementsSection(theme: theme),
-                              const SizedBox(height: 8),
-                              if (profileStats != null)
-                                AlcoholBreakdownSection(
-                                  stats: profileStats,
-                                  theme: theme,
-                                ),
-                              const SizedBox(height: 32),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          border: Border(
-                            top: BorderSide(color: Colors.grey[300]!),
-                          ),
-                        ),
-                        child: TextButton(
-                          onPressed: () =>
-                              _showDeleteConfirmation(context, ref),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: const BorderSide(
-                                color: AppColors.primaryPink,
-                              ),
-                            ),
-                          ),
-                          child: const Text(
-                            '친구 삭제',
-                            style: TextStyle(
-                              color: AppColors.primaryPink,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 16),
+                // 프로필 헤더
+                Text(
+                  friendData.name,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
                 ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: SafeArea(
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: Colors.black26,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: 8),
+                Text(
+                  '@${friendData.userData.id ?? ''}',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
+                const SizedBox(height: 24),
+                // 주간 통계
+                WeeklySakuSection(
+                  weeklyStats: weeklyStats,
+                  theme: AppColors.getTheme(0),
+                ),
+                const SizedBox(height: 16),
+                // 업적
+                AchievementsSection(theme: AppColors.getTheme(0)),
+                const SizedBox(height: 16),
+                // 알콜 분해 정보
+                if (profileStats != null)
+                  AlcoholBreakdownSection(
+                    stats: profileStats,
+                    theme: AppColors.getTheme(0),
+                  ),
+                const SizedBox(height: 32),
               ],
             ),
           ),
         ),
-      ),
+        // 친구 삭제 버튼
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => _showDeleteConfirmation(context, ref),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(
+                    color: AppColors.primaryPink,
+                    width: 2,
+                  ),
+                ),
+              ),
+              child: const Text(
+                '친구 삭제',
+                style: TextStyle(
+                  color: AppColors.primaryPink,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

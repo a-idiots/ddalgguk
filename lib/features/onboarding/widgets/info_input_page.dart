@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ddalgguk/shared/widgets/saku_character.dart';
-import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 
 /// Reusable info input page for name and ID entry
 class InfoInputPage extends StatefulWidget {
   const InfoInputPage({
     super.key,
     required this.title,
-    required this.speechBubbleText,
     required this.hintText,
     required this.onNext,
     required this.validator,
@@ -16,7 +13,6 @@ class InfoInputPage extends StatefulWidget {
   });
 
   final String title;
-  final String speechBubbleText;
   final String hintText;
   final ValueChanged<String> onNext;
   final String? Function(String?) validator;
@@ -30,59 +26,12 @@ class InfoInputPage extends StatefulWidget {
 class _InfoInputPageState extends State<InfoInputPage> {
   late TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
-  Offset? _cursorOffset;
   String? _errorText;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
-
-    // Listen to cursor position changes
-    _controller.addListener(_updateCursorPosition);
-    _focusNode.addListener(_updateCursorPosition);
-  }
-
-  void _updateCursorPosition() {
-    if (!_focusNode.hasFocus) {
-      setState(() {
-        _cursorOffset = null;
-      });
-      return;
-    }
-
-    // Get cursor position
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        final renderBox = context.findRenderObject() as RenderBox?;
-        if (renderBox != null && renderBox.hasSize) {
-          // Find the text field's render box
-          final textFieldContext = _textFieldKey.currentContext;
-          if (textFieldContext != null) {
-            final textFieldRenderBox =
-                textFieldContext.findRenderObject() as RenderBox?;
-            if (textFieldRenderBox != null) {
-              final textFieldPosition = textFieldRenderBox.localToGlobal(
-                Offset.zero,
-              );
-
-              // Calculate cursor position (approximate)
-              final cursorX =
-                  textFieldPosition.dx +
-                  _controller.selection.baseOffset * 8.0; // Approximate
-              final cursorY =
-                  textFieldPosition.dy + textFieldRenderBox.size.height / 2;
-
-              setState(() {
-                _cursorOffset = Offset(cursorX, cursorY);
-              });
-            }
-          }
-        }
-      } catch (e) {
-        // Ignore errors during layout
-      }
-    });
   }
 
   void _handleNext() {
@@ -114,8 +63,6 @@ class _InfoInputPageState extends State<InfoInputPage> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
     // Build InputField widget (reusable)
     Widget buildInputField() {
       return Column(
@@ -125,9 +72,10 @@ class _InfoInputPageState extends State<InfoInputPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Color(0xFFE35252)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: Color(0xFFE35252).withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -169,7 +117,7 @@ class _InfoInputPageState extends State<InfoInputPage> {
                         horizontal: widget.inputType == InfoInputType.id
                             ? 0
                             : 24,
-                        vertical: 16,
+                        vertical: 12,
                       ),
 
                       hintText: widget.hintText,
@@ -188,7 +136,7 @@ class _InfoInputPageState extends State<InfoInputPage> {
                       padding: const EdgeInsets.all(12),
                       child: const Icon(
                         Icons.arrow_forward,
-                        color: Colors.black87,
+                        color: Color(0xFF7E7E7E),
                         size: 24,
                       ),
                     ),
@@ -206,7 +154,7 @@ class _InfoInputPageState extends State<InfoInputPage> {
                     child: Text(
                       _errorText!,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFFE35252),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -224,31 +172,23 @@ class _InfoInputPageState extends State<InfoInputPage> {
         FocusScope.of(context).unfocus();
       },
       behavior: HitTestBehavior.translucent,
-      child: Transform.translate(
-        offset: Offset(0, -keyboardHeight * 0.5),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 85),
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(height: 120),
+            Text(
+              widget.title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-              const SizedBox(height: 30),
-              SpeechBubble(text: widget.speechBubbleText),
-              const SizedBox(height: 20),
-              SakuCharacter(cursorOffset: _cursorOffset, size: 120),
-              const SizedBox(height: 40),
-              buildInputField(),
-              const SizedBox(height: 60),
-            ],
-          ),
+            ),
+            const SizedBox(height: 60),
+            buildInputField(),
+          ],
         ),
       ),
     );
