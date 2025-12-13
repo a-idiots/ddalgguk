@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/circular_slider.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,7 +33,7 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
   late final TextEditingController _meetingNameController;
   late final TextEditingController _costController;
   late final TextEditingController _memoController;
-  double _drunkLevel = 5.0;
+  double _drunkLevel = 0.0;
   late List<DrinkInputData> _drinkInputs;
 
   @override
@@ -182,24 +183,6 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // 제목
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              const Text(
-                '기록 추가',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const Spacer(),
-              Text(
-                '${widget.sessionNumber}차',
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
         // 스크롤 가능한 폼 영역
         Expanded(
           child: SingleChildScrollView(
@@ -208,34 +191,44 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 모임명
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('모임명', style: TextStyle(fontSize: 12)),
-                      SizedBox(width: 2),
-                      Text(
-                        '*',
-                        style: TextStyle(fontSize: 12, color: Colors.red),
-                      ),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('모임명', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                        SizedBox(width: 4),
+                        Text(
+                          '*',
+                          style: TextStyle(fontSize: 18, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${widget.sessionNumber}차',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.grey),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _meetingNameController,
                   decoration: InputDecoration(
-                    hintText: '피넛버터샌드위치',
+                    hintText: '모임명을 입력해주세요.',
                     hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
@@ -247,105 +240,75 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 // 알딸딸 지수
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('알딸딸 지수', style: TextStyle(fontSize: 12)),
-                          SizedBox(width: 2),
-                          Text(
-                            '*',
-                            style: TextStyle(fontSize: 12, color: Colors.red),
-                          ),
-                        ],
-                      ),
+                    const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('알딸딸 지수', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                        SizedBox(width: 4),
+                        Text(
+                          '*',
+                          style: TextStyle(fontSize: 18, color: Colors.red),
+                        ),
+                      ],
                     ),
                     const Spacer(),
                     Text(
                       '${(_drunkLevel * 10).toInt()}%',
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                // Saku character visualization
+                const SizedBox(height: 24),
+                // 둥근 슬라이더와 캐릭터를 겹쳐서 표시
                 Center(
-                  child: SakuCharacter(
-                    size: 80,
-                    drunkLevel: (_drunkLevel * 10).toInt(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Text(
-                      '0%',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: AppColors.primaryPink,
-                          thumbColor: AppColors.primaryPink,
-                          overlayColor: AppColors.primaryPink.withValues(
-                            alpha: 0.2,
-                          ),
-                          inactiveTrackColor: AppColors.primaryPink.withValues(
-                            alpha: 0.3,
-                          ),
-                        ),
-                        child: Slider(
-                          value: _drunkLevel,
+                  child: SizedBox(
+                    width: 240,
+                    height: 240,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // 둥근 슬라이더
+                        CircularSlider(
+                          value: _drunkLevel * 10,
                           min: 0,
-                          max: 10,
+                          max: 100,
                           divisions: 20,
+                          size: 240,
+                          trackWidth: 8,
+                          inactiveColor: Colors.grey[300]!,
+                          activeColor: const Color(0xFFFA75A5),
+                          thumbColor: const Color(0xFFFA75A5),
+                          thumbRadius: 12,
                           onChanged: (value) {
                             setState(() {
-                              _drunkLevel = value;
+                              _drunkLevel = value / 10;
                             });
                           },
                         ),
-                      ),
+                        // 가운데 캐릭터
+                        SakuCharacter(
+                          size: 120,
+                          drunkLevel: (_drunkLevel * 10).toInt(),
+                        ),
+                      ],
                     ),
-                    const Text(
-                      '100%',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
                 // 음주량
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('음주량', style: TextStyle(fontSize: 12)),
-                          SizedBox(width: 2),
-                          Text(
-                            '*',
-                            style: TextStyle(fontSize: 12, color: Colors.red),
-                          ),
-                        ],
-                      ),
+                    const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('음주량', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                        SizedBox(width: 4),
+                        Text(
+                          '*',
+                          style: TextStyle(fontSize: 18, color: Colors.red),
+                        ),
+                      ],
                     ),
                     const Spacer(),
                     IconButton(
@@ -416,28 +379,29 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 24),
 
                 // 술값 (필수 아님)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    '술값(지출 금액)',
-                    style: TextStyle(fontSize: 12),
-                  ),
+                const Text(
+                  '술값(지출 금액)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _costController,
                   decoration: InputDecoration(
-                    hintText: '0',
+                    hintText: '지출 금액 (선택)',
                     hintStyle: TextStyle(color: Colors.grey[400]),
                     suffixText: '원',
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
@@ -448,24 +412,25 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 24),
 
                 // 메모 (필수 아님)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text('메모', style: TextStyle(fontSize: 12)),
-                ),
+                const Text('메모', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _memoController,
                   decoration: InputDecoration(
-                    hintText: '예: 주사, 숙취, 재미있는 에피소드 등',
+                    hintText: '오늘 모임의 기록을 남겨보세요. (선택)',
                     hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
                     contentPadding: const EdgeInsets.all(12),
                   ),
                   maxLines: 3,

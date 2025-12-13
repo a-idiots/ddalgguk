@@ -343,13 +343,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   foregroundColor: Colors.black,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
+                    horizontal: 13,
+                    vertical: 0,
                   ),
                 ),
                 child: const Text(
                   '+ 금주 기록 추가하기',
-                  style: TextStyle(fontWeight: FontWeight.w400),
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
                 ),
               ),
             ],
