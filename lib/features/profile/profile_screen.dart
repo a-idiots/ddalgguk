@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:ddalgguk/features/profile/widgets/profile_main_view.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/features/profile/widgets/profile_detail_screen.dart';
@@ -180,7 +181,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     : currentStatsAsync.when(
                         data: (stats) => SakuCharacter(
                           size: currentSize,
-                          drunkLevel: stats.todayDrunkLevel,
+                          drunkLevel: stats.breakdown.progressPercentage
+                              .round(),
                         ),
                         loading: () => SakuCharacter(size: currentSize),
                         error: (_, __) => SakuCharacter(size: currentSize),
