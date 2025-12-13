@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// Base Social Login Button Widget
@@ -63,7 +64,11 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
                 child: Text(
                   buttonText,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: fontSize, fontWeight: fontWeight),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: fontWeight,
+                    fontFamily: Platform.isIOS ? '.SF Pro Text' : 'Roboto',
+                  ),
                 ),
               ),
             ],

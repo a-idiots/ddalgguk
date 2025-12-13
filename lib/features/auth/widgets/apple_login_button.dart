@@ -19,5 +19,5 @@ class AppleLoginButton extends BaseSocialLoginButton {
   String get logoAssetPath => 'assets/imgs/login_icon/apple_logo.svg';
 
   @override
-  String get buttonText => '애플로 로그인';
+  String get buttonText => 'Apple로 로그인';
 }
