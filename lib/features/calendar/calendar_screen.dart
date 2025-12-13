@@ -398,7 +398,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       key: Key(record.id),
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
-        extentRatio: 0.45,
+        extentRatio: 0.45, //여기가 수정 및 삭제 가로세로 비율 조정 변수
         children: [
           CustomSlidableAction(
             onPressed: (context) {
@@ -479,30 +479,32 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ...record.drinkAmount.map((drink) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 2),
-                          child: Row(
-                            children: [
-                              Text(
-                                '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                                style: const TextStyle(fontSize: 11),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                  child: CustomPaint(
-                                    painter: _DottedLinePainter(
-                                      color: Colors.grey[300]!,
+                          child: Builder(
+                            builder: (context) {
+                              final screenWidth =
+                                  MediaQuery.of(context).size.width;
+                              // 카드 왼쪽 padding (16) + 사쿠 (50) + 간격 (16) = 82
+                              return SizedBox(
+                                width: screenWidth - 50,
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                                      style: const TextStyle(fontSize: 12),
                                     ),
-                                    child: const SizedBox(height: 11),
-                                  ),
+                                    Text(
+                                      ' ················································· ',
+                                      style: const TextStyle(fontSize: 12,
+                                      color: AppColors.grey),
+                                    ),
+                                    Text(
+                                      formatDrinkAmount(drink.amount),
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              Text(
-                                formatDrinkAmount(drink.amount),
-                                style: const TextStyle(fontSize: 11),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         );
                       }),
@@ -741,29 +743,4 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       }
     }
   }
-}
-
-/// 점선을 그리는 CustomPainter
-class _DottedLinePainter extends CustomPainter {
-  _DottedLinePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-
-    const dotRadius = 1.5;
-    const dotSpacing = 4.0;
-    final y = size.height / 2;
-
-    for (double x = 0; x < size.width; x += dotSpacing) {
-      canvas.drawCircle(Offset(x, y), dotRadius, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DottedLinePainter oldDelegate) => false;
 }
