@@ -250,6 +250,7 @@ class FriendProfileDialog extends ConsumerWidget {
                   AlcoholBreakdownSection(
                     stats: profileStats,
                     theme: AppColors.getTheme(0),
+                    extraComment: false,
                   ),
                 const SizedBox(height: 32),
               ],
