@@ -25,7 +25,7 @@ class SakuInfoDialog extends StatelessWidget {
             // Background image
             Positioned.fill(
               child: Image.asset(
-                'assets/background/onboarding_bg.png',
+                'assets/imgs/background/onboarding_bg.png',
                 fit: BoxFit.cover,
               ),
             ),

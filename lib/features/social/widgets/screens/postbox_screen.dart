@@ -126,7 +126,7 @@ class PostboxScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/socials/empty_postbox.png',
+                  'assets/imgs/socials/empty_postbox.png',
                   width: 120,
                   height: 120,
                 ),
@@ -165,7 +165,7 @@ class PostboxScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/socials/empty_postbox.png',
+                  'assets/imgs/socials/empty_postbox.png',
                   width: 120,
                   height: 120,
                 ),

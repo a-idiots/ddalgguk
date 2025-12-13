@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ddalgguk/firebase_options.dart';
@@ -78,9 +77,7 @@ class DdalggukApp extends ConsumerWidget {
       ],
       supportedLocales: const [Locale('ko', ''), Locale('en', '')],
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-        ).copyWith(surface: Colors.white),
+        fontFamily: 'GmarketSans',
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
@@ -93,7 +90,7 @@ class DdalggukApp extends ConsumerWidget {
           selectedItemColor: Colors.black87,
           unselectedItemColor: Colors.black45,
         ),
-        textTheme: GoogleFonts.interTextTheme(),
+
         useMaterial3: true,
       ),
       routerConfig: router,

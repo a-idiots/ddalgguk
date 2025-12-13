@@ -258,8 +258,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               opacity: isOutsideMonth ? 0.25 : 0.5,
               child: Image.asset(
                 isFutureDate
-                    ? 'assets/calendar/future_date.png'
-                    : 'assets/calendar/empty_date.png',
+                    ? 'assets/imgs/calendar/future_date.png'
+                    : 'assets/imgs/calendar/empty_date.png',
                 width: sakuSize,
                 height: sakuSize,
                 fit: BoxFit.contain,

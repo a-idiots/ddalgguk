@@ -343,11 +343,11 @@ class _GoalSettingPageState extends State<GoalSettingPage> {
 
   Widget _buildDrinkSelectionCards() {
     final drinks = [
-      {'img': 'assets/alcohol_icons/soju.png', 'name': '소주', 'id': 0},
-      {'img': 'assets/alcohol_icons/beer.png', 'name': '맥주', 'id': 1},
-      {'img': 'assets/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 2},
-      {'img': 'assets/alcohol_icons/wine.png', 'name': '와인', 'id': 3},
-      {'img': 'assets/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
+      {'img': 'assets/imgs/alcohol_icons/soju.png', 'name': '소주', 'id': 0},
+      {'img': 'assets/imgs/alcohol_icons/beer.png', 'name': '맥주', 'id': 1},
+      {'img': 'assets/imgs/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 2},
+      {'img': 'assets/imgs/alcohol_icons/wine.png', 'name': '와인', 'id': 3},
+      {'img': 'assets/imgs/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
     ];
 
     return Container(

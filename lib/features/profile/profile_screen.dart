@@ -8,6 +8,7 @@ import 'package:ddalgguk/features/profile/widgets/profile_detail_screen.dart';
 import 'package:ddalgguk/features/report/report_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
+import 'package:ddalgguk/core/constants/app_colors.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -49,6 +50,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _onPageScroll() {
     setState(() {
       _currentPage = _pageController.page ?? 0.0;
+    });
+    _updateBottomColor();
+  }
+
+  void _updateBottomColor() {
+    final currentStatsAsync = ref.read(currentProfileStatsProvider);
+    currentStatsAsync.whenData((stats) {
+      final theme = AppColors.getTheme(stats.thisMonthDrunkDays);
+      final progress = (_currentPage * 5).clamp(0.0, 1.0);
+
+      // Interpolate between Primary (Main Page) and White (Detail Page)
+      // Note: Detail Page has a gradient that ends in White, so the bottom is White.
+      // Main Page bottom is Primary.
+      final color = Color.lerp(theme.primaryColor, Colors.white, progress);
+      ref.read(profileBottomColorProvider.notifier).state = color;
     });
   }
 

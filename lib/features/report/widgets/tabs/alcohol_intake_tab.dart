@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 
 class AlcoholIntakeTab extends ConsumerStatefulWidget {
   const AlcoholIntakeTab({super.key});
@@ -300,10 +301,8 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                     if (i > 0) const SizedBox(height: 16),
                     _DrinkTypeRow(
                       rank: i + 1,
-                      iconPath: _getDrinkTypeIconPath(
-                        displayItems[i].drinkType,
-                      ),
-                      name: _getDrinkTypeName(displayItems[i].drinkType),
+                      iconPath: getDrinkIconPath(displayItems[i].drinkType),
+                      name: getDrinkTypeName(displayItems[i].drinkType),
                       amount: displayItems[i].totalAmountMl.toInt(),
                       maxAmount: maxAmount.toInt(),
                     ),
@@ -317,40 +316,6 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
     );
-  }
-
-  String _getDrinkTypeName(int type) {
-    switch (type) {
-      case 1:
-        return '소주';
-      case 2:
-        return '맥주';
-      case 3:
-        return '와인';
-      case 4:
-        return '칵테일';
-      case 5:
-        return '막걸리';
-      default:
-        return '기타';
-    }
-  }
-
-  String _getDrinkTypeIconPath(int type) {
-    switch (type) {
-      case 1:
-        return 'assets/alcohol_icons/soju.png';
-      case 2:
-        return 'assets/alcohol_icons/beer.png';
-      case 3:
-        return 'assets/alcohol_icons/wine.png';
-      case 4:
-        return 'assets/alcohol_icons/cocktail.png';
-      case 5:
-        return 'assets/alcohol_icons/makgulli.png';
-      default:
-        return 'assets/alcohol_icons/undecided.png';
-    }
   }
 }
 

@@ -217,7 +217,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(24),
                           child: Center(
-                            child: Image.asset('assets/logo.png', width: 80),
+                            child: Image.asset(
+                              'assets/imgs/logo.png',
+                              width: 80,
+                            ),
                           ),
                         ),
                       ),

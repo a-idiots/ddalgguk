@@ -21,7 +21,7 @@ class KakaoLoginButton extends BaseSocialLoginButton {
   Color get foregroundColor => Colors.black.withValues(alpha: 0.85); // 85% opacity
 
   @override
-  String get logoAssetPath => 'assets/login_icon/kakao_logo.svg';
+  String get logoAssetPath => 'assets/imgs/login_icon/kakao_logo.svg';
 
   @override
   String get buttonText => '카카오 로그인';

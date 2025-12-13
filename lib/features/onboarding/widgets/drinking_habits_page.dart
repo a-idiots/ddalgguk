@@ -196,11 +196,11 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
 
   Widget _buildDrinkSelectionCards() {
     final drinks = [
-      {'img': 'assets/alcohol_icons/soju.png', 'name': '소주', 'id': 1},
-      {'img': 'assets/alcohol_icons/beer.png', 'name': '맥주', 'id': 2},
-      {'img': 'assets/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 3},
-      {'img': 'assets/alcohol_icons/wine.png', 'name': '와인', 'id': 4},
-      {'img': 'assets/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 5},
+      {'img': 'assets/imgs/alcohol_icons/soju.png', 'name': '소주', 'id': 1},
+      {'img': 'assets/imgs/alcohol_icons/beer.png', 'name': '맥주', 'id': 2},
+      {'img': 'assets/imgs/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 3},
+      {'img': 'assets/imgs/alcohol_icons/wine.png', 'name': '와인', 'id': 4},
+      {'img': 'assets/imgs/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 5},
     ];
 
     Widget buildDrinkCard(Map<String, dynamic> drink) {

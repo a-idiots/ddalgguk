@@ -16,7 +16,7 @@ class GoogleLoginButton extends BaseSocialLoginButton {
   Color get foregroundColor => Colors.black87;
 
   @override
-  String get logoAssetPath => 'assets/login_icon/google_logo.svg';
+  String get logoAssetPath => 'assets/imgs/login_icon/google_logo.svg';
 
   @override
   BorderSide? get borderSide =>
