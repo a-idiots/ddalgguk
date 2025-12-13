@@ -6,9 +6,11 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -73,13 +75,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(-3, 0), // 기록 추가 버튼 우측 패딩
-        child: FloatingActionButton(
-          onPressed: () => _showAddRecordDialog(context),
-          backgroundColor: AppColors.primaryPink,
-          foregroundColor: Colors.white,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add),
+        offset: const Offset(14, 0), // 오른쪽 20% 가리기
+        child: SizedBox(
+          width: 70,
+          height: 70,
+          child: FloatingActionButton(
+            onPressed: () => _showAddRecordDialog(context),
+            backgroundColor: AppColors.primaryPink,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, size: 32),
+          ),
         ),
       ),
       body: SafeArea(
@@ -188,7 +195,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Divider(height: 1),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: Colors.grey[300],
+                indent: 0,
+                endIndent: 0,
+              ),
               // 음주 기록 리스트 - 스크롤 가능
               _buildRecordsList(),
             ],
@@ -303,6 +316,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final records = _getRecordsForDay(_selectedDay!);
 
     if (records.isEmpty) {
+      // 미래 날짜 체크
+      final today = DateTime.now();
+      final normalizedToday = DateTime(today.year, today.month, today.day);
+      final normalizedSelectedDay = DateTime(
+        _selectedDay!.year,
+        _selectedDay!.month,
+        _selectedDay!.day,
+      );
+      final isFutureDate = normalizedSelectedDay.isAfter(normalizedToday);
+
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
@@ -310,48 +333,76 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.local_bar, size: 40, color: Colors.grey),
-              const SizedBox(height: 8),
               Text(
                 DateFormat('yyyy년 M월 d일').format(_selectedDay!),
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               const Text(
                 '음주 기록이 없습니다',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPink,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+              if (!isFutureDate) ...[
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13,
+                      vertical: 0,
+                    ),
+                  ),
+                  child: const Text(
+                    '+ 금주 기록 추가하기',
+                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
                   ),
                 ),
-                child: const Text('금주 기록 추가하기'),
-              ),
+              ],
             ],
           ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 50),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: records.length,
-      itemBuilder: (context, index) {
-        final record = records[index];
-        return _buildRecordCard(record, index);
-      },
+    return Column(
+      children: [
+        ListView.separated(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: records.length,
+          separatorBuilder: (context, index) => Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey[300],
+            indent: 0,
+            endIndent: 0,
+          ),
+          itemBuilder: (context, index) {
+            final record = records[index];
+            return _buildRecordCard(record, index);
+          },
+        ),
+        // 하단 구분선
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: Colors.grey[300],
+          indent: 0,
+          endIndent: 0,
+        ),
+        const SizedBox(height: 50),
+      ],
     );
   }
 
@@ -359,114 +410,153 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget _buildRecordCard(DrinkingRecord record, int index) {
     const sakuSize = 50.0;
 
-    return GestureDetector(
-      onTap: () => _showRecordDetail(context, record),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!, width: 1.0),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 왼쪽: 사쿠 캐릭터 (중앙정렬)
-            Align(
-              alignment: Alignment.center,
-              child: SakuCharacter(
-                size: sakuSize,
-                drunkLevel: record.drunkLevel * 10,
+    return Slidable(
+      key: Key(record.id),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.45, //여기가 수정 및 삭제 가로세로 비율 조정 변수
+        children: [
+          CustomSlidableAction(
+            onPressed: (context) {
+              _showEditRecordDialog(context, record);
+            },
+            backgroundColor: Colors.grey,
+            foregroundColor: Colors.white,
+            autoClose: true,
+            flex: 1,
+            child: const Text(
+              '수정',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(width: 24),
-            // 중앙: 정보
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 모임명
-                  Text(
-                    record.meetingName,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+          ),
+          CustomSlidableAction(
+            onPressed: (context) {
+              _deleteRecord(record.id);
+            },
+            backgroundColor: AppColors.primaryPink,
+            foregroundColor: Colors.white,
+            autoClose: true,
+            flex: 1,
+            child: const Text(
+              '삭제',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onTap: () => _showRecordDetail(context, record),
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 왼쪽: 사쿠 캐릭터
+              SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
+              const SizedBox(width: 16),
+              // 중앙: 정보
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 모임명
+                    Text(
+                      record.meetingName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // 혈중 알콜 농도
-                  Text(
-                    '혈중알콜농도 ${record.drunkLevel * 10}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.red[400],
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 4),
+                    // 혈중 알콜 농도
+                    Text(
+                      '혈중알콜농도 ${record.drunkLevel * 10}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red[400],
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // 음주량
-                  if (record.drinkAmount.isNotEmpty) ...[
-                    ...record.drinkAmount.map((drink) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                child: CustomPaint(
-                                  painter: _DottedLinePainter(
-                                    color: Colors.grey[300]!,
-                                  ),
-                                  child: const SizedBox(height: 11),
+                    const SizedBox(height: 4),
+                    // 음주량
+                    if (record.drinkAmount.isNotEmpty) ...[
+                      ...record.drinkAmount.map((drink) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
-                            ),
-                            Text(
-                              formatDrinkAmount(drink.amount),
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 2),
-                  ],
-                  // 지출 금액
-                  Text(
-                    '${NumberFormat('#,###').format(record.cost)}원',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                              Expanded(
+                                child: Text(
+                                  '  ··············································································  ',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.grey,
+                                  ),
+                                  overflow: TextOverflow.clip,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              Text(
+                                formatDrinkAmount(drink.amount),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 2),
+                    ],
+                    // 지출 금액
+                    Text(
+                      '${NumberFormat('#,###').format(record.cost)}원',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            // 우측: 회차
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.red[300]!, width: 1.5),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${record.sessionNumber}차',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.red[400],
-                  fontWeight: FontWeight.bold,
+                  ],
                 ),
               ),
-            ),
-          ],
+              // 우측: 회차 (상단에 배치)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red[300]!, width: 1.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${record.sessionNumber}차',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red[400],
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -489,35 +579,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         );
       }
-      return;
-    }
-
-    // 확인 다이얼로그 표시
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('금주 기록 추가'),
-        content: Text(
-          '${DateFormat('yyyy년 M월 d일').format(date)}에\n금주 기록을 추가하시겠습니까?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPink,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('추가'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
       return;
     }
 
@@ -547,7 +608,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           const SnackBar(
             content: Text('금주 기록이 추가되었습니다!'),
             duration: Duration(seconds: 2),
-            backgroundColor: Colors.green,
+            backgroundColor: Color.fromARGB(255, 169, 212, 170),
           ),
         );
       }
@@ -557,7 +618,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           SnackBar(
             content: Text('기록 추가 실패: $e'),
             duration: const Duration(seconds: 3),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color.fromARGB(255, 228, 135, 129),
           ),
         );
       }
@@ -583,7 +644,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         const SnackBar(
           content: Text('미래의 기록은 미리 추가할 수 없습니다'),
           duration: Duration(seconds: 2),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color.fromARGB(255, 208, 171, 115),
         ),
       );
       return;
@@ -592,10 +653,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final records = _getRecordsForDay(selectedDate);
     final sessionNumber = records.length + 1;
 
-    showDialog(
+    showBottomHandleDialogue(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => AddRecordDialog(
+      child: AddRecordDialog(
         selectedDate: selectedDate,
         sessionNumber: sessionNumber,
         onRecordAdded: () {
@@ -608,10 +668,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 수정 다이얼로그
   void _showEditRecordDialog(BuildContext context, DrinkingRecord record) {
-    showDialog(
+    showBottomHandleDialogue(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => EditRecordDialog(
+      child: EditRecordDialog(
         record: record,
         onRecordUpdated: () {
           // 캘린더 새로고침을 위해 provider invalidate
@@ -623,10 +682,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 상세 보기
   void _showRecordDetail(BuildContext context, DrinkingRecord record) {
-    showDialog(
+    showBottomHandleDialogue(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => DrinkingRecordDetailDialog(
+      child: DrinkingRecordDetailDialog(
         record: record,
         onEdit: () => _showEditRecordDialog(context, record),
         onDelete: () => _deleteRecord(record.id),
@@ -638,20 +696,85 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Future<void> _deleteRecord(String recordId) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('삭제 확인'),
-        content: const Text('이 기록을 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
-          ),
-        ],
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 말풍선
+                  Center(
+                    child: CustomPaint(
+                      painter: _BubblePainter(
+                        Colors.white,
+                        TailPosition.bottom,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
+                        child: const Text(
+                          '이 기록을 삭제하시겠습니까?',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 사쿠 캐릭터
+                  const Center(child: SakuCharacter(size: 84, drunkLevel: 0)),
+                  const SizedBox(height: 16),
+                  // 삭제 버튼
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryPink,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 48,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                      child: const Text(
+                        '삭제',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // X 버튼
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.black54),
+                onPressed: () => Navigator.of(context).pop(false),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
 
@@ -705,27 +828,88 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
-/// 점선을 그리는 CustomPainter
-class _DottedLinePainter extends CustomPainter {
-  _DottedLinePainter({required this.color});
+/// 말풍선 꼬리 위치
+enum TailPosition { bottom }
 
-  final Color color;
+/// 테두리가 있는 말풍선을 그리는 CustomPainter
+class _BubblePainter extends CustomPainter {
+  _BubblePainter(this.backgroundColor, this.tailPosition);
+
+  final Color backgroundColor;
+  final TailPosition tailPosition;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
+      ..color = backgroundColor
+      ..style = PaintingStyle.fill;
 
-    const dotRadius = 1.5;
-    const dotSpacing = 4.0;
-    final y = size.height / 2;
+    final borderPaint = Paint()
+      ..color = Colors.grey[300]!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
 
-    for (double x = 0; x < size.width; x += dotSpacing) {
-      canvas.drawCircle(Offset(x, y), dotRadius, paint);
-    }
+    const double tailWidth = 20.0;
+    const double tailHeight = 10.0;
+    const double radius = 20.0;
+
+    final bubbleHeight = size.height - tailHeight;
+    final tailCenterX = size.width / 2;
+
+    // 전체 말풍선 경로 (꼬리 포함)
+    final path = Path();
+
+    // 왼쪽 상단 모서리부터 시작
+    path.moveTo(0, radius);
+    path.arcToPoint(Offset(radius, 0), radius: const Radius.circular(radius));
+
+    // 상단 선
+    path.lineTo(size.width - radius, 0);
+
+    // 오른쪽 상단 모서리
+    path.arcToPoint(
+      Offset(size.width, radius),
+      radius: const Radius.circular(radius),
+    );
+
+    // 오른쪽 선
+    path.lineTo(size.width, bubbleHeight - radius);
+
+    // 오른쪽 하단 모서리
+    path.arcToPoint(
+      Offset(size.width - radius, bubbleHeight),
+      radius: const Radius.circular(radius),
+    );
+
+    // 하단 선 (꼬리 오른쪽까지)
+    path.lineTo(tailCenterX + tailWidth / 2, bubbleHeight);
+
+    // 꼬리
+    path.lineTo(tailCenterX, size.height);
+    path.lineTo(tailCenterX - tailWidth / 2, bubbleHeight);
+
+    // 하단 선 (꼬리 왼쪽부터)
+    path.lineTo(radius, bubbleHeight);
+
+    // 왼쪽 하단 모서리
+    path.arcToPoint(
+      Offset(0, bubbleHeight - radius),
+      radius: const Radius.circular(radius),
+    );
+
+    // 왼쪽 선 (닫기)
+    path.close();
+
+    // 배경 그리기
+    canvas.drawPath(path, paint);
+
+    // 테두리 그리기
+    canvas.drawPath(path, borderPaint);
   }
 
   @override
-  bool shouldRepaint(_DottedLinePainter oldDelegate) => false;
+  bool shouldRepaint(_BubblePainter oldDelegate) {
+    return oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.tailPosition != tailPosition;
+  }
 }
