@@ -148,13 +148,13 @@ class _SakuCharacterState extends State<SakuCharacter>
     bool showEyes = true;
 
     if (widget.status == 1) {
-      bodyImagePath = 'assets/calendar/future_date.png';
+      bodyImagePath = 'assets/imgs/calendar/future_date.png';
       showEyes = false;
     } else if (widget.status == -1) {
-      bodyImagePath = 'assets/calendar/empty_date.png';
+      bodyImagePath = 'assets/imgs/calendar/empty_date.png';
       showEyes = true;
     } else if (widget.status == -2) {
-      bodyImagePath = 'assets/saku/onboarding_saku.png';
+      bodyImagePath = 'assets/imgs/saku/onboarding_saku.png';
       showEyes = true;
     } else {
       bodyImagePath = getBodyImagePath(widget.drunkLevel);
@@ -179,7 +179,7 @@ class _SakuCharacterState extends State<SakuCharacter>
             Transform.translate(
               offset: _currentEyePosition,
               child: Image.asset(
-                'assets/saku/eyes.png',
+                'assets/imgs/saku/eyes.png',
                 width: _animatedSize * 0.3, // Eyes are smaller relative to body
                 height: _animatedSize * 0.3,
                 fit: BoxFit.contain,

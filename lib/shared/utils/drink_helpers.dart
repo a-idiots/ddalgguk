@@ -10,21 +10,21 @@ Widget getDrinkIcon(int drinkType) {
 String getDrinkIconPath(int drinkType) {
   switch (drinkType) {
     case 1: // 소주
-      return 'assets/alcohol_icons/soju.png';
+      return 'assets/imgs/alcohol_icons/soju.png';
     case 2: // 맥주
-      return 'assets/alcohol_icons/beer.png';
+      return 'assets/imgs/alcohol_icons/beer.png';
     case 3: // 칵테일
-      return 'assets/alcohol_icons/cocktail.png';
+      return 'assets/imgs/alcohol_icons/cocktail.png';
     case 4: // 와인
-      return 'assets/alcohol_icons/wine.png';
+      return 'assets/imgs/alcohol_icons/wine.png';
     case 5: // 막걸리
-      return 'assets/alcohol_icons/makgulli.png';
+      return 'assets/imgs/alcohol_icons/makgulli.png';
     case 6: // 위스키
       // TODO: 위스키 아이콘 추가 필요
-      return 'assets/alcohol_icons/undecided.png';
+      return 'assets/imgs/alcohol_icons/undecided.png';
     case 0: // 알 수 없음
     default:
-      return 'assets/alcohol_icons/undecided.png';
+      return 'assets/imgs/alcohol_icons/undecided.png';
   }
 }
 
@@ -114,7 +114,7 @@ String getBodyImagePath(int drunkLevel) {
   // Round down to nearest 10 (e.g., 45 -> 40, 23 -> 20)
   final clampedLevel = drunkLevel.clamp(0, 100);
   final level = (clampedLevel ~/ 10) * 10;
-  return 'assets/saku_gradient_10/saku_${level.toString().padLeft(2, '0')}.png';
+  return 'assets/imgs/saku_gradient_10/saku_${level.toString().padLeft(2, '0')}.png';
 }
 
 /// 음주량 포맷팅 (간단 버전)

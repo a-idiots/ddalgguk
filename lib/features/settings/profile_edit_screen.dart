@@ -35,11 +35,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   String _getAlcoholIconPath(int profilePhoto) {
     const alcoholIcons = [
-      'assets/alcohol_icons/soju.png',
-      'assets/alcohol_icons/beer.png',
-      'assets/alcohol_icons/cocktail.png',
-      'assets/alcohol_icons/wine.png',
-      'assets/alcohol_icons/makgulli.png',
+      'assets/imgs/alcohol_icons/soju.png',
+      'assets/imgs/alcohol_icons/beer.png',
+      'assets/imgs/alcohol_icons/cocktail.png',
+      'assets/imgs/alcohol_icons/wine.png',
+      'assets/imgs/alcohol_icons/makgulli.png',
     ];
     final index = profilePhoto - 11;
     return alcoholIcons[index];
@@ -204,11 +204,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         final isSelected =
                             _selectedProfilePhoto == profilePhotoIndex;
                         final alcoholIcons = [
-                          'assets/alcohol_icons/soju.png',
-                          'assets/alcohol_icons/beer.png',
-                          'assets/alcohol_icons/cocktail.png',
-                          'assets/alcohol_icons/wine.png',
-                          'assets/alcohol_icons/makgulli.png',
+                          'assets/imgs/alcohol_icons/soju.png',
+                          'assets/imgs/alcohol_icons/beer.png',
+                          'assets/imgs/alcohol_icons/cocktail.png',
+                          'assets/imgs/alcohol_icons/wine.png',
+                          'assets/imgs/alcohol_icons/makgulli.png',
                         ];
                         return GestureDetector(
                           onTap: () {

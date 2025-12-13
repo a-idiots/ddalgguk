@@ -63,7 +63,7 @@ Widget logoFlightShuttleBuilder(
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           child: Center(
-            child: Image.asset('assets/logo.png', width: imageSize),
+            child: Image.asset('assets/imgs/logo.png', width: imageSize),
           ),
         ),
       );

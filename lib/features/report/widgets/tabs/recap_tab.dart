@@ -250,7 +250,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                               height: 80,
                               child: RepaintBoundary(
                                 child: Image.asset(
-                                  'assets/recap/bubble.png',
+                                  'assets/imgs/recap/bubble.png',
                                   fit: BoxFit.fill,
                                   errorBuilder: (context, error, stackTrace) {
                                     return Container(
@@ -484,7 +484,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                 height: 130,
                 child: RepaintBoundary(
                   child: Image.asset(
-                    'assets/recap/star_1.png',
+                    'assets/imgs/recap/star_1.png',
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -613,7 +613,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                 height: 130,
                 child: RepaintBoundary(
                   child: Image.asset(
-                    'assets/recap/star_2.png',
+                    'assets/imgs/recap/star_2.png',
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

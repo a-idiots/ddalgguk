@@ -113,11 +113,11 @@ class SettingsScreen extends ConsumerWidget {
     }
 
     const alcoholIcons = [
-      'assets/alcohol_icons/soju.png',
-      'assets/alcohol_icons/beer.png',
-      'assets/alcohol_icons/cocktail.png',
-      'assets/alcohol_icons/wine.png',
-      'assets/alcohol_icons/makgulli.png',
+      'assets/imgs/alcohol_icons/soju.png',
+      'assets/imgs/alcohol_icons/beer.png',
+      'assets/imgs/alcohol_icons/cocktail.png',
+      'assets/imgs/alcohol_icons/wine.png',
+      'assets/imgs/alcohol_icons/makgulli.png',
     ];
     final iconIndex = profilePhoto - 11;
 

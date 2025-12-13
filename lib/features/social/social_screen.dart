@@ -70,8 +70,8 @@ class SocialScreen extends ConsumerWidget {
               },
               child: Image.asset(
                 hasFriendRequests
-                    ? 'assets/socials/alarm_postbox.png'
-                    : 'assets/socials/empty_postbox.png',
+                    ? 'assets/imgs/socials/alarm_postbox.png'
+                    : 'assets/imgs/socials/empty_postbox.png',
                 width: postboxSize,
                 height: postboxSize,
               ),
@@ -147,7 +147,7 @@ class SocialScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/socials/empty_postbox.png',
+                  'assets/imgs/socials/empty_postbox.png',
                   width: 120,
                   height: 120,
                 ),

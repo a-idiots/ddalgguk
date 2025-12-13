@@ -34,7 +34,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               image: const DecorationImage(
-                image: AssetImage('assets/calendar/receipt.png'),
+                image: AssetImage('assets/imgs/calendar/receipt.png'),
                 fit: BoxFit.fill,
               ),
               borderRadius: BorderRadius.circular(12),

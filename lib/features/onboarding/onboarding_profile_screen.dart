@@ -248,7 +248,7 @@ class _OnboardingProfileScreenState
 
     return Positioned.fill(
       child: Image.asset(
-        'assets/onboarding/bg.png',
+        'assets/imgs/onboarding/bg.png',
         fit: BoxFit.cover,
         alignment: Alignment.center,
       ),
