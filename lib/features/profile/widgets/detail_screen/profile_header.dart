@@ -53,18 +53,19 @@ class ProfileHeader extends StatelessWidget {
                   userName,
                   style: const TextStyle(
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
                     color: Colors.black,
-                    height: 1.0,
+                    fontWeight: FontWeight.bold,
+                    height: 1,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 12),
                 Text(
                   '@$userId',
                   style: const TextStyle(
                     fontSize: 16,
-                    color: Colors.grey,
+                    color: Colors.black,
                     height: 1.0,
                   ),
                   maxLines: 1,

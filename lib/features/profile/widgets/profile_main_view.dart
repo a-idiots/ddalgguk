@@ -38,7 +38,7 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
         authRepository.updateCurrentDrunkLevel(stats.todayDrunkLevel);
         // Notify parent about drunk level change
         widget.onDrunkLevelChanged?.call(
-          100 - stats.breakdown.progressPercentage.round(),
+          stats.breakdown.progressPercentage.round(),
         );
       });
     });
@@ -56,12 +56,13 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
             // Notify parent about drunk level when data is available
             WidgetsBinding.instance.addPostFrameCallback((_) {
               widget.onDrunkLevelChanged?.call(
-                stats.breakdown.progressPercentage.round(),
+                100 - stats.breakdown.progressPercentage.round(),
               );
             });
 
-            final thisMonthDrunkDays = stats.thisMonthDrunkDays;
-            final theme = AppColors.getTheme(thisMonthDrunkDays);
+            final theme = AppColors.getTheme(
+              100 - stats.breakdown.progressPercentage.round(),
+            );
 
             return ProfileGradientBackground(
               theme: theme,
@@ -129,10 +130,10 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
                             child: widget.showCharacter
                                 ? SakuCharacter(
                                     size: 150,
-                                    drunkLevel: stats
-                                        .breakdown
-                                        .progressPercentage
-                                        .round(),
+                                    drunkLevel:
+                                        100 -
+                                        stats.breakdown.progressPercentage
+                                            .round(),
                                   )
                                 : Container(key: widget.characterKey),
                           ),

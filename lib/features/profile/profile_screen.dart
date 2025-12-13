@@ -158,7 +158,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 characterKey: _mainCharacterKey,
                 opacity: (1.0 - progress).clamp(0.0, 1.0),
                 onDrunkLevelChanged: (drunkLevel) {
-                  if (mounted) {
+                  if (mounted && _mainCharacterDrunkLevel != drunkLevel) {
                     setState(() {
                       _mainCharacterDrunkLevel = drunkLevel;
                     });
@@ -177,6 +177,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 onNavigateToAnalytics: _handleNavigateToAnalytics,
                 showCharacter: showDetailStatic,
                 drunkLevel: _mainCharacterDrunkLevel,
+                onDrunkLevelChanged: (drunkLevel) {
+                  if (mounted && _mainCharacterDrunkLevel != drunkLevel) {
+                    setState(() {
+                      _mainCharacterDrunkLevel = drunkLevel;
+                    });
+                  }
+                },
               ),
             ],
           ),
@@ -197,8 +204,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     : currentStatsAsync.when(
                         data: (stats) => SakuCharacter(
                           size: currentSize,
-                          drunkLevel: stats.breakdown.progressPercentage
-                              .round(),
+                          drunkLevel:
+                              100 - stats.breakdown.progressPercentage.round(),
                         ),
                         loading: () => SakuCharacter(size: currentSize),
                         error: (_, __) => SakuCharacter(size: currentSize),

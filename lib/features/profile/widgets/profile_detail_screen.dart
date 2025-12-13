@@ -17,12 +17,14 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
     this.onNavigateToAnalytics,
     this.showCharacter = true,
     this.drunkLevel,
+    this.onDrunkLevelChanged,
   });
 
   final VoidCallback? onBack;
   final VoidCallback? onNavigateToAnalytics;
   final bool showCharacter;
   final int? drunkLevel;
+  final ValueChanged<int>? onDrunkLevelChanged;
 
   @override
   ConsumerState<ProfileDetailScreen> createState() =>
@@ -54,6 +56,13 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
           skipLoadingOnReload: true,
           data: (currentStats) {
             final theme = AppColors.getTheme(currentStats.thisMonthDrunkDays);
+
+            // Notify parent about drunk level
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              widget.onDrunkLevelChanged?.call(
+                100 - currentStats.breakdown.progressPercentage.round(),
+              );
+            });
 
             return Scaffold(
               backgroundColor: Colors.transparent,
