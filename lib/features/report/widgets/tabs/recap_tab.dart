@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'dart:math' as math;
 
 class RecapTab extends ConsumerStatefulWidget {
   const RecapTab({super.key});
@@ -110,7 +111,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                   weeklyStatsAsync.when(
                     data: (stats) {
                       return _SojuGlassWidget(
-                        totalMl: stats.totalAlcoholMl.toInt(),
+                        totalMl: stats.totalAlcoholMl.toInt().clamp(0, 99999),
                       );
                     },
                     loading: () => const SizedBox(
@@ -156,22 +157,39 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                   const SizedBox(height: 24),
 
                   // 6. One-line Review
-                  Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${now.month}월 한줄평',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '간이 회복되지 않았는데 또 술을 마셨어요',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.center,
+                  // 6. One-line Review
+                  monthRecordsAsync.when(
+                    data: (records) {
+                      final drunkCount = records
+                          .where((r) => r.drunkLevel >= 7)
+                          .length;
+                      return Column(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${now.month}월 한줄평',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _getRandomReviewText(drunkCount),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -335,6 +353,44 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       valueText: '${maxRecord.drunkLevel * 10}%',
     );
   }
+
+  String _getRandomReviewText(int drunkCount) {
+    final List<String> candidates;
+    if (drunkCount == 0) {
+      candidates = [
+        '당신의 간은 건강합니다!',
+        '사는 지역이 논-알콜 존이신가요? 건강합니다!',
+        '술이 무엇인지 모르는 당신. 건강합니다!',
+        '간: 저 휴가 갔다 올게요.',
+        '술? 그게 뭔가요? 물 오타인가?',
+        '빠른 귀가, 또렷한 의식, 평화로운 삶',
+      ];
+    } else if (drunkCount <= 3) {
+      candidates = [
+        '이번 달은 잘 살았습니다. 근데 이제 술을 곁들인.',
+        '캘린더가 젖어있네요? 이거 술인가요?',
+        '필름: 저 외근 좀 갔다 올게요.',
+        '아직은 사람인데, 곧 액체 괴물이 될 예정이랍니다.',
+        '인생의 ctrl+s를 월에 1~3번 정도 누르지 않았어요.',
+      ];
+    } else if (drunkCount <= 7) {
+      candidates = [
+        '당신은 술이랑 썸을 넘어 동거중이에요.',
+        '음주력은 일반인 대비 300%이지만 기억력은 30%에요.',
+        '갓생. 갓구운 생선구이에 한 잔 하자는 뜻이죠!',
+        '행복은 짧고 숙취는 길다.',
+      ];
+    } else {
+      candidates = [
+        '해장국집 VIP라는 소문이 있어요.',
+        '주량을 넘긴 게 아니라 사회를 넘긴 수준.',
+        '이제 술이 당신을 마셔요.',
+        '간이 고소장 접수 중이라네요.',
+        '기억이 아니라 인생 자체가 부분 유료화 상태.',
+      ];
+    }
+    return candidates[math.Random().nextInt(candidates.length)];
+  }
 }
 
 class _RecordHighlightSection extends StatelessWidget {
@@ -457,12 +513,12 @@ class _SojuGlassWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 160,
-      width: 180,
+      height: 170,
+      width: 190,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(size: const Size(180, 160), painter: _SojuGlassPainter()),
+          CustomPaint(size: const Size(190, 170), painter: _SojuGlassPainter()),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -475,7 +531,7 @@ class _SojuGlassWidget extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 40,
-                  height: 1.2,
+                  height: 1.44,
                   fontWeight: FontWeight.bold,
                 ),
               ),
