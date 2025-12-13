@@ -1,5 +1,7 @@
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/circular_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
@@ -19,249 +21,257 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    // 기록을 CompletedDrinkRecord로 변환
+    final completedRecords = record.drinkAmount.map((drink) {
+      // ml을 단위에 맞게 변환
+      String unit;
+      double amount;
+      if (drink.amount >= 1000) {
+        unit = '병';
+        amount = drink.amount / 500;
+      } else if (drink.amount >= 150) {
+        unit = '잔';
+        amount = drink.amount / 150;
+      } else {
+        unit = 'ml';
+        amount = drink.amount;
+      }
+
+      return CompletedDrinkRecord(
+        drinkType: drink.drinkType,
+        alcoholContent: drink.alcoholContent,
+        amount: amount,
+        unit: unit,
+      );
+    }).toList();
+
+    return Stack(
       children: [
-        // 제목
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            children: [
-              Text(
-                record.meetingName,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                DateFormat('yyyy.MM.dd').format(record.date),
-                style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w400),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        // 스크롤 가능한 콘텐츠 영역
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // 캐릭터 이미지 (취함 정도에 따라)
-                _buildCharacterImage(record.drunkLevel),
-                const SizedBox(height: 24),
-                // 혈중 알콜 농도
-                Text(
-                  '혈중 알콜 농도',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[700], fontWeight: FontWeight.w400),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${record.drunkLevel * 10}%',
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                // 점선 구분선
-                _buildDashedDivider(),
-                const SizedBox(height: 24),
-                // 음주량
-                if (record.drinkAmount.isNotEmpty) ...[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '음주량',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w400,
-                      ),
+        Column(
+          children: [
+            // 제목 (중앙 정렬)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    record.meetingName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
-                  ...record.drinkAmount.map((drink) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              child: CustomPaint(
-                                painter: _DottedLinePainter(
-                                  color: Colors.grey[300]!,
-                                ),
-                                child: const SizedBox(height: 15),
-                              ),
-                            ),
-                          ),
-                          Text(
-                            formatDrinkAmount(drink.amount),
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 24),
-                  _buildDashedDivider(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('yyyy.MM.dd').format(record.date),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w400),
+                  ),
                 ],
-                // 지출
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+            ),
+            // 스크롤 가능한 콘텐츠 영역
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '지출',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Text(
-                      '${NumberFormat('#,###').format(record.cost)}원',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                // 알딸딸 지수
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('알딸딸 지수', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
                   ],
                 ),
-                const SizedBox(height: 24),
-                _buildDashedDivider(),
-                const SizedBox(height: 24),
-                // 취중 메모
-                if (record.memo['text'] != null &&
-                    (record.memo['text'] as String).isNotEmpty) ...[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '취중 메모',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      record.memo['text'] as String,
-                      style: const TextStyle(fontSize: 15, height: 1.6, fontWeight: FontWeight.w400),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 32),
-                // 하단 버튼
-                if (onEdit != null || onDelete != null)
-                  Row(
-                    children: [
-                      if (onEdit != null)
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              onEdit!();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 16),
+                // 둥근 슬라이더와 캐릭터 (조작 불가)
+                Center(
+                  child: SizedBox(
+                    width: 240,
+                    height: 240,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // 둥근 슬라이더 (핸들 숨김)
+                        CircularSlider(
+                          value: record.drunkLevel.toDouble() * 10,
+                          min: 0,
+                          max: 100,
+                          divisions: 20,
+                          size: 240,
+                          trackWidth: 16,
+                          inactiveColor: Colors.grey[300]!,
+                          activeColor: const Color(0xFFFA75A5),
+                          thumbColor: Colors.transparent, // 핸들 숨김
+                          thumbRadius: 0, // 핸들 크기 0
+                          onChanged: (_) {}, // 조작 불가 (빈 함수)
+                        ),
+                        // 가운데 컨텐츠
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 사쿠 캐릭터
+                            SakuCharacter(
+                              size: 80,
+                              drunkLevel: record.drunkLevel * 10,
+                            ),
+                            const SizedBox(height: 8),
+                            // 퍼센트 표시
+                            Text(
+                              '${record.drunkLevel * 10}%',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            child: const Text('수정', style: TextStyle(fontWeight: FontWeight.w400)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 음주량
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('음주량', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // 완료된 기록 리스트 (삭제 버튼 없이)
+                ...completedRecords.map((record) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        // 아이콘
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: getDrinkIcon(record.drinkType),
                           ),
                         ),
-                      if (onEdit != null && onDelete != null)
                         const SizedBox(width: 12),
-                      if (onDelete != null)
+
+                        // 정보 텍스트
                         Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              onDelete!();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                          child: Text(
+                            '${getDrinkTypeName(record.drinkType)} · ${record.alcoholContent}% · ${record.amount}${record.unit}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
                             ),
-                            child: const Text('삭제', style: TextStyle(fontWeight: FontWeight.w400)),
                           ),
                         ),
-                    ],
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 24),
+
+                // 술값 (필수 아님)
+                const Text(
+                  '술값(지출 금액)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Text(
+                    '${NumberFormat('#,###').format(record.cost)}원',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 메모 (필수 아님)
+                const Text('메모', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Text(
+                    record.memo['text'] as String? ?? '',
+                    style: const TextStyle(fontSize: 16, height: 1.6),
+                  ),
+                ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        // 우상단 메뉴 버튼
+        if (onEdit != null || onDelete != null)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              color: Colors.grey[200],
+              surfaceTintColor: Colors.transparent,
+              onSelected: (value) {
+                if (value == 'edit' && onEdit != null) {
+                  Navigator.pop(context);
+                  onEdit!();
+                } else if (value == 'delete' && onDelete != null) {
+                  Navigator.pop(context);
+                  onDelete!();
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                if (onEdit != null)
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 20),
+                        SizedBox(width: 8),
+                        Text('수정'),
+                      ],
+                    ),
+                  ),
+                if (onDelete != null)
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 20, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('삭제', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
               ],
             ),
           ),
-        ),
       ],
     );
   }
-
-  /// 캐릭터 이미지 빌드 (취함 정도에 따라)
-  Widget _buildCharacterImage(int drunkLevel) {
-    const size = 120.0;
-
-    return SakuCharacter(size: size, drunkLevel: drunkLevel * 10);
-  }
-
-  /// 점선 구분선
-  Widget _buildDashedDivider() {
-    return Row(
-      children: List.generate(
-        30,
-        (index) => Expanded(
-          child: Container(
-            height: 1,
-            color: index % 2 == 0 ? Colors.grey[300] : Colors.transparent,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 점선을 그리는 CustomPainter
-class _DottedLinePainter extends CustomPainter {
-  _DottedLinePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-
-    const dotRadius = 1.5;
-    const dotSpacing = 4.0;
-    final y = size.height / 2;
-
-    for (double x = 0; x < size.width; x += dotSpacing) {
-      canvas.drawCircle(Offset(x, y), dotRadius, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DottedLinePainter oldDelegate) => false;
 }
