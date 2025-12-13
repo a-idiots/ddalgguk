@@ -8,6 +8,7 @@ import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
+import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -678,20 +679,39 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Future<void> _deleteRecord(String recordId) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('삭제 확인'),
-        content: const Text('이 기록을 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
+      builder: (context) => SakuInfoDialog(
+        content: const Text(
+          '이 기록을 삭제하시겠습니까?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
+        ),
+        bottomButtons: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryPink,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+            child: const Text(
+              '삭제',
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
 
