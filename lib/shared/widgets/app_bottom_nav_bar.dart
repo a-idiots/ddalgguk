@@ -18,8 +18,8 @@ class AppBottomNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(26),
+          topRight: Radius.circular(26),
         ),
         border: Border(top: BorderSide(color: Colors.grey[300]!, width: 1)),
         boxShadow: [
@@ -40,7 +40,7 @@ class AppBottomNavBar extends StatelessWidget {
               // Sliding Highlight Pill
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
+                curve: Curves.easeOut,
                 left: currentIndex * itemWidth,
                 top: 0,
                 width: itemWidth,
