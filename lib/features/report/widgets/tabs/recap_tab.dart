@@ -4,7 +4,7 @@ import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart'
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
-// import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart'; // Apparently unused or exported elsewhere? Keeping if needed, but error said unused. I'll remove it.
+
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
@@ -70,7 +70,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
             key: _globalKey,
             child: Container(
               color: Colors.white, // White bg
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -85,8 +85,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                           Text(
                             user.name ?? 'User',
                             style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
                               color: Colors.black,
                             ),
                           ),
@@ -95,7 +94,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                             '${now.month}월 음주 Recap',
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.black87,
+                              color: Colors.black,
                             ),
                           ),
                         ],
@@ -120,7 +119,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     ),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
 
                   // 3. Stats Grid
                   monthRecordsAsync.when(
@@ -133,7 +132,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // 4. Hole in Wallet
                   monthRecordsAsync.when(
@@ -148,7 +147,6 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 24),
 
                   // Separator
                   CustomPaint(
@@ -158,34 +156,21 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                   const SizedBox(height: 24),
 
                   // 6. One-line Review
-                  const Align(
-                    alignment: Alignment.centerLeft,
+                  Align(
+                    alignment: Alignment.center,
                     child: Text(
-                      '11월 한줄평',
+                      '${now.month}월 한줄평',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '11월 가장 취한 부문 1위',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   const Text(
                     '간이 회복되지 않았는데 또 술을 마셨어요',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                      fontFamily:
-                          'Pretendard', // Assuming default font supports this look
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -206,7 +191,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(20),
                       side: const BorderSide(color: Colors.grey),
                     ),
                     elevation: 0,
@@ -225,7 +210,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     elevation: 0,
                   ),
@@ -296,26 +281,22 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         Row(
           children: [
             Expanded(
-              child: _StatCard(value: '$avgDrunkLevel%', label: '술자리 평균 취기'),
+              child: _StatCard(value: '$avgDrunkLevel%', label: '평균 취기'),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
             Expanded(
-              child: _StatCard(value: '${drunkCount}번', label: '만취'),
+              child: _StatCard(value: '$drunkCount번', label: '만취'),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
+            const SizedBox(width: 4),
             Expanded(
               child: _StatCard(
                 value: '${avgBottles.toStringAsFixed(1)}병',
                 label: '평균 음주량',
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
             Expanded(
-              child: _StatCard(value: '${maxConsecutive}일', label: '연속 음주'),
+              child: _StatCard(value: '$maxConsecutive일', label: '연속 음주'),
             ),
           ],
         ),
@@ -331,46 +312,11 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       (curr, next) => curr.cost > next.cost ? curr : next,
     );
 
-    return Column(
-      children: [
-        CustomPaint(
-          size: const Size(double.infinity, 1),
-          painter: _DottedLinePainter(),
-        ),
-        const SizedBox(height: 24),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '지갑에 빵꾸 뚫린 날',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                '11월 술값 지출 부문 1위',
-                style: TextStyle(fontSize: 10, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              maxRecord.meetingName,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-            ),
-            Text(
-              '${NumberFormat('#,###').format(maxRecord.cost)}원',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-      ],
+    return _RecordHighlightSection(
+      title: '지갑에 빵꾸 뚫린 날',
+      subtitle: '${maxRecord.date.month}월 술값 지출 부문 1위',
+      recordName: maxRecord.meetingName,
+      valueText: '${NumberFormat('#,###').format(maxRecord.cost)}원',
     );
   }
 
@@ -382,44 +328,77 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       (curr, next) => curr.drunkLevel > next.drunkLevel ? curr : next,
     );
 
+    return _RecordHighlightSection(
+      title: '가장 얼큰했던 술자리',
+      subtitle: '${maxRecord.date.month}월 가장 취한 부문 1위',
+      recordName: maxRecord.meetingName,
+      valueText: '${maxRecord.drunkLevel * 10}%',
+    );
+  }
+}
+
+class _RecordHighlightSection extends StatelessWidget {
+  const _RecordHighlightSection({
+    required this.title,
+    required this.subtitle,
+    required this.recordName,
+    required this.valueText,
+  });
+
+  final String title;
+  final String subtitle;
+  final String recordName;
+  final String valueText;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         CustomPaint(
           size: const Size(double.infinity, 1),
           painter: _DottedLinePainter(),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerLeft,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '가장 얼큰했던 술자리',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                '11월 가장 취한 부문 1위',
-                style: TextStyle(fontSize: 10, color: Colors.grey),
+              Text(title, style: const TextStyle(fontSize: 18)),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w300,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              maxRecord.meetingName,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+              recordName,
+              style: const TextStyle(
+                fontFamily: 'GriunSimsimche',
+                fontSize: 30,
+                fontWeight: FontWeight.w400,
+              ),
             ),
             Text(
-              '${maxRecord.drunkLevel * 10}%',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              valueText,
+              style: const TextStyle(
+                fontFamily: 'GriunSimsimche',
+                fontSize: 30,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ],
         ),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -434,14 +413,14 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
             offset: const Offset(0, 4),
           ),
         ],
@@ -451,13 +430,19 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
         ],
       ),
     );
@@ -472,25 +457,25 @@ class _SojuGlassWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 220,
+      height: 160,
       width: 180,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(size: const Size(180, 220), painter: _SojuGlassPainter()),
+          CustomPaint(size: const Size(180, 160), painter: _SojuGlassPainter()),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
                 '총 음주량',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
-              const SizedBox(height: 8),
               Text(
                 NumberFormat('#,###').format(totalMl),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 40,
+                  height: 1.2,
                   fontWeight: FontWeight.bold,
                 ),
               ),
