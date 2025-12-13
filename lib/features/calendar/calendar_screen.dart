@@ -327,13 +327,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 DateFormat('yyyy년 M월 d일').format(_selectedDay!),
                 style: const TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 '음주 기록이 없습니다',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+                style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w400),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -349,7 +349,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
                 child: const Text(
                   '+ 금주 기록 추가하기',
-                  style: TextStyle(fontWeight: FontWeight.normal),
+                  style: TextStyle(fontWeight: FontWeight.w400),
                 ),
               ),
             ],
@@ -413,7 +413,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
@@ -430,7 +430,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
@@ -459,8 +459,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     Text(
                       record.meetingName,
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -470,7 +470,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.red[400],
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -490,7 +490,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                   children: [
                                     Text(
                                       '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
                                     ),
                                     Text(
                                       ' ········································ ',
@@ -499,7 +499,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                     ),
                                     Text(
                                       formatDrinkAmount(drink.amount),
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
                                     ),
                                   ],
                                 ),
@@ -515,7 +515,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       '${NumberFormat('#,###').format(record.cost)}원',
                       style: const TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -533,7 +533,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.red[400],
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),

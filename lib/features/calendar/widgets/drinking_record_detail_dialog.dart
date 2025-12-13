@@ -37,7 +37,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 DateFormat('yyyy.MM.dd').format(record.date),
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w400),
               ),
             ],
           ),
@@ -56,14 +56,14 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                 // 혈중 알콜 농도
                 Text(
                   '혈중 알콜 농도',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700], fontWeight: FontWeight.w400),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '${record.drunkLevel * 10}%',
                   style: const TextStyle(
                     fontSize: 36,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -79,7 +79,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey[700],
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -91,7 +91,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                         children: [
                           Text(
                             '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                            style: const TextStyle(fontSize: 15),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                           ),
                           Expanded(
                             child: Padding(
@@ -108,7 +108,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                           ),
                           Text(
                             formatDrinkAmount(drink.amount),
-                            style: const TextStyle(fontSize: 15),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                           ),
                         ],
                       ),
@@ -127,14 +127,14 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey[700],
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                     Text(
                       '${NumberFormat('#,###').format(record.cost)}원',
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
@@ -152,7 +152,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey[700],
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -161,7 +161,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       record.memo['text'] as String,
-                      style: const TextStyle(fontSize: 15, height: 1.6),
+                      style: const TextStyle(fontSize: 15, height: 1.6, fontWeight: FontWeight.w400),
                     ),
                   ),
                 ],
@@ -185,7 +185,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('수정'),
+                            child: const Text('수정', style: TextStyle(fontWeight: FontWeight.w400)),
                           ),
                         ),
                       if (onEdit != null && onDelete != null)
@@ -205,7 +205,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('삭제'),
+                            child: const Text('삭제', style: TextStyle(fontWeight: FontWeight.w400)),
                           ),
                         ),
                     ],
