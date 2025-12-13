@@ -101,6 +101,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                           AlcoholBreakdownSection(
                             stats: currentStats,
                             theme: theme,
+                            extraComment: true,
                           ),
                           const SizedBox(height: 32),
                         ]),

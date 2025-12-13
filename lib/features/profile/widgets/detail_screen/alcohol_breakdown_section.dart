@@ -11,10 +11,12 @@ class AlcoholBreakdownSection extends StatelessWidget {
     super.key,
     required this.stats,
     required this.theme,
+    required this.extraComment,
   });
 
   final ProfileStats stats;
   final AppTheme theme;
+  final bool extraComment;
 
   @override
   Widget build(BuildContext context) {
@@ -24,65 +26,81 @@ class AlcoholBreakdownSection extends StatelessWidget {
     return ProfileSection(
       title: '혈중 알콜 분해 현황',
       subtitle: SectionSubtitle(text: today),
-      content: Column(
-        children: [
-          // Semicircular chart
-          SemicircularChart(
-            progress: breakdown.progressPercentage / 100,
-            topLabel: stats.timeToSober <= 0
-                ? '완전 분해 완료'
-                : '완전 분해까지 ${_getTimeText(stats.timeToSober)}',
-            bottomLabel: '${breakdown.alcoholRemaining.toStringAsFixed(3)}%',
-            activeColor: theme.primaryColor,
-            size: 280,
-          ),
-          const SizedBox(height: 24),
-          // Message box
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.transparent, // No background
-              borderRadius: BorderRadius.circular(30), // More rounded
-              border: Border.all(color: Colors.grey[300]!, width: 1),
+      content: SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Semicircular chart
+            SemicircularChart(
+              progress: breakdown.progressPercentage / 100,
+              topLabel: stats.timeToSober <= 0
+                  ? '완전 분해 완료'
+                  : '완전 분해까지 ${_getTimeText(stats.timeToSober)}',
+              bottomLabel: '${breakdown.alcoholRemaining.toStringAsFixed(3)}%',
+              activeColor: theme.primaryColor,
+              size: 280,
             ),
-            child: Row(
-              children: [
-                // Message icon
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: theme.secondaryColor, // Theme color background
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons
-                        .sentiment_very_satisfied_rounded, // Changed icon to match image roughly
-                    color: Colors.white,
-                    size: 20,
-                  ),
+            const SizedBox(height: 24),
+
+            // Message box
+            if (extraComment)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
                 ),
-                const SizedBox(width: 12),
-                // Message text
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '간 회복은 훨씬 오래 걸려요!',
-                        style: TextStyle(fontSize: 11, color: Colors.black87),
-                      ),
-                      Text(
-                        '72시간 이상 금주하면 간 효소 정상화에 도움이 돼요.',
-                        style: TextStyle(fontSize: 11, color: Colors.black87),
-                      ),
-                    ],
-                  ),
+                decoration: BoxDecoration(
+                  color: Colors.transparent, // No background
+                  borderRadius: BorderRadius.circular(30), // More rounded
+                  border: Border.all(color: Colors.grey[300]!, width: 1),
                 ),
-              ],
-            ),
-          ),
-        ],
+                child: Row(
+                  children: [
+                    // Message icon
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: theme.secondaryColor, // Theme color background
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons
+                            .sentiment_very_satisfied_rounded, // Changed icon to match image roughly
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Message text
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '간 회복은 훨씬 오래 걸려요!',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            '72시간 이상 금주하면 간 효소 정상화에 도움이 돼요.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
