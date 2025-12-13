@@ -32,9 +32,7 @@ class CompletedDrinkCard extends StatelessWidget {
               color: Colors.grey[300],
               shape: BoxShape.circle,
             ),
-            child: Center(
-              child: getDrinkIcon(record.drinkType),
-            ),
+            child: Center(child: getDrinkIcon(record.drinkType)),
           ),
           const SizedBox(width: 12),
 
@@ -42,10 +40,7 @@ class CompletedDrinkCard extends StatelessWidget {
           Expanded(
             child: Text(
               '${getDrinkTypeName(record.drinkType)} · ${record.alcoholContent}% · ${record.amount}${record.unit}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-              ),
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
             ),
           ),
 

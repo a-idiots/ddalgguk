@@ -89,22 +89,26 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
                       widget.inputData.selectedUnit = newUnit;
                     });
                   },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'ml',
-                      child: Text('ml'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: '잔',
-                      child: Text('잔'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: '병',
-                      child: Text('병'),
-                    ),
-                  ],
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'ml',
+                          child: Text('ml'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: '잔',
+                          child: Text('잔'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: '병',
+                          child: Text('병'),
+                        ),
+                      ],
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -112,7 +116,11 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
                           widget.inputData.selectedUnit,
                           style: const TextStyle(fontSize: 16),
                         ),
-                        Icon(Icons.arrow_drop_down, size: 28, color: Colors.grey[600]),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          size: 28,
+                          color: Colors.grey[600],
+                        ),
                       ],
                     ),
                   ),
@@ -166,7 +174,9 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
       onTap: () {
         setState(() {
           widget.inputData.drinkType = type;
-          widget.inputData.alcoholController.text = getDefaultAlcoholContent(type).toString();
+          widget.inputData.alcoholController.text = getDefaultAlcoholContent(
+            type,
+          ).toString();
           widget.inputData.selectedUnit = getDefaultUnit(type);
         });
       },
@@ -176,12 +186,12 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: isSelected ? Colors.pink.withValues(alpha: 0.3) : Colors.grey[300],
+              color: isSelected
+                  ? Colors.pink.withValues(alpha: 0.3)
+                  : Colors.grey[300],
               shape: BoxShape.circle,
             ),
-            child: Center(
-              child: getDrinkIcon(type),
-            ),
+            child: Center(child: getDrinkIcon(type)),
           ),
           const SizedBox(height: 4),
           Text(

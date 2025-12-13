@@ -319,7 +319,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       // 미래 날짜 체크
       final today = DateTime.now();
       final normalizedToday = DateTime(today.year, today.month, today.day);
-      final normalizedSelectedDay = DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day);
+      final normalizedSelectedDay = DateTime(
+        _selectedDay!.year,
+        _selectedDay!.month,
+        _selectedDay!.day,
+      );
       final isFutureDate = normalizedSelectedDay.isAfter(normalizedToday);
 
       return Padding(
@@ -339,7 +343,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               const SizedBox(height: 8),
               const Text(
                 '음주 기록이 없습니다',
-                style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w400),
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               if (!isFutureDate) ...[
                 const SizedBox(height: 24),
@@ -453,10 +461,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 왼쪽: 사쿠 캐릭터
-              SakuCharacter(
-                size: sakuSize,
-                drunkLevel: record.drunkLevel * 10,
-              ),
+              SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
               const SizedBox(width: 16),
               // 중앙: 정보
               Expanded(
@@ -491,19 +496,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             children: [
                               Text(
                                 '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                               Expanded(
                                 child: Text(
                                   '  ··············································································  ',
-                                  style: const TextStyle(fontSize: 12, color: AppColors.grey),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.grey,
+                                  ),
                                   overflow: TextOverflow.clip,
                                   maxLines: 1,
                                 ),
                               ),
                               Text(
                                 formatDrinkAmount(drink.amount),
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ],
                           ),
@@ -524,7 +538,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
               // 우측: 회차 (상단에 배치)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.red[300]!, width: 1.5),
                   borderRadius: BorderRadius.circular(20),
@@ -724,7 +741,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryPink,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 48,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
@@ -841,10 +861,7 @@ class _BubblePainter extends CustomPainter {
 
     // 왼쪽 상단 모서리부터 시작
     path.moveTo(0, radius);
-    path.arcToPoint(
-      Offset(radius, 0),
-      radius: const Radius.circular(radius),
-    );
+    path.arcToPoint(Offset(radius, 0), radius: const Radius.circular(radius));
 
     // 상단 선
     path.lineTo(size.width - radius, 0);

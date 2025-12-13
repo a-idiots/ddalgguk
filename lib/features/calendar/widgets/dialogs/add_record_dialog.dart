@@ -75,17 +75,17 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
 
     // 술 종류 확인
     if (_currentInput.drinkType == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('술 종류를 선택해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('술 종류를 선택해주세요')));
       return;
     }
 
     // 입력값 확인
     if (alcoholText.isEmpty || amountText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('도수와 양을 모두 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('도수와 양을 모두 입력해주세요')));
       return;
     }
 
@@ -93,23 +93,23 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     final amount = double.tryParse(amountText);
 
     if (alcohol == null || amount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('도수와 양은 숫자여야 합니다')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('도수와 양은 숫자여야 합니다')));
       return;
     }
 
     if (alcohol < 0 || alcohol > 100) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('도수는 0~100 사이여야 합니다')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('도수는 0~100 사이여야 합니다')));
       return;
     }
 
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('양은 0보다 커야 합니다')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('양은 0보다 커야 합니다')));
       return;
     }
 
@@ -140,9 +140,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
 
     // 완료된 기록이 없으면 에러
     if (_completedRecords.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('최소 한 개의 음주량을 추가해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('최소 한 개의 음주량을 추가해주세요')));
       return;
     }
 
@@ -227,7 +227,13 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                     const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('모임명', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                        Text(
+                          '모임명',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                         SizedBox(width: 4),
                         Text(
                           '*',
@@ -238,7 +244,11 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                     const Spacer(),
                     Text(
                       '${widget.sessionNumber}차',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400, color: Colors.grey),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey,
+                      ),
                     ),
                   ],
                 ),
@@ -272,7 +282,13 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('알딸딸 지수', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                    Text(
+                      '알딸딸 지수',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                     SizedBox(width: 4),
                     Text(
                       '*',
@@ -337,7 +353,13 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('음주량', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                    Text(
+                      '음주량',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                     SizedBox(width: 4),
                     Text(
                       '*',
@@ -403,7 +425,10 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 24),
 
                 // 메모 (필수 아님)
-                const Text('메모', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                const Text(
+                  '메모',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _memoController,
