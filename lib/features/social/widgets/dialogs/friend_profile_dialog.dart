@@ -212,6 +212,7 @@ class FriendProfileDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyStats = _createWeeklyStats();
     final profileStats = _createProfileStats();
+    final theme = AppColors.getTheme(profileStats?.thisMonthDrunkDays ?? 0);
 
     return Column(
       children: [
@@ -219,70 +220,76 @@ class FriendProfileDialog extends ConsumerWidget {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
-                // 프로필 헤더
-                Text(
-                  friendData.name,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
                 const SizedBox(height: 8),
-                Text(
-                  '@${friendData.userData.id ?? ''}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                // 프로필 헤더 + 메뉴
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              friendData.name,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '@${friendData.userData.id ?? ''}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, color: Colors.black87),
+                      surfaceTintColor: Colors.transparent,
+                      color: Colors.grey[200],
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _showDeleteConfirmation(context, ref);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('친구 삭제'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 // 주간 통계
                 WeeklySakuSection(
                   weeklyStats: weeklyStats,
-                  theme: AppColors.getTheme(0),
+                  theme: theme,
                 ),
                 const SizedBox(height: 16),
                 // 업적
-                AchievementsSection(theme: AppColors.getTheme(0)),
+                AchievementsSection(theme: theme),
                 const SizedBox(height: 16),
                 // 알콜 분해 정보
                 if (profileStats != null)
                   AlcoholBreakdownSection(
                     stats: profileStats,
-                    theme: AppColors.getTheme(0),
+                    theme: theme,
                     extraComment: false,
                   ),
                 const SizedBox(height: 32),
               ],
-            ),
-          ),
-        ),
-        // 친구 삭제 버튼
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: () => _showDeleteConfirmation(context, ref),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(
-                    color: AppColors.primaryPink,
-                    width: 2,
-                  ),
-                ),
-              ),
-              child: const Text(
-                '친구 삭제',
-                style: TextStyle(
-                  color: AppColors.primaryPink,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ),
         ),
