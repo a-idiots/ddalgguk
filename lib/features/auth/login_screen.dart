@@ -233,7 +233,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       '딸꾹 DDALKKUK',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 24,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFFEA6B6B),
                         letterSpacing: 0.5,
@@ -246,7 +246,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       '나만의 HIP한 알콜 트래커',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: Colors.grey.shade600,
                         letterSpacing: 0.3,
                       ),
