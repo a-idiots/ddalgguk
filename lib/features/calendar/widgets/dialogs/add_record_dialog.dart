@@ -5,7 +5,6 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
-import 'package:ddalgguk/features/calendar/widgets/receipt_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
@@ -181,318 +180,338 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return ReceiptDialog(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 상단 여백 (X 버튼 공간)
-          const SizedBox(height: 60),
-          // 스크롤 가능한 폼 영역
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 모임명과 회차
-                  Row(
+    return Column(
+      children: [
+        // 제목
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              const Text(
+                '기록 추가',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              Text(
+                '${widget.sessionNumber}차',
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        // 스크롤 가능한 폼 영역
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 모임명
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('모임명', style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 2),
-                            Text(
-                              '*',
-                              style: TextStyle(fontSize: 12, color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Spacer(),
+                      Text('모임명', style: TextStyle(fontSize: 12)),
+                      SizedBox(width: 2),
                       Text(
-                        '${widget.sessionNumber}차',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        '*',
+                        style: TextStyle(fontSize: 12, color: Colors.red),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _meetingNameController,
-                    decoration: InputDecoration(
-                      hintText: '피넛버터샌드위치',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _meetingNameController,
+                  decoration: InputDecoration(
+                    hintText: '피넛버터샌드위치',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 알딸딸 지수
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('알딸딸 지수', style: TextStyle(fontSize: 12)),
+                          SizedBox(width: 2),
+                          Text(
+                            '*',
+                            style: TextStyle(fontSize: 12, color: Colors.red),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 알딸딸 지수
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('알딸딸 지수', style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 2),
-                            Text(
-                              '*',
-                              style: TextStyle(fontSize: 12, color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${(_drunkLevel * 10).toInt()}%',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Saku character visualization
-                  Center(
-                    child: SakuCharacter(
-                      size: 80,
-                      drunkLevel: (_drunkLevel * 10).toInt(),
+                    const Spacer(),
+                    Text(
+                      '${(_drunkLevel * 10).toInt()}%',
+                      style: const TextStyle(fontSize: 14),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Saku character visualization
+                Center(
+                  child: SakuCharacter(
+                    size: 80,
+                    drunkLevel: (_drunkLevel * 10).toInt(),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text(
-                        '0%',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: AppColors.primaryPink,
-                            thumbColor: AppColors.primaryPink,
-                            overlayColor: AppColors.primaryPink.withValues(
-                              alpha: 0.2,
-                            ),
-                            inactiveTrackColor: AppColors.primaryPink
-                                .withValues(alpha: 0.3),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Text(
+                      '0%',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: AppColors.primaryPink,
+                          thumbColor: AppColors.primaryPink,
+                          overlayColor: AppColors.primaryPink.withValues(
+                            alpha: 0.2,
                           ),
-                          child: Slider(
-                            value: _drunkLevel,
-                            min: 0,
-                            max: 10,
-                            divisions: 20,
-                            onChanged: (value) {
-                              setState(() {
-                                _drunkLevel = value;
-                              });
-                            },
+                          inactiveTrackColor: AppColors.primaryPink.withValues(
+                            alpha: 0.3,
                           ),
                         ),
-                      ),
-                      const Text(
-                        '100%',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 음주량
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('음주량', style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 2),
-                            Text(
-                              '*',
-                              style: TextStyle(fontSize: 12, color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle, size: 28),
-                        onPressed: () {
-                          setState(() {
-                            _drinkInputs.add(
-                              DrinkInputData(
-                                drinkType: 0, // 미정
-                                alcoholController: TextEditingController(
-                                  text: '0.0',
-                                ),
-                                amountController: TextEditingController(
-                                  text: '1.0',
-                                ),
-                                selectedUnit: '병',
-                              ),
-                            );
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // 음주량 리스트
-                  ..._drinkInputs.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final inputData = entry.value;
-                    return DrinkInputCard(
-                      inputData: inputData,
-                      onTypeChange: (int newType) {
-                        setState(() {
-                          inputData.drinkType = newType;
-                          inputData.alcoholController.text =
-                              getDefaultAlcoholContent(newType).toString();
-                          inputData.selectedUnit = getDefaultUnit(newType);
-                        });
-                      },
-                      onUnitChange: (String newUnit) {
-                        setState(() {
-                          inputData.selectedUnit = newUnit;
-                        });
-                      },
-                      onTypeTap: () {
-                        DrinkTypeSelector.show(
-                          context,
-                          currentType: inputData.drinkType,
-                          onSelect: (int newType) {
+                        child: Slider(
+                          value: _drunkLevel,
+                          min: 0,
+                          max: 10,
+                          divisions: 20,
+                          onChanged: (value) {
                             setState(() {
-                              inputData.drinkType = newType;
-                              inputData.alcoholController.text =
-                                  getDefaultAlcoholContent(newType).toString();
-                              inputData.selectedUnit = getDefaultUnit(newType);
+                              _drunkLevel = value;
                             });
                           },
-                        );
-                      },
-                      onDelete: _drinkInputs.length > 1
-                          ? () {
-                              setState(() {
-                                _drinkInputs.removeAt(index);
-                              });
-                            }
-                          : null,
-                    );
-                  }),
-                  const SizedBox(height: 24),
-
-                  // 술값 (필수 아님)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      '술값(지출 금액)',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _costController,
-                    decoration: InputDecoration(
-                      hintText: '0',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      suffixText: '원',
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
+                        ),
                       ),
                     ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 메모 (필수 아님)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                    const Text(
+                      '100%',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text('메모', style: TextStyle(fontSize: 12)),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _memoController,
-                    decoration: InputDecoration(
-                      hintText: '예: 주사, 숙취, 재미있는 에피소드 등',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.all(12),
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-          // 하단 버튼
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('취소'),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _handleSubmit,
-                  child: const Text('추가'),
+                const SizedBox(height: 24),
+
+                // 음주량
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('음주량', style: TextStyle(fontSize: 12)),
+                          SizedBox(width: 2),
+                          Text(
+                            '*',
+                            style: TextStyle(fontSize: 12, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle, size: 28),
+                      onPressed: () {
+                        setState(() {
+                          _drinkInputs.add(
+                            DrinkInputData(
+                              drinkType: 0, // 미정
+                              alcoholController: TextEditingController(
+                                text: '0.0',
+                              ),
+                              amountController: TextEditingController(
+                                text: '1.0',
+                              ),
+                              selectedUnit: '병',
+                            ),
+                          );
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // 음주량 리스트
+                ..._drinkInputs.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final inputData = entry.value;
+                  return DrinkInputCard(
+                    inputData: inputData,
+                    onTypeChange: (int newType) {
+                      setState(() {
+                        inputData.drinkType = newType;
+                        inputData.alcoholController.text =
+                            getDefaultAlcoholContent(newType).toString();
+                        inputData.selectedUnit = getDefaultUnit(newType);
+                      });
+                    },
+                    onUnitChange: (String newUnit) {
+                      setState(() {
+                        inputData.selectedUnit = newUnit;
+                      });
+                    },
+                    onTypeTap: () {
+                      DrinkTypeSelector.show(
+                        context,
+                        currentType: inputData.drinkType,
+                        onSelect: (int newType) {
+                          setState(() {
+                            inputData.drinkType = newType;
+                            inputData.alcoholController.text =
+                                getDefaultAlcoholContent(newType).toString();
+                            inputData.selectedUnit = getDefaultUnit(newType);
+                          });
+                        },
+                      );
+                    },
+                    onDelete: _drinkInputs.length > 1
+                        ? () {
+                            setState(() {
+                              _drinkInputs.removeAt(index);
+                            });
+                          }
+                        : null,
+                  );
+                }),
+                const SizedBox(height: 24),
+
+                // 술값 (필수 아님)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    '술값(지출 금액)',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _costController,
+                  decoration: InputDecoration(
+                    hintText: '0',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    suffixText: '원',
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 24),
+
+                // 메모 (필수 아님)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text('메모', style: TextStyle(fontSize: 12)),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _memoController,
+                  decoration: InputDecoration(
+                    hintText: '예: 주사, 숙취, 재미있는 에피소드 등',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 32),
+                // 하단 버튼
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: Colors.grey[200],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          '취소',
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _handleSubmit,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: AppColors.primaryPink,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('추가'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
