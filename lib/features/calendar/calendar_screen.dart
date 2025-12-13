@@ -10,6 +10,7 @@ import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -351,15 +352,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 50),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: records.length,
-      itemBuilder: (context, index) {
-        final record = records[index];
-        return _buildRecordCard(record, index);
-      },
+    return Column(
+      children: [
+        ListView.separated(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: records.length,
+          separatorBuilder: (context, index) => Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey[300],
+            indent: 0,
+            endIndent: 0,
+          ),
+          itemBuilder: (context, index) {
+            final record = records[index];
+            return _buildRecordCard(record, index);
+          },
+        ),
+        // 하단 구분선
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: Colors.grey[300],
+          indent: 0,
+          endIndent: 0,
+        ),
+        const SizedBox(height: 50),
+      ],
     );
   }
 
@@ -367,114 +388,149 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget _buildRecordCard(DrinkingRecord record, int index) {
     const sakuSize = 50.0;
 
-    return GestureDetector(
-      onTap: () => _showRecordDetail(context, record),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
-        decoration: BoxDecoration(
+    return Slidable(
+      key: Key(record.id),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.45,
+        children: [
+          CustomSlidableAction(
+            onPressed: (context) {
+              _showEditRecordDialog(context, record);
+            },
+            backgroundColor: Colors.grey,
+            foregroundColor: Colors.white,
+            autoClose: true,
+            flex: 1,
+            child: const Text(
+              '수정',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          CustomSlidableAction(
+            onPressed: (context) {
+              _deleteRecord(record.id);
+            },
+            backgroundColor: AppColors.primaryPink,
+            foregroundColor: Colors.white,
+            autoClose: true,
+            flex: 1,
+            child: const Text(
+              '삭제',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onTap: () => _showRecordDetail(context, record),
+        child: Container(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!, width: 1.0),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 왼쪽: 사쿠 캐릭터 (중앙정렬)
-            Align(
-              alignment: Alignment.center,
-              child: SakuCharacter(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 왼쪽: 사쿠 캐릭터
+              SakuCharacter(
                 size: sakuSize,
                 drunkLevel: record.drunkLevel * 10,
               ),
-            ),
-            const SizedBox(width: 24),
-            // 중앙: 정보
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 모임명
-                  Text(
-                    record.meetingName,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(width: 16),
+              // 중앙: 정보
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 모임명
+                    Text(
+                      record.meetingName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // 혈중 알콜 농도
-                  Text(
-                    '혈중알콜농도 ${record.drunkLevel * 10}%',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.red[400],
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 4),
+                    // 혈중 알콜 농도
+                    Text(
+                      '혈중알콜농도 ${record.drunkLevel * 10}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red[400],
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // 음주량
-                  if (record.drinkAmount.isNotEmpty) ...[
-                    ...record.drinkAmount.map((drink) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                child: CustomPaint(
-                                  painter: _DottedLinePainter(
-                                    color: Colors.grey[300]!,
+                    const SizedBox(height: 4),
+                    // 음주량
+                    if (record.drinkAmount.isNotEmpty) ...[
+                      ...record.drinkAmount.map((drink) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
                                   ),
-                                  child: const SizedBox(height: 11),
+                                  child: CustomPaint(
+                                    painter: _DottedLinePainter(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                    child: const SizedBox(height: 11),
+                                  ),
                                 ),
                               ),
-                            ),
-                            Text(
-                              formatDrinkAmount(drink.amount),
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 2),
-                  ],
-                  // 지출 금액
-                  Text(
-                    '${NumberFormat('#,###').format(record.cost)}원',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                              Text(
+                                formatDrinkAmount(drink.amount),
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 2),
+                    ],
+                    // 지출 금액
+                    Text(
+                      '${NumberFormat('#,###').format(record.cost)}원',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            // 우측: 회차
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.red[300]!, width: 1.5),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${record.sessionNumber}차',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.red[400],
-                  fontWeight: FontWeight.bold,
+                  ],
                 ),
               ),
-            ),
-          ],
+              // 우측: 회차 (상단에 배치)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red[300]!, width: 1.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${record.sessionNumber}차',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red[400],
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
