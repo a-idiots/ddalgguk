@@ -4,13 +4,13 @@ import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart'
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
-import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
-import 'package:ddalgguk/shared/widgets/saku_character.dart';
+
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'dart:math' as math;
 
 class RecapTab extends ConsumerStatefulWidget {
   const RecapTab({super.key});
@@ -21,6 +21,7 @@ class RecapTab extends ConsumerStatefulWidget {
 
 class _RecapTabState extends ConsumerState<RecapTab> {
   final GlobalKey _globalKey = GlobalKey();
+  final SojuGlassController _sojuGlassController = SojuGlassController();
 
   Future<void> _captureAndSave() async {
     try {
@@ -54,7 +55,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   @override
   Widget build(BuildContext context) {
-    // Normalize DateTime to prevent infinite rebuilds
+    // Normalize DateTime
     final now = DateTime.now();
     final normalizedDate = DateTime(now.year, now.month);
 
@@ -62,723 +63,749 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-      child: Column(
-        children: [
-          // Capture Area
-          RepaintBoundary(
-            key: _globalKey,
-            child: Container(
-              color: const Color(
-                0xFFFFEBEB,
-              ).withValues(alpha: 1), // Light pink bg
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Profile Header
-                  currentUserAsync.when(
-                    data: (user) {
-                      if (user == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return Column(
-                        children: [
-                          Text(
-                            '${user.name ?? 'User'}의 ${now.month}월 음주 Recap',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+    return NotificationListener<ScrollUpdateNotification>(
+      onNotification: (notification) {
+        if (notification.scrollDelta != null) {
+          _sojuGlassController.onScroll(notification.scrollDelta!);
+        }
+        return false;
+      },
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+        child: Column(
+          children: [
+            // Capture Area
+            RepaintBoundary(
+              key: _globalKey,
+              child: Container(
+                color: Colors.white, // White bg
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 1. Header
+                    currentUserAsync.when(
+                      data: (user) {
+                        if (user == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            Text(
+                              user.name ?? 'User',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: Colors.black,
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => const CircularProgressIndicator(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-
-                  // Character
-                  monthRecordsAsync.when(
-                    data: (records) {
-                      if (records.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-
-                      final avgDrunkLevel = records.isEmpty
-                          ? 0
-                          : (records
-                                        .map((r) => r.drunkLevel)
-                                        .reduce((a, b) => a + b) /
-                                    records.length *
-                                    10)
-                                .round();
-
-                      return Column(
-                        children: [
-                          SakuCharacter(size: 120, drunkLevel: avgDrunkLevel),
-                          const SizedBox(height: 4),
-                          RichText(
-                            text: TextSpan(
+                            const SizedBox(height: 4),
+                            Text(
+                              '${now.month}월 음주 Recap',
                               style: const TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                              children: [
-                                const TextSpan(text: '보통 술자리에서 '),
-                                TextSpan(
-                                  text: '$avgDrunkLevel%의 취기',
-                                  style: const TextStyle(
-                                    color: Color(0xFFE55D5D),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const TextSpan(text: '를 유지해요'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Stats Pills
-                  monthRecordsAsync.when(
-                    data: (records) {
-                      if (records.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-
-                      // Calculate stats
-                      try {
-                        final drunkCount = records
-                            .where((r) => r.drunkLevel >= 7)
-                            .length;
-
-                        double totalBottles = 0;
-                        for (var r in records) {
-                          if (r.drinkAmount.isEmpty) {
-                            continue;
-                          }
-                          for (var d in r.drinkAmount) {
-                            totalBottles += (d.amount / 500.0).clamp(0, 1000);
-                          }
-                        }
-                        final avgBottles = records.isEmpty
-                            ? 0.0
-                            : (totalBottles / records.length).clamp(0, 100);
-
-                        // Consecutive days
-                        final sortedDates =
-                            records
-                                .map(
-                                  (r) => DateTime(
-                                    r.date.year,
-                                    r.date.month,
-                                    r.date.day,
-                                  ),
-                                )
-                                .toSet()
-                                .toList()
-                              ..sort();
-
-                        int maxConsecutive = sortedDates.isEmpty ? 0 : 1;
-                        if (sortedDates.length > 1) {
-                          int currentConsecutive = 1;
-                          for (int i = 0; i < sortedDates.length - 1; i++) {
-                            final diff = sortedDates[i + 1]
-                                .difference(sortedDates[i])
-                                .inDays;
-                            if (diff == 1) {
-                              currentConsecutive++;
-                              if (currentConsecutive > maxConsecutive) {
-                                maxConsecutive = currentConsecutive;
-                              }
-                            } else {
-                              currentConsecutive = 1;
-                            }
-                          }
-                        }
-
-                        return Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _StatPill(
-                              label: '만취 $drunkCount번',
-                              color: const Color(0xFFE55D5D),
-                            ),
-                            _StatPill(
-                              label: '평균 ${avgBottles.toStringAsFixed(1)}병',
-                              color: const Color(0xFFE55D5D),
-                            ),
-                            _StatPill(
-                              label: '연속 $maxConsecutive일 음주',
-                              color: const Color(0xFFE55D5D),
-                            ),
-                          ],
-                        );
-                      } catch (e) {
-                        return const SizedBox.shrink();
-                      }
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Grid Layout
-                  _buildGridSection(monthRecordsAsync, weeklyStatsAsync),
-                  const SizedBox(height: 16),
-
-                  // One-line Review
-                  SizedBox(
-                    height: 80,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Stack(
-                          clipBehavior: Clip.none,
-                          fit: StackFit.expand,
-                          children: [
-                            SizedBox(
-                              width: constraints.maxWidth,
-                              height: 80,
-                              child: RepaintBoundary(
-                                child: Image.asset(
-                                  'assets/imgs/recap/bubble.png',
-                                  fit: BoxFit.fill,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: Colors.grey[300]!,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            Positioned.fill(
-                              bottom: 18,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    '11월 한줄평',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '간이 회복되지 않았는데 또 술을 마셨어요',
-                                    style: const TextStyle(
-                                      color: Colors.black87,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                color: Colors.black,
                               ),
                             ),
                           ],
                         );
                       },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
+                    const SizedBox(height: 32),
+
+                    // 2. Soju Glass (Total Volume)
+                    weeklyStatsAsync.when(
+                      data: (stats) {
+                        return _SojuGlassWidget(
+                          totalMl: stats.totalAlcoholMl.toInt().clamp(0, 99999),
+                          controller: _sojuGlassController,
+                        );
+                      },
+                      loading: () => const SizedBox(
+                        height: 200,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 3. Stats Grid
+                    monthRecordsAsync.when(
+                      data: (records) {
+                        if (records.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildStatsGrid(records);
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 4. Hole in Wallet
+                    monthRecordsAsync.when(
+                      data: (records) => _buildHoleInWalletSection(records),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    // 5. Most Drunk
+                    monthRecordsAsync.when(
+                      data: (records) => _buildMostDrunkSection(records),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    // Separator
+                    CustomPaint(
+                      size: const Size(double.infinity, 1),
+                      painter: _DottedLinePainter(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 6. One-line Review
+                    monthRecordsAsync.when(
+                      data: (records) {
+                        final drunkCount = records
+                            .where((r) => r.drunkLevel >= 7)
+                            .length;
+                        return Column(
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${now.month}월 한줄평',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _getRandomReviewText(drunkCount),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _captureAndSave,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _captureAndSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: const BorderSide(color: Colors.grey),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
+                    child: const Text('다운로드'),
                   ),
-                  child: const Text('다운로드'),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Share logic
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Share logic
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
+                    child: const Text('스토리 공유'),
                   ),
-                  child: const Text('스토리 공유'),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildGridSection(
-    AsyncValue<List<DrinkingRecord>> recordsAsync,
-    AsyncValue<WeeklyStats> weeklyStatsAsync,
-  ) {
+  Widget _buildStatsGrid(List<DrinkingRecord> records) {
+    if (records.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Calculate stats
+    final drunkCount = records.where((r) => r.drunkLevel >= 7).length;
+
+    double totalBottles = 0;
+    for (var r in records) {
+      if (r.drinkAmount.isEmpty) {
+        continue;
+      }
+      for (var d in r.drinkAmount) {
+        totalBottles += (d.amount / 500.0).clamp(0, 1000);
+      }
+    }
+    final avgBottles = records.isEmpty
+        ? 0.0
+        : (totalBottles / records.length).clamp(0, 100);
+
+    final avgDrunkLevel = records.isEmpty
+        ? 0
+        : (records.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
+                  records.length *
+                  10)
+              .round();
+
+    // Consecutive days
+    final sortedDates =
+        records
+            .map((r) => DateTime(r.date.year, r.date.month, r.date.day))
+            .toSet()
+            .toList()
+          ..sort();
+
+    int maxConsecutive = sortedDates.isEmpty ? 0 : 1;
+    if (sortedDates.length > 1) {
+      int currentConsecutive = 1;
+      for (int i = 0; i < sortedDates.length - 1; i++) {
+        final diff = sortedDates[i + 1].difference(sortedDates[i]).inDays;
+        if (diff == 1) {
+          currentConsecutive++;
+          if (currentConsecutive > maxConsecutive) {
+            maxConsecutive = currentConsecutive;
+          }
+        } else {
+          currentConsecutive = 1;
+        }
+      }
+    }
+
     return Column(
       children: [
-        // Row 1: Hole in Wallet & Total Volume
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hole in Wallet (Left)
-            Expanded(flex: 5, child: _buildHoleInWalletCard(recordsAsync)),
-            const SizedBox(width: 8),
-            // Total Volume (Right)
-            Expanded(flex: 4, child: _buildTotalVolumeCard(weeklyStatsAsync)),
-          ],
-        ),
-        // Row 2: Badge & Most Drunk
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Badge (Left)
-            Expanded(flex: 4, child: _buildBadgeCard(recordsAsync)),
-            const SizedBox(width: 8),
-            // Most Drunk (Right)
-            Expanded(flex: 5, child: _buildMostDrunkCard(recordsAsync)),
+            Expanded(
+              child: _StatCard(value: '$avgDrunkLevel%', label: '평균 취기'),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StatCard(value: '$drunkCount번', label: '만취'),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StatCard(
+                value: '${avgBottles.toStringAsFixed(1)}병',
+                label: '평균 음주량',
+              ),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _StatCard(value: '$maxConsecutive일', label: '연속 음주'),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildHoleInWalletCard(AsyncValue<List<DrinkingRecord>> recordsAsync) {
-    return recordsAsync.when(
-      data: (records) {
-        if (records.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        final maxRecord = records.reduce(
-          (curr, next) => curr.cost > next.cost ? curr : next,
-        );
+  Widget _buildHoleInWalletSection(List<DrinkingRecord> records) {
+    if (records.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final maxRecord = records.reduce(
+      (curr, next) => curr.cost > next.cost ? curr : next,
+    );
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '지갑에 빵꾸 뚫린 날',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    '11월 술값 지출 부문 1위',
-                    style: TextStyle(fontSize: 10, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFB4B4), // Pink
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(10),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  SakuCharacter(
-                    size: 40,
-                    drunkLevel: maxRecord.drunkLevel * 10,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          maxRecord.meetingName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '${NumberFormat('#,###').format(maxRecord.cost)}원',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const Text(
-                          '무슨 일이 있으셨나요?',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+    return _RecordHighlightSection(
+      title: '지갑에 빵꾸 뚫린 날',
+      subtitle: '${maxRecord.date.month}월 술값 지출 부문 1위',
+      recordName: maxRecord.meetingName,
+      valueText: '${NumberFormat('#,###').format(maxRecord.cost)}원',
     );
   }
 
-  Widget _buildTotalVolumeCard(AsyncValue<WeeklyStats> statsAsync) {
-    return statsAsync.when(
-      data: (stats) {
-        return SizedBox(
-          height: 130,
-          child: Stack(
-            alignment: Alignment.center,
+  Widget _buildMostDrunkSection(List<DrinkingRecord> records) {
+    if (records.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final maxRecord = records.reduce(
+      (curr, next) => curr.drunkLevel > next.drunkLevel ? curr : next,
+    );
+
+    return _RecordHighlightSection(
+      title: '가장 얼큰했던 술자리',
+      subtitle: '${maxRecord.date.month}월 가장 취한 부문 1위',
+      recordName: maxRecord.meetingName,
+      valueText: '${maxRecord.drunkLevel * 10}%',
+    );
+  }
+
+  String _getRandomReviewText(int drunkCount) {
+    final List<String> candidates;
+    if (drunkCount == 0) {
+      candidates = [
+        '당신의 간은 건강합니다!',
+        '사는 지역이 논-알콜 존이신가요? 건강합니다!',
+        '술이 무엇인지 모르는 당신. 건강합니다!',
+        '간: 저 휴가 갔다 올게요.',
+        '술? 그게 뭔가요? 물 오타인가?',
+        '빠른 귀가, 또렷한 의식, 평화로운 삶',
+      ];
+    } else if (drunkCount <= 3) {
+      candidates = [
+        '이번 달은 잘 살았습니다. 근데 이제 술을 곁들인.',
+        '캘린더가 젖어있네요? 이거 술인가요?',
+        '필름: 저 외근 좀 갔다 올게요.',
+        '아직은 사람인데, 곧 액체 괴물이 될 예정이랍니다.',
+        '인생의 ctrl+s를 월에 1~3번 정도 누르지 않았어요.',
+      ];
+    } else if (drunkCount <= 7) {
+      candidates = [
+        '당신은 술이랑 썸을 넘어 동거중이에요.',
+        '음주력은 일반인 대비 300%이지만 기억력은 30%에요.',
+        '갓생. 갓구운 생선구이에 한 잔 하자는 뜻이죠!',
+        '행복은 짧고 숙취는 길다.',
+      ];
+    } else {
+      candidates = [
+        '해장국집 VIP라는 소문이 있어요.',
+        '주량을 넘긴 게 아니라 사회를 넘긴 수준.',
+        '이제 술이 당신을 마셔요.',
+        '간이 고소장 접수 중이라네요.',
+        '기억이 아니라 인생 자체가 부분 유료화 상태.',
+      ];
+    }
+    return candidates[math.Random().nextInt(candidates.length)];
+  }
+}
+
+class _RecordHighlightSection extends StatelessWidget {
+  const _RecordHighlightSection({
+    required this.title,
+    required this.subtitle,
+    required this.recordName,
+    required this.valueText,
+  });
+
+  final String title;
+  final String subtitle;
+  final String recordName;
+  final String valueText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CustomPaint(
+          size: const Size(double.infinity, 1),
+          painter: _DottedLinePainter(),
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 130,
-                height: 130,
-                child: RepaintBoundary(
-                  child: Image.asset(
-                    'assets/imgs/recap/star_1.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF88D8B0),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '총',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      NumberFormat('#,###').format(stats.totalAlcoholMl),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'ml 음주',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+              Text(title, style: const TextStyle(fontSize: 18)),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w300,
                 ),
               ),
             ],
           ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildBadgeCard(AsyncValue<List<DrinkingRecord>> recordsAsync) {
-    return recordsAsync.when(
-      data: (records) {
-        if (records.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        // 1. Calculate frequency and total volume per weekday
-        final weekdayFrequency = <int, int>{};
-        final weekdayVolume = <int, double>{};
-        final processedDates = <String>{}; // To track unique dates (yyyy-MM-dd)
-
-        for (var record in records) {
-          final dateKey =
-              '${record.date.year}-${record.date.month}-${record.date.day}';
-          final weekday = record.date.weekday;
-
-          // Count frequency only if this date hasn't been processed for frequency yet
-          // Actually, since records might be multiple per day, we should just count unique dates per weekday.
-          // But simpler: just check if we've seen this dateKey.
-          if (!processedDates.contains(dateKey)) {
-            weekdayFrequency[weekday] = (weekdayFrequency[weekday] ?? 0) + 1;
-            processedDates.add(dateKey);
-          }
-
-          double volume = 0;
-          for (var drink in record.drinkAmount) {
-            volume += drink.amount;
-          }
-          weekdayVolume[weekday] = (weekdayVolume[weekday] ?? 0) + volume;
-        }
-
-        // 2. Find the weekday(s) with max frequency
-        int maxFreq = 0;
-        if (weekdayFrequency.isNotEmpty) {
-          maxFreq = weekdayFrequency.values.reduce((a, b) => a > b ? a : b);
-        }
-
-        final maxFreqWeekdays = weekdayFrequency.entries
-            .where((entry) => entry.value == maxFreq)
-            .map((entry) => entry.key)
-            .toList();
-
-        debugPrint('maxFreqWeekdays: $weekdayFrequency');
-
-        // 3. Resolve ties by max volume
-        int bestWeekday = 1; // Default to Monday if something goes wrong
-        if (maxFreqWeekdays.isNotEmpty) {
-          if (maxFreqWeekdays.length == 1) {
-            bestWeekday = maxFreqWeekdays.first;
-          } else {
-            // Sort by volume descending
-            maxFreqWeekdays.sort((a, b) {
-              final volA = weekdayVolume[a] ?? 0;
-              final volB = weekdayVolume[b] ?? 0;
-              return volB.compareTo(volA);
-            });
-            bestWeekday = maxFreqWeekdays.first;
-          }
-        }
-
-        // Map weekday int to String
-        const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-        final weekdayName = weekdays[bestWeekday - 1];
-
-        return SizedBox(
-          height: 130,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 130,
-                height: 130,
-                child: RepaintBoundary(
-                  child: Image.asset(
-                    'assets/imgs/recap/star_2.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFFF4081),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '나랑',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Text(
-                    '술마시려면',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '$weekdayName요일 밤',
-                    style: const TextStyle(
-                      color: Colors.yellow,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildMostDrunkCard(AsyncValue<List<DrinkingRecord>> recordsAsync) {
-    return recordsAsync.when(
-      data: (records) {
-        if (records.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        final maxRecord = records.reduce(
-          (curr, next) => curr.drunkLevel > next.drunkLevel ? curr : next,
-        );
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    '가장 얼큰했던 술자리',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    '11월 가장 취한 부문 1위',
-                    style: TextStyle(fontSize: 10, color: Colors.grey),
-                  ),
-                ],
+            Text(
+              recordName,
+              style: const TextStyle(
+                fontFamily: 'GriunSimsimche',
+                fontSize: 30,
+                fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE55D5D), // Red
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(10),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  SakuCharacter(
-                    size: 35,
-                    drunkLevel: maxRecord.drunkLevel * 10,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          maxRecord.meetingName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '알딸딸 지수 ${maxRecord.drunkLevel * 10}%',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            Text(
+              valueText,
+              style: const TextStyle(
+                fontFamily: 'GriunSimsimche',
+                fontSize: 30,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }
 
-class _StatPill extends StatelessWidget {
-  const _StatPill({required this.label, required this.color});
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.value, required this.label});
 
+  final String value;
   final String label;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ), // Reduced padding (80% of original 16/12)
+      padding: const EdgeInsets.symmetric(vertical: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class _SojuGlassWidget extends StatefulWidget {
+  const _SojuGlassWidget({required this.totalMl, this.controller});
+
+  final int totalMl;
+  final SojuGlassController? controller;
+
+  @override
+  State<_SojuGlassWidget> createState() => _SojuGlassWidgetState();
+}
+
+class _SojuGlassWidgetState extends State<_SojuGlassWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late List<Bubble> _bubbles;
+  final int _bubbleCount = 5;
+
+  // We use the controller passed from parent to sync with page scroll.
+  // If not provided, we create a local one (e.g. for testing or isolated usage).
+  late final SojuGlassController _sojuGlassController;
+  double _currentTilt = 0.0;
+  double _velocity = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _sojuGlassController = widget.controller ?? SojuGlassController();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 4))
+          ..addListener(_updatePhysics)
+          ..repeat();
+
+    final random = math.Random();
+    _bubbles = List.generate(
+      _bubbleCount,
+      (index) => Bubble(
+        x: random.nextDouble(),
+        y: random.nextDouble(),
+        size: random.nextDouble() * 4 + 4,
+        speed: random.nextDouble() * 0.2 + 0.1,
+        offset: random.nextDouble() * 2 * math.pi,
+      ),
+    );
+  }
+
+  void _updatePhysics() {
+    // Consume impulse
+    final double impulse = _sojuGlassController.consumeImpulse();
+
+    // Physics simulation
+    // Force: Spring (Hooke's law) + Damping + Impulse
+    // F = -k * x - c * v + F_ext
+    const double springK = 0.1; // Stiffness
+    const double dampingC = 0.9; // Friction (velocity multiplier per frame)
+
+    _velocity += impulse * 0.5; // Add impulse to velocity
+    _velocity -= _currentTilt * springK; // Spring force pulling back to 0
+    _velocity *= dampingC; // Damping
+
+    _currentTilt += _velocity;
+
+    // Safety clamp (though painter clamps too)
+    // _currentTilt = _currentTilt.clamp(-50.0, 50.0);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_updatePhysics);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // We can use NotificationListener here to capture scrolls from parent if not passed?
+    // But parent SingleChildScrollView is above.
+    // Actually, NotificationListener works for DESCENDANT scrollables usually.
+    // If we want to capture Parent's scroll, we need to pass a controller or notification bubbling.
+    // But SingleChildScrollView -> Column -> SojuGlassWidget.
+    // The scroll happens in SingleChildScrollView.
+    // NotificationListener on SingleChildScrollView (in RecapTab) sees it.
+    // We already wrap in RecapTab.
+    // But wait, the previous edit removed the GestureDetector logic in RecapTab? No.
+    // I need to update RecapTab to pass scroll to this widget.
+    // OR, I can use NotificationListener<ScrollUpdateNotification>(onNotification: ... return false?)
+    // But bubbles UP. If I put NotificationListener inside SojuGlassWidget, it listens to children.
+    // So SojuGlassWidget cannot listen to parent scroll directly this way.
+    //
+    // However, I added `SojuGlassController` class.
+    // I should create it in `RecapTab` and pass it down.
+    // BUT, the current code instantiates it locally in `_SojuGlassWidgetState`.
+    // It's local physics.
+    // The user drag (GestureDetector) I added is on the widget itself.
+    // "위아래로 스크롤 할 때" -> When scrolling the PAGE.
+    // So `RecapTab` must capture scroll and feed the controller.
+
+    return SizedBox(
+      height: 170,
+      width: 190,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return CustomPaint(
+                size: const Size(190, 170),
+                painter: _SojuGlassPainter(
+                  animationValue: _controller.value,
+                  bubbles: _bubbles,
+                  tilt: _currentTilt,
+                ),
+              );
+            },
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '총 음주량',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              Text(
+                NumberFormat('#,###').format(widget.totalMl),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 40,
+                  height: 1.44,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                'mL',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SojuGlassController {
+  double _impulse = 0;
+
+  void onScroll(double delta) {
+    // Accumulate scroll delta as impulse
+    _impulse += delta;
+  }
+
+  double consumeImpulse() {
+    final ret = _impulse;
+    _impulse = 0.0;
+    return ret;
+  }
+}
+
+class Bubble {
+  Bubble({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speed,
+    required this.offset,
+  });
+
+  double x;
+  double y;
+  double size;
+  double speed;
+  double offset;
+}
+
+class _SojuGlassPainter extends CustomPainter {
+  _SojuGlassPainter({
+    required this.animationValue,
+    required this.bubbles,
+    required this.tilt,
+  });
+
+  final double animationValue;
+  final List<Bubble> bubbles;
+  final double tilt;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    // Glass shape (Trapezoid approx)
+    final double topWidth = size.width;
+    final double height = size.height;
+
+    // Apply tilt to top corners for sloshing effect
+    // Limit tilt to avoid breaking geometry too much
+    // Tilt > 0: Scrolling down (content moves down), surface waves UP relative?
+    final double clampedTilt = tilt.clamp(-30.0, 30.0);
+
+    path.reset();
+    path.moveTo(0, 0); // Top Left (Pinned)
+
+    // Waving effect
+    // We add 'tilt' to control point Ys to create a wave.
+    // One goes up, one goes down.
+    path.cubicTo(
+      topWidth * 0.25,
+      height * 0.1 + clampedTilt, // CP1 moves
+      topWidth * 0.75,
+      -height * 0.05 - clampedTilt, // CP2 moves opposite
+      topWidth,
+      0, // Top Right (Pinned)
+    );
+
+    path.lineTo(topWidth * 0.85, height);
+    path.lineTo(topWidth * 0.15, height);
+    path.close();
+    canvas.drawPath(path, paint);
+
+    // Draw outline
+    final borderPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    // Outer glass line separated
+    final outlinePath = Path();
+    outlinePath.moveTo(-5, 0);
+    outlinePath.lineTo(topWidth * 0.15 - 5, height + 5);
+    outlinePath.lineTo(topWidth * 0.85 + 5, height + 5);
+    outlinePath.lineTo(topWidth + 5, 0);
+
+    canvas.drawPath(outlinePath, borderPaint..strokeWidth = 1.5);
+
+    // Draw bubbles (Keep existing logic)
+    final bubblePaint = Paint()
+      ..color = Colors.grey.withValues(alpha: 0.3)
+      ..style = PaintingStyle.fill;
+
+    for (var bubble in bubbles) {
+      // Infinite rising logic
+      double currentY = (bubble.y - animationValue * bubble.speed * 5) % 1.0;
+      if (currentY < 0) {
+        currentY += 1.0;
+      }
+
+      final double drawingY = height * 0.15 + currentY * height * 0.75;
+
+      // Add some tilt influence to bubbles too? Maybe simpler to leave them.
+      // Wobble
+      final double wobble =
+          math.sin(animationValue * 2 * math.pi + bubble.offset) * 5;
+
+      final double drawingX = size.width * 0.2 + bubble.x * size.width * 0.6;
+
+      canvas.drawCircle(
+        Offset(drawingX + wobble, drawingY),
+        bubble.size,
+        bubblePaint,
+      );
+    }
+    // canvas.restore(); // Removed as canvas.translate was removed
+  }
+
+  @override
+  bool shouldRepaint(covariant _SojuGlassPainter oldDelegate) {
+    return true; // Always repaint for animation and physics
+  }
+}
+
+class _DottedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey[300]!
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    const dashWidth = 5;
+    const dashSpace = 5;
+    double startX = 0;
+
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, 0), Offset(startX + dashWidth, 0), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

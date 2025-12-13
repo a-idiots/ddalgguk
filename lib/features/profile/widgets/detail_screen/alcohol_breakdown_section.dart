@@ -34,7 +34,9 @@ class AlcoholBreakdownSection extends StatelessWidget {
           children: [
             // Semicircular chart
             SemicircularChart(
-              progress: breakdown.progressPercentage / 100,
+              progress: stats.timeToSober <= 0
+                  ? breakdown.progressPercentage / 100
+                  : 1 - breakdown.progressPercentage / 100,
               topLabel: stats.timeToSober <= 0
                   ? '완전 분해 완료'
                   : '완전 분해까지 ${_getTimeText(stats.timeToSober)}',
