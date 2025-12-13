@@ -21,6 +21,7 @@ class RecapTab extends ConsumerStatefulWidget {
 
 class _RecapTabState extends ConsumerState<RecapTab> {
   final GlobalKey _globalKey = GlobalKey();
+  final SojuGlassController _sojuGlassController = SojuGlassController();
 
   Future<void> _captureAndSave() async {
     try {
@@ -62,182 +63,193 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-      child: Column(
-        children: [
-          // Capture Area
-          RepaintBoundary(
-            key: _globalKey,
-            child: Container(
-              color: Colors.white, // White bg
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 1. Header
-                  currentUserAsync.when(
-                    data: (user) {
-                      if (user == null) {
-                        return const SizedBox.shrink();
-                      }
-                      return Column(
-                        children: [
-                          Text(
-                            user.name ?? 'User',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${now.month}월 음주 Recap',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // 2. Soju Glass (Total Volume)
-                  weeklyStatsAsync.when(
-                    data: (stats) {
-                      return _SojuGlassWidget(
-                        totalMl: stats.totalAlcoholMl.toInt().clamp(0, 99999),
-                      );
-                    },
-                    loading: () => const SizedBox(
-                      height: 200,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 3. Stats Grid
-                  monthRecordsAsync.when(
-                    data: (records) {
-                      if (records.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return _buildStatsGrid(records);
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 4. Hole in Wallet
-                  monthRecordsAsync.when(
-                    data: (records) => _buildHoleInWalletSection(records),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-
-                  // 5. Most Drunk
-                  monthRecordsAsync.when(
-                    data: (records) => _buildMostDrunkSection(records),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-
-                  // Separator
-                  CustomPaint(
-                    size: const Size(double.infinity, 1),
-                    painter: _DottedLinePainter(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 6. One-line Review
-                  // 6. One-line Review
-                  monthRecordsAsync.when(
-                    data: (records) {
-                      final drunkCount = records
-                          .where((r) => r.drunkLevel >= 7)
-                          .length;
-                      return Column(
-                        children: [
-                          Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              '${now.month}월 한줄평',
+    return NotificationListener<ScrollUpdateNotification>(
+      onNotification: (notification) {
+        if (notification.scrollDelta != null) {
+          _sojuGlassController.onScroll(notification.scrollDelta!);
+        }
+        return false;
+      },
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+        child: Column(
+          children: [
+            // Capture Area
+            RepaintBoundary(
+              key: _globalKey,
+              child: Container(
+                color: Colors.white, // White bg
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 1. Header
+                    currentUserAsync.when(
+                      data: (user) {
+                        if (user == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            Text(
+                              user.name ?? 'User',
                               style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
                                 color: Colors.black,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getRandomReviewText(drunkCount),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 4),
+                            Text(
+                              '${now.month}월 음주 Recap',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                          ],
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // 2. Soju Glass (Total Volume)
+                    weeklyStatsAsync.when(
+                      data: (stats) {
+                        return _SojuGlassWidget(
+                          totalMl: stats.totalAlcoholMl.toInt().clamp(0, 99999),
+                          controller: _sojuGlassController,
+                        );
+                      },
+                      loading: () => const SizedBox(
+                        height: 200,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 3. Stats Grid
+                    monthRecordsAsync.when(
+                      data: (records) {
+                        if (records.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildStatsGrid(records);
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 4. Hole in Wallet
+                    monthRecordsAsync.when(
+                      data: (records) => _buildHoleInWalletSection(records),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    // 5. Most Drunk
+                    monthRecordsAsync.when(
+                      data: (records) => _buildMostDrunkSection(records),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    // Separator
+                    CustomPaint(
+                      size: const Size(double.infinity, 1),
+                      painter: _DottedLinePainter(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 6. One-line Review
+                    monthRecordsAsync.when(
+                      data: (records) {
+                        final drunkCount = records
+                            .where((r) => r.drunkLevel >= 7)
+                            .length;
+                        return Column(
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${now.month}월 한줄평',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _getRandomReviewText(drunkCount),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _captureAndSave,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: const BorderSide(color: Colors.grey),
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _captureAndSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: const BorderSide(color: Colors.grey),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
+                    child: const Text('다운로드'),
                   ),
-                  child: const Text('다운로드'),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Share logic
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Share logic
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
+                    child: const Text('스토리 공유'),
                   ),
-                  child: const Text('스토리 공유'),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -505,20 +517,120 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _SojuGlassWidget extends StatelessWidget {
-  const _SojuGlassWidget({required this.totalMl});
+class _SojuGlassWidget extends StatefulWidget {
+  const _SojuGlassWidget({required this.totalMl, this.controller});
 
   final int totalMl;
+  final SojuGlassController? controller;
+
+  @override
+  State<_SojuGlassWidget> createState() => _SojuGlassWidgetState();
+}
+
+class _SojuGlassWidgetState extends State<_SojuGlassWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late List<Bubble> _bubbles;
+  final int _bubbleCount = 5;
+
+  // We use the controller passed from parent to sync with page scroll.
+  // If not provided, we create a local one (e.g. for testing or isolated usage).
+  late final SojuGlassController _sojuGlassController;
+  double _currentTilt = 0.0;
+  double _velocity = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _sojuGlassController = widget.controller ?? SojuGlassController();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 4))
+          ..addListener(_updatePhysics)
+          ..repeat();
+
+    final random = math.Random();
+    _bubbles = List.generate(
+      _bubbleCount,
+      (index) => Bubble(
+        x: random.nextDouble(),
+        y: random.nextDouble(),
+        size: random.nextDouble() * 4 + 4,
+        speed: random.nextDouble() * 0.2 + 0.1,
+        offset: random.nextDouble() * 2 * math.pi,
+      ),
+    );
+  }
+
+  void _updatePhysics() {
+    // Consume impulse
+    final double impulse = _sojuGlassController.consumeImpulse();
+
+    // Physics simulation
+    // Force: Spring (Hooke's law) + Damping + Impulse
+    // F = -k * x - c * v + F_ext
+    const double springK = 0.1; // Stiffness
+    const double dampingC = 0.9; // Friction (velocity multiplier per frame)
+
+    _velocity += impulse * 0.5; // Add impulse to velocity
+    _velocity -= _currentTilt * springK; // Spring force pulling back to 0
+    _velocity *= dampingC; // Damping
+
+    _currentTilt += _velocity;
+
+    // Safety clamp (though painter clamps too)
+    // _currentTilt = _currentTilt.clamp(-50.0, 50.0);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_updatePhysics);
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    // We can use NotificationListener here to capture scrolls from parent if not passed?
+    // But parent SingleChildScrollView is above.
+    // Actually, NotificationListener works for DESCENDANT scrollables usually.
+    // If we want to capture Parent's scroll, we need to pass a controller or notification bubbling.
+    // But SingleChildScrollView -> Column -> SojuGlassWidget.
+    // The scroll happens in SingleChildScrollView.
+    // NotificationListener on SingleChildScrollView (in RecapTab) sees it.
+    // We already wrap in RecapTab.
+    // But wait, the previous edit removed the GestureDetector logic in RecapTab? No.
+    // I need to update RecapTab to pass scroll to this widget.
+    // OR, I can use NotificationListener<ScrollUpdateNotification>(onNotification: ... return false?)
+    // But bubbles UP. If I put NotificationListener inside SojuGlassWidget, it listens to children.
+    // So SojuGlassWidget cannot listen to parent scroll directly this way.
+    //
+    // However, I added `SojuGlassController` class.
+    // I should create it in `RecapTab` and pass it down.
+    // BUT, the current code instantiates it locally in `_SojuGlassWidgetState`.
+    // It's local physics.
+    // The user drag (GestureDetector) I added is on the widget itself.
+    // "위아래로 스크롤 할 때" -> When scrolling the PAGE.
+    // So `RecapTab` must capture scroll and feed the controller.
+
     return SizedBox(
       height: 170,
       width: 190,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(size: const Size(190, 170), painter: _SojuGlassPainter()),
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return CustomPaint(
+                size: const Size(190, 170),
+                painter: _SojuGlassPainter(
+                  animationValue: _controller.value,
+                  bubbles: _bubbles,
+                  tilt: _currentTilt,
+                ),
+              );
+            },
+          ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -527,7 +639,7 @@ class _SojuGlassWidget extends StatelessWidget {
                 style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
               Text(
-                NumberFormat('#,###').format(totalMl),
+                NumberFormat('#,###').format(widget.totalMl),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 40,
@@ -547,7 +659,48 @@ class _SojuGlassWidget extends StatelessWidget {
   }
 }
 
+class SojuGlassController {
+  double _impulse = 0;
+
+  void onScroll(double delta) {
+    // Accumulate scroll delta as impulse
+    _impulse += delta;
+  }
+
+  double consumeImpulse() {
+    final ret = _impulse;
+    _impulse = 0.0;
+    return ret;
+  }
+}
+
+class Bubble {
+  Bubble({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speed,
+    required this.offset,
+  });
+
+  double x;
+  double y;
+  double size;
+  double speed;
+  double offset;
+}
+
 class _SojuGlassPainter extends CustomPainter {
+  _SojuGlassPainter({
+    required this.animationValue,
+    required this.bubbles,
+    required this.tilt,
+  });
+
+  final double animationValue;
+  final List<Bubble> bubbles;
+  final double tilt;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -559,23 +712,29 @@ class _SojuGlassPainter extends CustomPainter {
     final double topWidth = size.width;
     final double height = size.height;
 
-    path.moveTo(0, 0); // Top Left
+    // Apply tilt to top corners for sloshing effect
+    // Limit tilt to avoid breaking geometry too much
+    // Tilt > 0: Scrolling down (content moves down), surface waves UP relative?
+    final double clampedTilt = tilt.clamp(-30.0, 30.0);
 
-    // Top curve (Wavy)
+    path.reset();
+    path.moveTo(0, 0); // Top Left (Pinned)
+
+    // Waving effect
+    // We add 'tilt' to control point Ys to create a wave.
+    // One goes up, one goes down.
     path.cubicTo(
       topWidth * 0.25,
-      height * 0.1, // Control point 1
+      height * 0.1 + clampedTilt, // CP1 moves
       topWidth * 0.75,
-      -height * 0.05, // Control point 2
+      -height * 0.05 - clampedTilt, // CP2 moves opposite
       topWidth,
-      0, // Top Right
+      0, // Top Right (Pinned)
     );
 
-    path.lineTo(topWidth * 0.85, height); // Bottom Right
-    path.lineTo(topWidth * 0.15, height); // Bottom Left
+    path.lineTo(topWidth * 0.85, height);
+    path.lineTo(topWidth * 0.15, height);
     path.close();
-
-    // Draw main black body
     canvas.drawPath(path, paint);
 
     // Draw outline
@@ -585,7 +744,6 @@ class _SojuGlassPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     // Outer glass line separated
-    // Let's do a separate simple outline path
     final outlinePath = Path();
     outlinePath.moveTo(-5, 0);
     outlinePath.lineTo(topWidth * 0.15 - 5, height + 5);
@@ -594,30 +752,40 @@ class _SojuGlassPainter extends CustomPainter {
 
     canvas.drawPath(outlinePath, borderPaint..strokeWidth = 1.5);
 
-    // Draw bubbles
+    // Draw bubbles (Keep existing logic)
     final bubblePaint = Paint()
       ..color = Colors.grey.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(
-      Offset(size.width * 0.3, size.height * 0.2),
-      6,
-      bubblePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.8, size.height * 0.5),
-      8,
-      bubblePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.2, size.height * 0.8),
-      7,
-      bubblePaint,
-    );
+    for (var bubble in bubbles) {
+      // Infinite rising logic
+      double currentY = (bubble.y - animationValue * bubble.speed * 5) % 1.0;
+      if (currentY < 0) {
+        currentY += 1.0;
+      }
+
+      final double drawingY = height * 0.15 + currentY * height * 0.75;
+
+      // Add some tilt influence to bubbles too? Maybe simpler to leave them.
+      // Wobble
+      final double wobble =
+          math.sin(animationValue * 2 * math.pi + bubble.offset) * 5;
+
+      final double drawingX = size.width * 0.2 + bubble.x * size.width * 0.6;
+
+      canvas.drawCircle(
+        Offset(drawingX + wobble, drawingY),
+        bubble.size,
+        bubblePaint,
+      );
+    }
+    // canvas.restore(); // Removed as canvas.translate was removed
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _SojuGlassPainter oldDelegate) {
+    return true; // Always repaint for animation and physics
+  }
 }
 
 class _DottedLinePainter extends CustomPainter {
