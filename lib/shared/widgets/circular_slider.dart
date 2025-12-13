@@ -35,6 +35,8 @@ class CircularSlider extends StatefulWidget {
 }
 
 class _CircularSliderState extends State<CircularSlider> {
+  bool _isDragging = false;
+
   double _normalizeValue(double value) {
     return (value - widget.min) / (widget.max - widget.min);
   }
@@ -46,6 +48,13 @@ class _CircularSliderState extends State<CircularSlider> {
       return (value / step).round() * step;
     }
     return value;
+  }
+
+  void _handlePanStart(Offset localPosition) {
+    // 새로운 드래그 시작 - 점프 체크 없이 바로 값 설정
+    _isDragging = false;
+    _handlePanUpdate(localPosition);
+    _isDragging = true;
   }
 
   void _handlePanUpdate(Offset localPosition) {
@@ -67,14 +76,18 @@ class _CircularSliderState extends State<CircularSlider> {
     // 실제 값으로 변환
     final newValue = _denormalizeValue(normalizedValue);
 
-    // 100%에서 0%로 점프하는 것만 방지 (0%에서 100%로는 허용)
+    // 0%↔100% 점프 방지 (드래그 중일 때만)
     final currentValue = widget.value;
-    if (currentValue >= 80 && newValue <= 20) {
-      // 100% 근처에서 0% 근처로 점프하려는 경우만 100%로 고정
+    if (_isDragging && currentValue >= 80 && newValue <= 20) {
+      // 100% 근처에서 0% 근처로 점프하려는 경우 100%로 고정
       widget.onChanged(widget.max);
       return;
     }
-    // 0%에서 100%로 가는 것은 허용 (양방향 수정 가능)
+    if (_isDragging && currentValue <= 20 && newValue >= 80) {
+      // 0% 근처에서 100% 근처로 점프하려는 경우 0%로 고정
+      widget.onChanged(widget.min);
+      return;
+    }
 
     // 범위 체크
     final clampedValue = newValue.clamp(widget.min, widget.max);
@@ -84,11 +97,16 @@ class _CircularSliderState extends State<CircularSlider> {
     }
   }
 
+  void _handlePanEnd() {
+    _isDragging = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onPanStart: (details) => _handlePanUpdate(details.localPosition),
+      onPanStart: (details) => _handlePanStart(details.localPosition),
       onPanUpdate: (details) => _handlePanUpdate(details.localPosition),
+      onPanEnd: (details) => _handlePanEnd(),
       child: SizedBox(
         width: widget.size,
         height: widget.size,
