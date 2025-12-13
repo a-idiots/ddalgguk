@@ -11,6 +11,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+import 'package:ddalgguk/core/services/notification_manager.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -45,6 +46,15 @@ void main() async {
 
   // Initialize Secure Storage Service
   await SecureStorageService.instance.init();
+
+  // Initialize Notification Service
+  try {
+    final notificationManager = NotificationManager();
+    await notificationManager.initialize();
+  } catch (e) {
+    debugPrint('Notification initialization error: $e');
+    // Continue without notifications if initialization fails
+  }
 
   // Run the app with Riverpod
   runApp(const ProviderScope(child: DdalggukApp()));
