@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/app_state_provider.dart';
@@ -285,16 +286,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         isLoading: _isLoading,
                       ),
                     ),
-                    const SizedBox(height: 12),
-
                     // Apple Login Button
-                    _buildAnimatedButton(
-                      animation: _appleButtonFade,
-                      child: AppleLoginButton(
-                        onPressed: _handleAppleLogin,
-                        isLoading: _isLoading,
+                    if (Platform.isIOS) ...[
+                      const SizedBox(height: 12),
+                      _buildAnimatedButton(
+                        animation: _appleButtonFade,
+                        child: AppleLoginButton(
+                          onPressed: _handleAppleLogin,
+                          isLoading: _isLoading,
+                        ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 48),
 
                     // Terms and Privacy Policy

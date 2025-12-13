@@ -52,6 +52,7 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SvgPicture.asset(
                 logoAssetPath,
@@ -59,15 +60,14 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
                 width: 20,
                 placeholderBuilder: (context) => const SizedBox.shrink(),
               ),
-              Expanded(
-                child: Text(
-                  buttonText,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: fontWeight,
-                    fontFamily: 'Inter',
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                buttonText,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: fontWeight,
+                  fontFamily: 'Inter',
                 ),
               ),
             ],
