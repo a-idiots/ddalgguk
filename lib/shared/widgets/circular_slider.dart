@@ -14,7 +14,7 @@ class CircularSlider extends StatefulWidget {
     this.inactiveColor = const Color(0xFFFEE5DA),
     this.activeColor = const Color(0xFFFA75A5),
     this.thumbColor = const Color(0xFFFA75A5),
-    this.thumbRadius = 12,
+    this.thumbRadius = 20,
     super.key,
   });
 

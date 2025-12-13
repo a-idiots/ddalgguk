@@ -1,10 +1,11 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
-import 'package:ddalgguk/features/calendar/widgets/dialogs/drink_type_selector.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-import 'package:ddalgguk/features/calendar/widgets/drink_input_card.dart';
+import 'package:ddalgguk/features/calendar/widgets/new_drink_input_card.dart';
+import 'package:ddalgguk/features/calendar/widgets/completed_drink_card.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/circular_slider.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
@@ -34,7 +35,12 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
   late final TextEditingController _costController;
   late final TextEditingController _memoController;
   double _drunkLevel = 0.0;
-  late List<DrinkInputData> _drinkInputs;
+
+  // 현재 입력 중인 데이터
+  late DrinkInputData _currentInput;
+
+  // 완료된 기록들
+  final List<CompletedDrinkRecord> _completedRecords = [];
 
   @override
   void initState() {
@@ -42,14 +48,7 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     _meetingNameController = TextEditingController();
     _costController = TextEditingController();
     _memoController = TextEditingController();
-    _drinkInputs = [
-      DrinkInputData(
-        drinkType: 0, // 미정
-        alcoholController: TextEditingController(text: '0.0'),
-        amountController: TextEditingController(text: '1.0'),
-        selectedUnit: '병',
-      ),
-    ];
+    _currentInput = _createNewInput();
   }
 
   @override
@@ -57,10 +56,78 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     _meetingNameController.dispose();
     _costController.dispose();
     _memoController.dispose();
-    for (var input in _drinkInputs) {
-      input.dispose();
-    }
+    _currentInput.dispose();
     super.dispose();
+  }
+
+  DrinkInputData _createNewInput() {
+    return DrinkInputData(
+      drinkType: 0, // 미정
+      alcoholController: TextEditingController(),
+      amountController: TextEditingController(),
+      selectedUnit: 'ml',
+    );
+  }
+
+  void _handleAdd() {
+    final alcoholText = _currentInput.alcoholController.text.trim();
+    final amountText = _currentInput.amountController.text.trim();
+
+    // 술 종류 확인
+    if (_currentInput.drinkType == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('술 종류를 선택해주세요')),
+      );
+      return;
+    }
+
+    // 입력값 확인
+    if (alcoholText.isEmpty || amountText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('도수와 양을 모두 입력해주세요')),
+      );
+      return;
+    }
+
+    final alcohol = double.tryParse(alcoholText);
+    final amount = double.tryParse(amountText);
+
+    if (alcohol == null || amount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('도수와 양은 숫자여야 합니다')),
+      );
+      return;
+    }
+
+    if (alcohol < 0 || alcohol > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('도수는 0~100 사이여야 합니다')),
+      );
+      return;
+    }
+
+    if (amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('양은 0보다 커야 합니다')),
+      );
+      return;
+    }
+
+    // 완료된 기록에 추가
+    setState(() {
+      _completedRecords.add(
+        CompletedDrinkRecord(
+          drinkType: _currentInput.drinkType,
+          alcoholContent: alcohol,
+          amount: amount,
+          unit: _currentInput.selectedUnit,
+        ),
+      );
+
+      // 현재 입력 초기화
+      _currentInput.dispose();
+      _currentInput = _createNewInput();
+    });
   }
 
   Future<void> _handleSubmit() async {
@@ -71,60 +138,24 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       return;
     }
 
-    // 음주량 입력 유효성 검사 및 변환
+    // 완료된 기록이 없으면 에러
+    if (_completedRecords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('최소 한 개의 음주량을 추가해주세요')),
+      );
+      return;
+    }
+
+    // 완료된 기록들을 DrinkAmount로 변환
     final drinkAmounts = <DrinkAmount>[];
-    for (var i = 0; i < _drinkInputs.length; i++) {
-      final input = _drinkInputs[i];
-
-      // 술 종류가 미정인지 확인
-      if (input.drinkType == 0) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('음주량 ${i + 1}의 술 종류를 선택해주세요')));
-        return;
-      }
-
-      final alcoholText = input.alcoholController.text.trim();
-      final amountText = input.amountController.text.trim();
-
-      if (alcoholText.isEmpty || amountText.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('음주량 ${i + 1}의 도수와 양을 모두 입력해주세요')),
-        );
-        return;
-      }
-
-      final alcohol = double.tryParse(alcoholText);
-      final amount = double.tryParse(amountText);
-
-      if (alcohol == null || amount == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('음주량 ${i + 1}의 도수와 양은 숫자여야 합니다')),
-        );
-        return;
-      }
-
-      if (alcohol < 0 || alcohol > 100) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('음주량 ${i + 1}의 도수는 0~100 사이여야 합니다')),
-        );
-        return;
-      }
-
-      if (amount <= 0) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('음주량 ${i + 1}의 양은 0보다 커야 합니다')));
-        return;
-      }
-
+    for (var record in _completedRecords) {
       // ml로 변환
-      final amountInMl = amount * getUnitMultiplier(input.selectedUnit);
+      final amountInMl = record.amount * getUnitMultiplier(record.unit);
 
       drinkAmounts.add(
         DrinkAmount(
-          drinkType: input.drinkType,
-          alcoholContent: alcohol,
+          drinkType: record.drinkType,
+          alcoholContent: record.alcoholContent,
           amount: amountInMl,
         ),
       );
@@ -238,27 +269,18 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 24),
 
                 // 알딸딸 지수
-                Row(
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('알딸딸 지수', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
-                        SizedBox(width: 4),
-                        Text(
-                          '*',
-                          style: TextStyle(fontSize: 18, color: Colors.red),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
+                    Text('알딸딸 지수', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                    SizedBox(width: 4),
                     Text(
-                      '${(_drunkLevel * 10).toInt()}%',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                      '*',
+                      style: TextStyle(fontSize: 18, color: Colors.red),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 // 둥근 슬라이더와 캐릭터를 겹쳐서 표시
                 Center(
                   child: SizedBox(
@@ -274,21 +296,36 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                           max: 100,
                           divisions: 20,
                           size: 240,
-                          trackWidth: 8,
+                          trackWidth: 16,
                           inactiveColor: Colors.grey[300]!,
                           activeColor: const Color(0xFFFA75A5),
                           thumbColor: const Color(0xFFFA75A5),
-                          thumbRadius: 12,
+                          thumbRadius: 14,
                           onChanged: (value) {
                             setState(() {
                               _drunkLevel = value / 10;
                             });
                           },
                         ),
-                        // 가운데 캐릭터
-                        SakuCharacter(
-                          size: 120,
-                          drunkLevel: (_drunkLevel * 10).toInt(),
+                        // 가운데 컨텐츠
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 사쿠 캐릭터
+                            SakuCharacter(
+                              size: 80,
+                              drunkLevel: (_drunkLevel * 10).toInt(),
+                            ),
+                            const SizedBox(height: 8),
+                            // 퍼센트 표시
+                            Text(
+                              '${(_drunkLevel * 10).toInt()}%',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -297,85 +334,39 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 24),
 
                 // 음주량
-                Row(
+                const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('음주량', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
-                        SizedBox(width: 4),
-                        Text(
-                          '*',
-                          style: TextStyle(fontSize: 18, color: Colors.red),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle, size: 28),
-                      onPressed: () {
-                        setState(() {
-                          _drinkInputs.add(
-                            DrinkInputData(
-                              drinkType: 0, // 미정
-                              alcoholController: TextEditingController(
-                                text: '0.0',
-                              ),
-                              amountController: TextEditingController(
-                                text: '1.0',
-                              ),
-                              selectedUnit: '병',
-                            ),
-                          );
-                        });
-                      },
+                    Text('음주량', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400)),
+                    SizedBox(width: 4),
+                    Text(
+                      '*',
+                      style: TextStyle(fontSize: 18, color: Colors.red),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
 
-                // 음주량 리스트
-                ..._drinkInputs.asMap().entries.map((entry) {
+                // 완료된 기록 리스트
+                ..._completedRecords.asMap().entries.map((entry) {
                   final index = entry.key;
-                  final inputData = entry.value;
-                  return DrinkInputCard(
-                    inputData: inputData,
-                    onTypeChange: (int newType) {
+                  final record = entry.value;
+                  return CompletedDrinkCard(
+                    record: record,
+                    onDelete: () {
                       setState(() {
-                        inputData.drinkType = newType;
-                        inputData.alcoholController.text =
-                            getDefaultAlcoholContent(newType).toString();
-                        inputData.selectedUnit = getDefaultUnit(newType);
+                        _completedRecords.removeAt(index);
                       });
                     },
-                    onUnitChange: (String newUnit) {
-                      setState(() {
-                        inputData.selectedUnit = newUnit;
-                      });
-                    },
-                    onTypeTap: () {
-                      DrinkTypeSelector.show(
-                        context,
-                        currentType: inputData.drinkType,
-                        onSelect: (int newType) {
-                          setState(() {
-                            inputData.drinkType = newType;
-                            inputData.alcoholController.text =
-                                getDefaultAlcoholContent(newType).toString();
-                            inputData.selectedUnit = getDefaultUnit(newType);
-                          });
-                        },
-                      );
-                    },
-                    onDelete: _drinkInputs.length > 1
-                        ? () {
-                            setState(() {
-                              _drinkInputs.removeAt(index);
-                            });
-                          }
-                        : null,
                   );
                 }),
+
+                // 현재 입력창
+                NewDrinkInputCard(
+                  key: ValueKey(_currentInput.hashCode),
+                  inputData: _currentInput,
+                  onAdd: _handleAdd,
+                ),
                 const SizedBox(height: 24),
 
                 // 술값 (필수 아님)
