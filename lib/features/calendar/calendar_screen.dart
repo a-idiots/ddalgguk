@@ -8,7 +8,6 @@ import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
-import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -317,6 +316,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final records = _getRecordsForDay(_selectedDay!);
 
     if (records.isEmpty) {
+      // 미래 날짜 체크
+      final today = DateTime.now();
+      final normalizedToday = DateTime(today.year, today.month, today.day);
+      final normalizedSelectedDay = DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day);
+      final isFutureDate = normalizedSelectedDay.isAfter(normalizedToday);
+
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
@@ -336,23 +341,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 '음주 기록이 없습니다',
                 style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w400),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[300],
-                  foregroundColor: Colors.black,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 13,
-                    vertical: 0,
+              if (!isFutureDate) ...[
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13,
+                      vertical: 0,
+                    ),
+                  ),
+                  child: const Text(
+                    '+ 금주 기록 추가하기',
+                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
                   ),
                 ),
-                child: const Text(
-                  '+ 금주 기록 추가하기',
-                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
-                ),
-              ),
+              ],
             ],
           ),
         ),
@@ -480,32 +487,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ...record.drinkAmount.map((drink) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 2),
-                          child: Builder(
-                            builder: (context) {
-                              final screenWidth =
-                                  MediaQuery.of(context).size.width;
-                              // 카드 왼쪽 padding (16) + 사쿠 (50) + 간격 (16) = 82
-                              return SizedBox(
-                                width: screenWidth - 50,
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
-                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-                                    ),
-                                    Text(
-                                      ' ········································ ',
-                                      style: const TextStyle(fontSize: 12,
-                                      color: AppColors.grey),
-                                    ),
-                                    Text(
-                                      formatDrinkAmount(drink.amount),
-                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-                                    ),
-                                  ],
+                          child: Row(
+                            children: [
+                              Text(
+                                '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  '  ··············································································  ',
+                                  style: const TextStyle(fontSize: 12, color: AppColors.grey),
+                                  overflow: TextOverflow.clip,
+                                  maxLines: 1,
                                 ),
-                              );
-                            },
+                              ),
+                              Text(
+                                formatDrinkAmount(drink.amount),
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                              ),
+                            ],
                           ),
                         );
                       }),
@@ -591,7 +591,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           const SnackBar(
             content: Text('금주 기록이 추가되었습니다!'),
             duration: Duration(seconds: 2),
-            backgroundColor: Colors.green,
+            backgroundColor: Color.fromARGB(255, 169, 212, 170),
           ),
         );
       }
@@ -601,7 +601,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           SnackBar(
             content: Text('기록 추가 실패: $e'),
             duration: const Duration(seconds: 3),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color.fromARGB(255, 228, 135, 129),
           ),
         );
       }
@@ -627,7 +627,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         const SnackBar(
           content: Text('미래의 기록은 미리 추가할 수 없습니다'),
           duration: Duration(seconds: 2),
-          backgroundColor: Colors.orange,
+          backgroundColor: Color.fromARGB(255, 208, 171, 115),
         ),
       );
       return;
@@ -679,38 +679,81 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Future<void> _deleteRecord(String recordId) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => SakuInfoDialog(
-        content: const Text(
-          '이 기록을 삭제하시겠습니까?',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-        ),
-        bottomButtons: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPink,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 말풍선
+                  Center(
+                    child: CustomPaint(
+                      painter: _BubblePainter(
+                        Colors.white,
+                        TailPosition.bottom,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
+                        child: const Text(
+                          '이 기록을 삭제하시겠습니까?',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 사쿠 캐릭터
+                  const Center(child: SakuCharacter(size: 84, drunkLevel: 0)),
+                  const SizedBox(height: 16),
+                  // 삭제 버튼
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryPink,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                      child: const Text(
+                        '삭제',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: const Text(
-              '삭제',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+            // X 버튼
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.black54),
+                onPressed: () => Navigator.of(context).pop(false),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -762,5 +805,94 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         }
       }
     }
+  }
+}
+
+/// 말풍선 꼬리 위치
+enum TailPosition { bottom }
+
+/// 테두리가 있는 말풍선을 그리는 CustomPainter
+class _BubblePainter extends CustomPainter {
+  _BubblePainter(this.backgroundColor, this.tailPosition);
+
+  final Color backgroundColor;
+  final TailPosition tailPosition;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = backgroundColor
+      ..style = PaintingStyle.fill;
+
+    final borderPaint = Paint()
+      ..color = Colors.grey[300]!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    const double tailWidth = 20.0;
+    const double tailHeight = 10.0;
+    const double radius = 20.0;
+
+    final bubbleHeight = size.height - tailHeight;
+    final tailCenterX = size.width / 2;
+
+    // 전체 말풍선 경로 (꼬리 포함)
+    final path = Path();
+
+    // 왼쪽 상단 모서리부터 시작
+    path.moveTo(0, radius);
+    path.arcToPoint(
+      Offset(radius, 0),
+      radius: const Radius.circular(radius),
+    );
+
+    // 상단 선
+    path.lineTo(size.width - radius, 0);
+
+    // 오른쪽 상단 모서리
+    path.arcToPoint(
+      Offset(size.width, radius),
+      radius: const Radius.circular(radius),
+    );
+
+    // 오른쪽 선
+    path.lineTo(size.width, bubbleHeight - radius);
+
+    // 오른쪽 하단 모서리
+    path.arcToPoint(
+      Offset(size.width - radius, bubbleHeight),
+      radius: const Radius.circular(radius),
+    );
+
+    // 하단 선 (꼬리 오른쪽까지)
+    path.lineTo(tailCenterX + tailWidth / 2, bubbleHeight);
+
+    // 꼬리
+    path.lineTo(tailCenterX, size.height);
+    path.lineTo(tailCenterX - tailWidth / 2, bubbleHeight);
+
+    // 하단 선 (꼬리 왼쪽부터)
+    path.lineTo(radius, bubbleHeight);
+
+    // 왼쪽 하단 모서리
+    path.arcToPoint(
+      Offset(0, bubbleHeight - radius),
+      radius: const Radius.circular(radius),
+    );
+
+    // 왼쪽 선 (닫기)
+    path.close();
+
+    // 배경 그리기
+    canvas.drawPath(path, paint);
+
+    // 테두리 그리기
+    canvas.drawPath(path, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(_BubblePainter oldDelegate) {
+    return oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.tailPosition != tailPosition;
   }
 }

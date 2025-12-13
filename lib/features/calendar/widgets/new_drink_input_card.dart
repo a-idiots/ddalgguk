@@ -112,7 +112,7 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
                           widget.inputData.selectedUnit,
                           style: const TextStyle(fontSize: 16),
                         ),
-                        Icon(Icons.arrow_drop_down, size: 20, color: Colors.grey[600]),
+                        Icon(Icons.arrow_drop_down, size: 28, color: Colors.grey[600]),
                       ],
                     ),
                   ),
