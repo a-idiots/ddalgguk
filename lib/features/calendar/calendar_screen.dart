@@ -73,13 +73,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(-3, 0), // 기록 추가 버튼 우측 패딩
-        child: FloatingActionButton(
-          onPressed: () => _showAddRecordDialog(context),
-          backgroundColor: AppColors.primaryPink,
-          foregroundColor: Colors.white,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add),
+        offset: const Offset(14, 0), // 오른쪽 20% 가리기
+        child: SizedBox(
+          width: 70,
+          height: 70,
+          child: FloatingActionButton(
+            onPressed: () => _showAddRecordDialog(context),
+            backgroundColor: AppColors.primaryPink,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, size: 32),
+          ),
         ),
       ),
       body: SafeArea(
@@ -491,35 +496,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         );
       }
-      return;
-    }
-
-    // 확인 다이얼로그 표시
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('금주 기록 추가'),
-        content: Text(
-          '${DateFormat('yyyy년 M월 d일').format(date)}에\n금주 기록을 추가하시겠습니까?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPink,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('추가'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
       return;
     }
 
