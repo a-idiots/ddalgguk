@@ -26,9 +26,11 @@ class AppleAuthService {
       );
 
       // Create an OAuth credential from the Apple credential
-      final oauthCredential = OAuthProvider(
-        'apple.com',
-      ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+        rawNonce: rawNonce,
+      );
 
       return oauthCredential;
     } catch (e) {
@@ -51,7 +53,7 @@ class AppleAuthService {
   /// Generate a random nonce
   String _generateNonce([int length = 32]) {
     const charset =
-        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
     return List.generate(
       length,

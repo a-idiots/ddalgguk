@@ -63,7 +63,11 @@ abstract class BaseSocialLoginButton extends StatelessWidget {
                 child: Text(
                   buttonText,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: fontSize, fontWeight: fontWeight),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: fontWeight,
+                    fontFamily: 'Inter',
+                  ),
                 ),
               ),
             ],
