@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
@@ -407,36 +408,27 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          const SettingsSectionDivider(),
-          RadioGroup<String?>(
-            groupValue: _selectedGender,
-            onChanged: (value) {
-              setState(() {
-                _selectedGender = value;
-              });
-            },
-            child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ListTile(
-                  title: const Text(
-                    '남성',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                  ),
-                  leading: Radio<String?>(value: '남성'),
+                _GenderButton(
+                  label: '남',
+                  isSelected: _selectedGender == '남성',
                   onTap: () {
                     setState(() {
                       _selectedGender = '남성';
                     });
                   },
                 ),
-                ListTile(
-                  title: const Text(
-                    '여성',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                  ),
-                  leading: Radio<String?>(value: '여성'),
+                const SizedBox(width: 36),
+                _GenderButton(
+                  label: '여',
+                  isSelected: _selectedGender == '여성',
                   onTap: () {
                     setState(() {
                       _selectedGender = '여성';
@@ -445,33 +437,69 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 48),
-          Center(
-            child: ElevatedButton(
-              onPressed: _handleSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
-                  vertical: 12,
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-              child: const Text(
-                '저장하기',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                child: const Text(
+                  '저장하기',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GenderButton extends StatelessWidget {
+  const _GenderButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  Color get mainColor =>
+      label == '남' ? const Color(0xFF7A86F5) : const Color(0xFFE35252);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: isSelected ? mainColor : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: mainColor, width: 1),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+            color: isSelected ? Colors.white : mainColor,
           ),
-        ],
+        ),
       ),
     );
   }
@@ -583,129 +611,114 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          '신체 정보',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Text(
-                      '키',
-                      style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                    ),
-                    const SizedBox(width: 120),
-                    Expanded(
-                      child: TextField(
-                        controller: _heightController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '입력',
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'cm',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    const Text(
-                      '몸무게',
-                      style: TextStyle(fontFamily: 'Inter', fontSize: 16),
-                    ),
-                    const SizedBox(width: 88),
-                    Expanded(
-                      child: TextField(
-                        controller: _weightController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                        ),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: '입력',
-                          hintStyle: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'kg',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          title: const Text(
+            '신체 정보',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ],
+          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              Row(
+                children: [
+                  Expanded(
+                    child: _BodyInfoInput(
+                      label: '키 (cm)',
+                      controller: _heightController,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _BodyInfoInput(
+                      label: '몸무게 (kg)',
+                      controller: _weightController,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _handleSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '저장하기',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _BodyInfoInput extends StatelessWidget {
+  const _BodyInfoInput({required this.label, required this.controller});
+
+  final String label;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -719,9 +732,7 @@ class BirthDateScreen extends ConsumerStatefulWidget {
 }
 
 class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
-  int? _year;
-  int? _month;
-  int? _day;
+  DateTime? _selectedDate;
   bool _isLoading = true;
 
   @override
@@ -737,49 +748,25 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
     ref.invalidate(authStateProvider);
     ref.invalidate(currentUserProvider);
     final currentUser = await ref.read(currentUserProvider.future);
-    if (mounted && currentUser?.birthDate != null) {
+    if (mounted) {
       setState(() {
-        _year = currentUser!.birthDate!.year;
-        _month = currentUser.birthDate!.month;
-        _day = currentUser.birthDate!.day;
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
+        _selectedDate = currentUser?.birthDate ?? DateTime(2007, 1, 1);
         _isLoading = false;
       });
     }
-  }
-
-  List<int> _getYears() {
-    final currentYear = DateTime.now().year;
-    return List.generate(100, (index) => currentYear - index);
-  }
-
-  List<int> _getMonths() {
-    return List.generate(12, (index) => index + 1);
-  }
-
-  List<int> _getDays() {
-    if (_year == null || _month == null) {
-      return List.generate(31, (index) => index + 1);
-    }
-    final daysInMonth = DateTime(_year!, _month! + 1, 0).day;
-    return List.generate(daysInMonth, (index) => index + 1);
   }
 
   Future<void> _handleSave() async {
-    if (_year == null || _month == null || _day == null) {
+    if (_selectedDate == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('모든 항목을 선택해주세요')));
+      ).showSnackBar(const SnackBar(content: Text('생년월일을 선택해주세요')));
       return;
     }
 
     try {
-      final birthDate = DateTime(_year!, _month!, _day!);
       final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.updateUserInfo(birthDate: birthDate);
+      await authRepository.updateUserInfo(birthDate: _selectedDate);
 
       // Refresh user data
       ref.invalidate(authStateProvider);
@@ -839,199 +826,49 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                const Text(
-                  '연도',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _year,
-                      hint: const Text(
-                        '선택',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      isExpanded: true,
-                      items: _getYears().map((year) {
-                        return DropdownMenuItem(
-                          value: year,
-                          child: Text(
-                            '$year년',
-                            style: const TextStyle(fontFamily: 'Inter'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _year = value;
-                          if (_day != null && _month != null) {
-                            final daysInMonth = DateTime(
-                              _year!,
-                              _month! + 1,
-                              0,
-                            ).day;
-                            if (_day! > daysInMonth) {
-                              _day = daysInMonth;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  '월',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _month,
-                      hint: const Text(
-                        '선택',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      isExpanded: true,
-                      items: _getMonths().map((month) {
-                        return DropdownMenuItem(
-                          value: month,
-                          child: Text(
-                            '$month월',
-                            style: const TextStyle(fontFamily: 'Inter'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _month = value;
-                          if (_day != null && _year != null && _month != null) {
-                            final daysInMonth = DateTime(
-                              _year!,
-                              _month! + 1,
-                              0,
-                            ).day;
-                            if (_day! > daysInMonth) {
-                              _day = daysInMonth;
-                            }
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  '일',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _day,
-                      hint: const Text(
-                        '선택',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      isExpanded: true,
-                      items: _getDays().map((day) {
-                        return DropdownMenuItem(
-                          value: day,
-                          child: Text(
-                            '$day일',
-                            style: const TextStyle(fontFamily: 'Inter'),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _day = value;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 40),
+            SizedBox(
+              height: 200,
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _selectedDate ?? DateTime(2007, 1, 1),
+                minimumDate: DateTime(1900),
+                maximumDate: DateTime.now(),
+                dateOrder: DatePickerDateOrder.ymd,
+                onDateTimeChanged: (DateTime newDate) {
+                  setState(() {
+                    _selectedDate = newDate;
+                  });
+                },
+              ),
             ),
-          ),
-        ],
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  '저장하기',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -1050,6 +887,7 @@ class _DrinkingFrequencyScreenState
     extends ConsumerState<DrinkingFrequencyScreen> {
   final TextEditingController _frequencyController = TextEditingController();
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -1085,20 +923,30 @@ class _DrinkingFrequencyScreenState
     final frequencyText = _frequencyController.text.trim();
 
     if (frequencyText.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('음주 빈도를 입력해주세요')));
+      setState(() {
+        _errorMessage = '음주 빈도를 입력해주세요';
+      });
       return;
     }
 
     final frequency = int.tryParse(frequencyText);
     if (frequency == null || frequency < 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('올바른 숫자를 입력해주세요')));
+      setState(() {
+        _errorMessage = '올바른 숫자를 입력해주세요';
+      });
       return;
     }
 
+    // Clamp frequency to maximum 7 and don't save
+    if (frequency > 7) {
+      _frequencyController.text = '7';
+      setState(() {
+        _errorMessage = '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
+      });
+      return;
+    }
+
+    // Valid input, proceed to save
     try {
       final authRepository = ref.read(authRepositoryProvider);
       final currentUser = await ref.read(currentUserProvider.future);
@@ -1160,106 +1008,156 @@ class _DrinkingFrequencyScreenState
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          '음주 빈도',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
           ),
+          title: const Text(
+            '음주 빈도',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '나는 술을 일주일에',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 60,
-                      child: TextField(
-                        controller: _frequencyController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Inter',
+        body: Column(
+          children: [
+            const SettingsSectionDivider(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        '나는 일주일에',
+                        style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 12,
-                          ),
-                          hintText: '0',
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      '번 마신다',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: 20),
+                      SizedBox(
+                        width: 30,
+                        child: Focus(
+                          onFocusChange: (hasFocus) {
+                            if (!hasFocus) {
+                              // Keyboard dismissed, validate and clamp value
+                              final currentValue = int.tryParse(
+                                _frequencyController.text,
+                              );
+                              if (currentValue != null && currentValue > 7) {
+                                _frequencyController.text = '7';
+                                setState(() {
+                                  _errorMessage = '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
+                                });
+                              } else if (currentValue != null &&
+                                  currentValue >= 0) {
+                                setState(() {
+                                  _errorMessage = null;
+                                });
+                              }
+                            }
+                          },
+                          child: TextField(
+                            controller: _frequencyController,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            cursorHeight: 18,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.black87,
+                                  width: 1.5,
+                                ),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color(0xFFFF6B6B),
+                                  width: 2,
+                                ),
+                              ),
+                              contentPadding: EdgeInsets.only(
+                                left: 3,
+                                bottom: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        '번 술을 마신다.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Error message
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFFF6B6B),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
+                  const SizedBox(height: 48),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _handleSave,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 48,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        '저장하기',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1435,72 +1333,72 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
       {'img': 'assets/imgs/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
     ];
 
+    Widget buildDrinkCard(Map<String, dynamic> drink) {
+      final drinkId = drink['id'] as int;
+      final isSelected = _selectedDrink == drinkId;
+
+      return Expanded(
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedDrink = drinkId;
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFFFFB3B3)
+                  : Colors.grey.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Image.asset(drink['img'] as String, width: 40, height: 40),
+          ),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.1),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 4),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           const Text(
             '당신의 최애 술은?',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               color: Colors.black54,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+          // First row: 3 items
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: drinks.map((drink) {
-              final drinkId = drink['id'] as int;
-              final isSelected = _selectedDrink == drinkId;
-
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedDrink = drinkId;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFFFFB3B3)
-                            : Colors.grey.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            drink['img'] as String,
-                            width: 42,
-                            height: 42,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            drink['name'] as String,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.black87
-                                  : Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+            children: [
+              buildDrinkCard(drinks[0]),
+              const SizedBox(width: 12),
+              buildDrinkCard(drinks[1]),
+              const SizedBox(width: 12),
+              buildDrinkCard(drinks[2]),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Second row: 2 items
+          Row(
+            children: [
+              buildDrinkCard(drinks[3]),
+              const SizedBox(width: 12),
+              buildDrinkCard(drinks[4]),
+              const SizedBox(width: 12),
+              const Expanded(child: SizedBox()), // Empty space for alignment
+            ],
           ),
         ],
       ),

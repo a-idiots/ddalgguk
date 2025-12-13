@@ -4,7 +4,9 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
+import 'package:ddalgguk/features/settings/notice_screen.dart';
 import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
+import 'package:ddalgguk/features/settings/notification_settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
 
@@ -13,29 +15,7 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('로그아웃', style: TextStyle(fontFamily: 'Inter')),
-        content: const Text(
-          '정말 로그아웃 하시겠습니까?',
-          style: TextStyle(fontFamily: 'Inter'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              '로그아웃',
-              style: TextStyle(fontFamily: 'Inter', color: Colors.red),
-            ),
-          ),
-        ], //집에 가고 싶다 집에 가고 싶다 집에 가고 싶다 집에 보내줘 집에 가고 싶어 집 집 집 집 침대 잠 불닭
-      ),
-    );
+    final confirmed = await showLogoutDialog(context);
 
     if (confirmed == true && context.mounted) {
       try {
@@ -59,33 +39,7 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
   ) async {
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('회원 탈퇴', style: TextStyle(fontFamily: 'Inter')),
-        content: const Text(
-          '정말 탈퇴하시겠습니까?\n\n모든 데이터가 삭제되며 복구할 수 없습니다.',
-          style: TextStyle(fontFamily: 'Inter'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소', style: TextStyle(fontFamily: 'Inter')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              '탈퇴',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    final confirmed = await showAccountDeletionDialog(context);
 
     if (confirmed == true && context.mounted) {
       try {
@@ -239,7 +193,11 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '알림 설정',
             onTap: () {
-              // TODO: Navigate to notification settings
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
             },
           ),
           const SettingsSectionDivider(),
@@ -257,7 +215,9 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '공지사항',
             onTap: () {
-              // TODO: Navigate to notices
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const NoticeScreen()),
+              );
             },
           ),
           const SettingsSectionDivider(),

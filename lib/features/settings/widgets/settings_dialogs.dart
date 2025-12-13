@@ -5,10 +5,13 @@ import 'package:ddalgguk/shared/widgets/speech_bubble.dart';
 /// Reusable dialog widget for settings information displays
 /// Shows Saku character with a speech bubble containing custom content
 class SakuInfoDialog extends StatelessWidget {
-  const SakuInfoDialog({super.key, required this.content});
+  const SakuInfoDialog({super.key, required this.content, this.bottomButtons});
 
   /// Content to display inside the speech bubble
   final Widget content;
+
+  /// Optional buttons to display below Saku character
+  final Widget? bottomButtons;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +52,11 @@ class SakuInfoDialog extends StatelessWidget {
                   const SizedBox(height: 8),
                   // Saku character
                   const Center(child: SakuCharacter(size: 84, drunkLevel: 0)),
+                  // Bottom buttons
+                  if (bottomButtons != null) ...[
+                    const SizedBox(height: 16),
+                    bottomButtons!,
+                  ],
                 ],
               ),
             ),
@@ -158,6 +166,105 @@ void showContactDialog(BuildContext context) {
           fontWeight: FontWeight.w500,
           color: Colors.black87,
           height: 1.5,
+        ),
+      ),
+    ),
+  );
+}
+
+/// Shows the logout confirmation dialog
+Future<bool?> showLogoutDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) => SakuInfoDialog(
+      content: const Text(
+        '정말 로그아웃 하시겠습니까?',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+      bottomButtons: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          child: const Text(
+            '로그아웃',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// Shows the account deletion confirmation dialog
+Future<bool?> showAccountDeletionDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) => SakuInfoDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '정말 탈퇴하시겠습니까?',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '탈퇴하시면 사쿠와 쌓은 모든 추억이\n즉시 지워지며, 복구하실 수 없습니다.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+      bottomButtons: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          child: const Text(
+            '탈퇴하기',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     ),
