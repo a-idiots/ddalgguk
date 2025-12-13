@@ -2,6 +2,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 
 /// 음주 기록 상세 다이얼로그
 class DrinkingRecordDetailDialog extends StatelessWidget {
@@ -112,7 +113,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                               child: Row(
                                 children: [
                                   Text(
-                                    '${_getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                                    '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                   Expanded(
@@ -129,7 +130,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    _formatAmount(drink.amount),
+                                    formatDrinkAmount(drink.amount),
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
@@ -278,45 +279,6 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// 술 종류 이름
-  String _getDrinkTypeName(int drinkType) {
-    switch (drinkType) {
-      case 1:
-        return '소주';
-      case 2:
-        return '맥주';
-      case 3:
-        return '와인';
-      case 4:
-        return '막걸리';
-      case 5:
-        return '칵테일';
-      case 6:
-        return '위스키';
-      default:
-        return '기타';
-    }
-  }
-
-  /// 음주량 포맷팅
-  String _formatAmount(double amountInMl) {
-    if (amountInMl >= 1000) {
-      final bottles = amountInMl / 500;
-      if (bottles % 1 == 0) {
-        return '${bottles.toInt()}병';
-      }
-      return '${bottles.toStringAsFixed(1)}병';
-    } else if (amountInMl >= 150) {
-      final glasses = amountInMl / 150;
-      if (glasses % 1 == 0) {
-        return '${glasses.toInt()}잔';
-      }
-      return '${glasses.toStringAsFixed(1)}잔';
-    } else {
-      return '${amountInMl.toInt()}ml';
-    }
   }
 }
 
