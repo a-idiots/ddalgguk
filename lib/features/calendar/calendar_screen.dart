@@ -310,32 +310,34 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.local_bar, size: 40, color: Colors.grey),
-              const SizedBox(height: 8),
               Text(
                 DateFormat('yyyy년 M월 d일').format(_selectedDay!),
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               const Text(
                 '음주 기록이 없습니다',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPink,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.grey[300],
+                  foregroundColor: Colors.black,
+                  elevation: 0,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                    horizontal: 16,
+                    vertical: 4,
                   ),
                 ),
-                child: const Text('금주 기록 추가하기'),
+                child: const Text(
+                  '+ 금주 기록 추가하기',
+                  style: TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
             ],
           ),
