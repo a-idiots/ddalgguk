@@ -90,7 +90,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                       child: Row(
                         children: [
                           Text(
-                            '${_getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
+                            '${getDrinkTypeName(drink.drinkType)} ${drink.alcoholContent}%',
                             style: const TextStyle(fontSize: 15),
                           ),
                           Expanded(
@@ -107,7 +107,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            _formatAmount(drink.amount),
+                            formatDrinkAmount(drink.amount),
                             style: const TextStyle(fontSize: 15),
                           ),
                         ],

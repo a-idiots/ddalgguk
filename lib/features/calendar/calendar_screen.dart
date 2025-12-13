@@ -493,7 +493,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                     Text(
-                                      ' ················································· ',
+                                      ' ········································ ',
                                       style: const TextStyle(fontSize: 12,
                                       color: AppColors.grey),
                                     ),
