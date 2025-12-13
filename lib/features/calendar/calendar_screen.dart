@@ -195,7 +195,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Divider(height: 1),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: Colors.grey[300],
+                indent: 0,
+                endIndent: 0,
+              ),
               // 음주 기록 리스트 - 스크롤 가능
               _buildRecordsList(),
             ],
