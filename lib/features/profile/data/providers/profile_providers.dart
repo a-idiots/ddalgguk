@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
@@ -12,6 +13,11 @@ final profileStatsServiceProvider = Provider<ProfileStatsService>((ref) {
   final drinkingRecordService = ref.watch(drinkingRecordServiceProvider);
   return ProfileStatsService(drinkingRecordService);
 });
+
+/// Profile Bottom Color Provider
+/// Stores the interpolated color of the bottom of the profile screen
+/// Updated by ProfileScreen as the user scrolls between Main and Detail views
+final profileBottomColorProvider = StateProvider<Color?>((ref) => null);
 
 /// User badges provider (real-time)
 final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
