@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// 기본 바텀 시트 위젯
 ///
 /// 하단에서 올라오는 둥근 모서리 바텀 시트
-/// 화면의 약 80% 높이를 차지하며, 드래그 핸들 포함
+/// 화면의 85% 고정 높이를 차지하며, 드래그 핸들 포함
 class BottomHandleDialogue extends StatelessWidget {
   const BottomHandleDialogue({super.key, required this.child});
 
@@ -12,7 +12,7 @@ class BottomHandleDialogue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final sheetHeight = screenHeight * 0.8; // 화면의 80% 높이
+    final sheetHeight = screenHeight * 0.85; // 화면의 85% 고정 높이
 
     return Container(
       height: sheetHeight,

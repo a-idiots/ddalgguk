@@ -6,6 +6,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -570,10 +571,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final records = _getRecordsForDay(selectedDate);
     final sessionNumber = records.length + 1;
 
-    showDialog(
+    showBottomHandleDialogue(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => AddRecordDialog(
+      child: AddRecordDialog(
         selectedDate: selectedDate,
         sessionNumber: sessionNumber,
         onRecordAdded: () {
@@ -586,10 +586,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 수정 다이얼로그
   void _showEditRecordDialog(BuildContext context, DrinkingRecord record) {
-    showDialog(
+    showBottomHandleDialogue(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => EditRecordDialog(
+      child: EditRecordDialog(
         record: record,
         onRecordUpdated: () {
           // 캘린더 새로고침을 위해 provider invalidate
@@ -601,10 +600,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// 기록 상세 보기
   void _showRecordDetail(BuildContext context, DrinkingRecord record) {
-    showDialog(
+    showBottomHandleDialogue(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      builder: (context) => DrinkingRecordDetailDialog(
+      child: DrinkingRecordDetailDialog(
         record: record,
         onEdit: () => _showEditRecordDialog(context, record),
         onDelete: () => _deleteRecord(record.id),
