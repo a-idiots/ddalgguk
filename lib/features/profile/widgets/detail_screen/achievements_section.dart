@@ -148,9 +148,8 @@ class AchievementsSection extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               _buildBadgeGrid(drinkingBadges, userBadges, 'drinking'),
-              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 2,
@@ -169,7 +168,7 @@ class AchievementsSection extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               _buildBadgeGrid(sobrietyBadges, userBadges, 'sobriety'),
             ],
           ),
@@ -238,9 +237,8 @@ class AchievementItem extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             AchievementIcon(
-              text1: data.iconText1,
-              text2: data.iconText2,
-              color: isUnlocked ? data.color : Colors.grey[300]!,
+              imagePath: data.imagePath,
+              isUnlocked: isUnlocked,
               size: compact ? 50 : 60,
             ),
             if (showPin && !compact)
@@ -293,57 +291,44 @@ class AchievementItem extends StatelessWidget {
 class AchievementIcon extends StatelessWidget {
   const AchievementIcon({
     super.key,
-    required this.text1,
-    this.text2,
-    required this.color,
+    required this.imagePath,
+    required this.isUnlocked,
     this.size = 60,
   });
 
-  final String text1;
-  final String? text2;
-  final Color color;
+  final String imagePath;
+  final bool isUnlocked;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    // Check if text1 is 2 characters
-    final bool isTwoChars = text1.length == 2;
-    // If text2 is present, we force standard size for text1 to match text2
-    final bool hasSubtitle = text2 != null;
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              text1,
-              style: TextStyle(
-                color: Colors.white,
-                // Use large font only if 2 chars AND no subtitle
-                fontSize: (isTwoChars && !hasSubtitle)
-                    ? size * 0.4
-                    : size * 0.3,
-                fontWeight: (isTwoChars && !hasSubtitle)
-                    ? FontWeight.w300
-                    : FontWeight.w400,
-                height: 1.0,
-              ),
-            ),
-            if (text2 != null)
-              Text(
-                text2!,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: size * 0.3,
-                  fontWeight: FontWeight.w400,
+    return ClipOval(
+      child: Container(
+        width: size,
+        height: size,
+        color: Colors.grey.withValues(alpha: 0.1), // Placeholder background
+        child: isUnlocked
+            ? Image.asset(
+                imagePath,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+              )
+            : ColorFiltered(
+                colorFilter: const ColorFilter.mode(
+                  Colors.grey,
+                  BlendMode.saturation,
+                ),
+                child: Opacity(
+                  opacity: 0.5,
+                  child: Image.asset(
+                    imagePath,
+                    width: size,
+                    height: size,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-          ],
-        ),
       ),
     );
   }

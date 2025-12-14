@@ -107,6 +107,8 @@ flutter:
     - assets/imgs/recap/
     - assets/imgs/background/
     - assets/imgs/onboarding/
+    - assets/imgs/badges/drink/
+    - assets/imgs/badges/sober/
 
   fonts:
     - family: GmarketSans

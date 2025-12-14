@@ -7,6 +7,7 @@ class BadgeData {
     required this.iconText1,
     this.iconText2,
     required this.color,
+    required this.imagePath,
   });
 
   final String title;
@@ -14,6 +15,7 @@ class BadgeData {
   final String iconText1;
   final String? iconText2;
   final Color color;
+  final String imagePath;
 }
 
 const Map<int, BadgeData> drinkingBadges = {
@@ -23,6 +25,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '연속',
     iconText2: '음주',
     color: Color(0xFFFFB3B3), // Light Pink
+    imagePath: 'assets/imgs/badges/drink/drink_0.png',
   ),
   1: BadgeData(
     title: '과음 1단계',
@@ -30,6 +33,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '과음',
     iconText2: null,
     color: Color(0xFFFF8080), // Pink
+    imagePath: 'assets/imgs/badges/drink/drink_1.png',
   ),
   2: BadgeData(
     title: '과음 2단계',
@@ -37,6 +41,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '과음',
     iconText2: null,
     color: Color(0xFFFF6666), // Darker Pink
+    imagePath: 'assets/imgs/badges/drink/drink_2.png',
   ),
   3: BadgeData(
     title: '매일알딸딸',
@@ -44,6 +49,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '만취',
     iconText2: null,
     color: Color(0xFFE53935), // Red
+    imagePath: 'assets/imgs/badges/drink/drink_3.png',
   ),
   4: BadgeData(
     title: '에탄올꿀꺽',
@@ -51,6 +57,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '500',
     iconText2: null,
     color: Color(0xFFE53935), // Red
+    imagePath: 'assets/imgs/badges/drink/drink_4.png',
   ),
   5: BadgeData(
     title: '에탄올로 위세척',
@@ -58,6 +65,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '1000',
     iconText2: null,
     color: Color(0xFFE53935), // Red
+    imagePath: 'assets/imgs/badges/drink/drink_5.png',
   ),
   6: BadgeData(
     title: '누적 알콜 3000',
@@ -65,6 +73,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '3000',
     iconText2: null,
     color: Color(0xFFE53935), // Red
+    imagePath: 'assets/imgs/badges/drink/drink_6.png',
   ),
   7: BadgeData(
     title: '누적 알콜 5000',
@@ -72,6 +81,7 @@ const Map<int, BadgeData> drinkingBadges = {
     iconText1: '5000',
     iconText2: null,
     color: Color(0xFFE53935), // Red
+    imagePath: 'assets/imgs/badges/drink/drink_7.png',
   ),
 };
 
@@ -82,6 +92,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF99E6B3), // Light Green
+    imagePath: 'assets/imgs/badges/sober/sober_0.png',
   ),
   1: BadgeData(
     title: '술없는이주일',
@@ -89,6 +100,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF66CC88), // Green
+    imagePath: 'assets/imgs/badges/sober/sober_1.png',
   ),
   2: BadgeData(
     title: '술없는삼주일',
@@ -96,6 +108,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF33B366), // Darker Green
+    imagePath: 'assets/imgs/badges/sober/sober_2.png',
   ),
   3: BadgeData(
     title: '술없는한달',
@@ -103,6 +116,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF33B366), // Darker Green
+    imagePath: 'assets/imgs/badges/sober/sober_3.png',
   ),
   4: BadgeData(
     title: '술없는두달',
@@ -110,6 +124,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF33B366), // Darker Green
+    imagePath: 'assets/imgs/badges/sober/sober_4.png',
   ),
   5: BadgeData(
     title: '술없는세달',
@@ -117,6 +132,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF33B366), // Darker Green
+    imagePath: 'assets/imgs/badges/sober/sober_5.png',
   ),
   6: BadgeData(
     title: '술없는반년',
@@ -124,6 +140,7 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF33B366), // Darker Green
+    imagePath: 'assets/imgs/badges/sober/sober_6.png',
   ),
   7: BadgeData(
     title: '술없는1년',
@@ -131,5 +148,6 @@ const Map<int, BadgeData> sobrietyBadges = {
     iconText1: '연속',
     iconText2: '금주',
     color: Color(0xFF33B366), // Darker Green
+    imagePath: 'assets/imgs/badges/sober/sober_7.png',
   ),
 };
