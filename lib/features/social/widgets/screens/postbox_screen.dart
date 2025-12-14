@@ -312,10 +312,10 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '${widget.request.toUserName ?? widget.request.toUserId}님께 보낸 친구 신청을 취소하시겠어요?',
+                '${widget.request.toUserName ?? widget.request.toUserId}님께 보낸 친구 신청을\n취소하시겠어요?',
                 style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
                   color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
@@ -466,7 +466,7 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
                   statusLabel,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                 ),

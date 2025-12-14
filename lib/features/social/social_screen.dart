@@ -25,8 +25,6 @@ class SocialScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       appBar: TabPageHeader(
         title: 'SAKU Village',
-        fontSize: 28,
-        height: 64,
         actions: [
           IconButton(
             onPressed: () {
@@ -68,12 +66,28 @@ class SocialScreen extends ConsumerWidget {
                   ),
                 );
               },
-              child: Image.asset(
-                hasFriendRequests
-                    ? 'assets/imgs/socials/alarm_postbox.png'
-                    : 'assets/imgs/socials/empty_postbox.png',
-                width: postboxSize,
-                height: postboxSize,
+              child: Stack(
+                children: [
+                  Image.asset(
+                    'assets/imgs/socials/empty_postbox.png',
+                    width: postboxSize,
+                    height: postboxSize,
+                  ),
+                  if (hasFriendRequests)
+                    Positioned(
+                      top: postboxSize * 0.05,
+                      right: postboxSize * 0.15,
+                      child: Container(
+                        width: postboxSize * 0.15,
+                        height: postboxSize * 0.15,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
