@@ -34,7 +34,11 @@ class FriendWithData {
 
   /// 표시용 음주 레벨 (0-100)
   int get displayDrunkLevel {
-    // weeklyDrunkLevels가 있으면 가장 최근 값(어제) 사용
+    // currentDrunkLevel을 우선적으로 사용 (실시간 상태 반영)
+    if (currentDrunkLevel != null) {
+      return currentDrunkLevel! * 10;
+    }
+    // currentDrunkLevel이 없으면 weeklyDrunkLevels에서 가장 최근 값 사용
     if (weeklyDrunkLevels != null && weeklyDrunkLevels!.isNotEmpty) {
       // 마지막에서 두번째 값 (오늘은 제외하고 어제)
       final yesterdayIndex = weeklyDrunkLevels!.length >= 2
@@ -43,10 +47,6 @@ class FriendWithData {
       final level = weeklyDrunkLevels![yesterdayIndex];
       // -1(기록없음)이면 0으로, 그 외에는 그대로 반환
       return level == -1 ? 0 : level;
-    }
-    // weeklyDrunkLevels가 없으면 currentDrunkLevel 사용 (0-10 -> 0-100 변환)
-    if (currentDrunkLevel != null) {
-      return currentDrunkLevel! * 10;
     }
     return 0;
   }

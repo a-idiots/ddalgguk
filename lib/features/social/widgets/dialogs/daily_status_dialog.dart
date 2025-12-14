@@ -84,21 +84,27 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
               '상태 메시지를 남겨보세요',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               '24시간 후 자동으로 사라집니다',
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _controller,
               maxLength: DailyStatus.maxLength,
+              style: const TextStyle(fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 hintText: '예: 오늘도 화이팅!',
+                hintStyle: const TextStyle(fontWeight: FontWeight.w500),
                 filled: true,
                 fillColor: Colors.grey[100],
                 border: OutlineInputBorder(
@@ -107,6 +113,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
                 ),
                 counterText:
                     '${_controller.text.length}/${DailyStatus.maxLength}',
+                counterStyle: const TextStyle(fontWeight: FontWeight.w500),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -118,7 +125,10 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
                   onPressed: _isLoading
                       ? null
                       : () => Navigator.of(context).pop(),
-                  child: const Text('취소'),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
@@ -140,7 +150,10 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('등록'),
+                      : const Text(
+                          '등록',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
                 ),
               ],
             ),

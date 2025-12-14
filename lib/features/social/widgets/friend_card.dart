@@ -43,7 +43,8 @@ class FriendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final drunkLevel = friendData.displayDrunkLevel; // 이미 0-100 범위
+    // currentDrunkLevel (0-10)을 0-100으로 변환
+    final drunkLevel = (friendData.currentDrunkLevel ?? 0) * 10;
     final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
     final status = friendData.displayStatus;
 
@@ -140,7 +141,7 @@ class _NameButton extends StatelessWidget {
         name,
         style: const TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
           color: Colors.black87,
         ),
         maxLines: 1,
