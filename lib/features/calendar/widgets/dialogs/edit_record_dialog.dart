@@ -1,6 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
-import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';

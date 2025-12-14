@@ -51,7 +51,9 @@ class _InfoInputPageState extends State<InfoInputPage> {
     try {
       final error = await widget.validator(_controller.text);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (error != null) {
         setState(() {
