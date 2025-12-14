@@ -15,7 +15,7 @@ class InfoInputPage extends StatefulWidget {
   final String title;
   final String hintText;
   final ValueChanged<String> onNext;
-  final String? Function(String?) validator;
+  final Future<String?> Function(String?) validator;
   final String? initialValue;
   final InfoInputType inputType;
 
@@ -27,6 +27,7 @@ class _InfoInputPageState extends State<InfoInputPage> {
   late TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
   String? _errorText;
+  bool _isValidating = false;
 
   @override
   void initState() {
@@ -34,22 +35,44 @@ class _InfoInputPageState extends State<InfoInputPage> {
     _controller = TextEditingController(text: widget.initialValue);
   }
 
-  void _handleNext() {
-    // 키보드 내림
-    FocusScope.of(context).unfocus();
-
-    final error = widget.validator(_controller.text);
-    if (error != null) {
-      setState(() {
-        _errorText = error;
-      });
+  Future<void> _handleNext() async {
+    if (_isValidating) {
       return;
     }
 
+    // 키보드 내림
+    FocusScope.of(context).unfocus();
+
     setState(() {
+      _isValidating = true;
       _errorText = null;
     });
-    widget.onNext(_controller.text);
+
+    try {
+      final error = await widget.validator(_controller.text);
+
+      if (!mounted) return;
+
+      if (error != null) {
+        setState(() {
+          _errorText = error;
+          _isValidating = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _isValidating = false;
+      });
+      widget.onNext(_controller.text);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorText = '오류가 발생했습니다. 다시 시도해주세요.';
+          _isValidating = false;
+        });
+      }
+    }
   }
 
   @override
@@ -130,15 +153,26 @@ class _InfoInputPageState extends State<InfoInputPage> {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: _handleNext,
+                    onTap: _isValidating ? null : _handleNext,
                     borderRadius: BorderRadius.circular(30),
                     child: Container(
                       padding: const EdgeInsets.all(12),
-                      child: const Icon(
-                        Icons.arrow_forward,
-                        color: Color(0xFF7E7E7E),
-                        size: 24,
-                      ),
+                      child: _isValidating
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF7E7E7E),
+                                ),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.arrow_forward,
+                              color: Color(0xFF7E7E7E),
+                              size: 24,
+                            ),
                     ),
                   ),
                 ),

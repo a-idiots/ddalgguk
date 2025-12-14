@@ -428,7 +428,7 @@ class _OnboardingProfileScreenState
   }
 
   /// Validate name: only Korean, English, and numbers (no special characters)
-  String? _validateName(String? value) {
+  Future<String?> _validateName(String? value) async {
     if (value == null || value.trim().isEmpty) {
       return '이름을 입력해주세요';
     }
@@ -451,7 +451,7 @@ class _OnboardingProfileScreenState
   }
 
   /// Validate ID: Instagram rules (letters, numbers, periods, underscores)
-  String? _validateId(String? value) {
+  Future<String?> _validateId(String? value) async {
     if (value == null || value.trim().isEmpty) {
       return '아이디를 입력해주세요';
     }
@@ -483,6 +483,18 @@ class _OnboardingProfileScreenState
 
     if (id.contains('..')) {
       return '연속된 마침표는 사용할 수 없습니다';
+    }
+
+    // Check DB for duplication
+    try {
+      final authRepository = ref.read(authRepositoryProvider);
+      final exists = await authRepository.checkIdExists(id);
+      if (exists) {
+        return '이미 사용 중인 아이디입니다';
+      }
+    } catch (e) {
+      debugPrint('Error checking ID: $e');
+      return '아이디 확인 중 오류가 발생했습니다';
     }
 
     return null;
