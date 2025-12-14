@@ -466,7 +466,7 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
                   statusLabel,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                 ),
