@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 
@@ -1325,16 +1326,8 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
   }
 
   Widget _buildDrinkSelectionCards() {
-    final drinks = [
-      {'img': 'assets/imgs/alcohol_icons/soju.png', 'name': '소주', 'id': 0},
-      {'img': 'assets/imgs/alcohol_icons/beer.png', 'name': '맥주', 'id': 1},
-      {'img': 'assets/imgs/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 2},
-      {'img': 'assets/imgs/alcohol_icons/wine.png', 'name': '와인', 'id': 3},
-      {'img': 'assets/imgs/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 4},
-    ];
-
-    Widget buildDrinkCard(Map<String, dynamic> drink) {
-      final drinkId = drink['id'] as int;
+    Widget buildDrinkCard(Drink drink) {
+      final drinkId = drink.id;
       final isSelected = _selectedDrink == drinkId;
 
       return Expanded(
@@ -1352,7 +1345,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
                   : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Image.asset(drink['img'] as String, width: 40, height: 40),
+            child: Image.asset(drink.imagePath, width: 40, height: 40),
           ),
         ),
       );
