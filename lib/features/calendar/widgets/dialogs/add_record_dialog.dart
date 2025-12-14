@@ -181,6 +181,10 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       final service = ref.read(drinkingRecordServiceProvider);
       await service.createRecord(record);
 
+      // 데이터 변경 알림
+      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+          DateTime.now();
+
       // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
       ref.invalidate(friendsProvider);
 

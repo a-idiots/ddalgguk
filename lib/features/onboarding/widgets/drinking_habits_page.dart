@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 
 /// Page for setting drinking habits (favorite drink and max alcohol)
 class DrinkingHabitsPage extends StatefulWidget {
@@ -195,16 +196,8 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
   }
 
   Widget _buildDrinkSelectionCards() {
-    final drinks = [
-      {'img': 'assets/imgs/alcohol_icons/soju.png', 'name': '소주', 'id': 1},
-      {'img': 'assets/imgs/alcohol_icons/beer.png', 'name': '맥주', 'id': 2},
-      {'img': 'assets/imgs/alcohol_icons/cocktail.png', 'name': '칵테일', 'id': 3},
-      {'img': 'assets/imgs/alcohol_icons/wine.png', 'name': '와인', 'id': 4},
-      {'img': 'assets/imgs/alcohol_icons/makgulli.png', 'name': '막걸리', 'id': 5},
-    ];
-
-    Widget buildDrinkCard(Map<String, dynamic> drink) {
-      final drinkId = drink['id'] as int;
+    Widget buildDrinkCard(Drink drink) {
+      final drinkId = drink.id;
       final isSelected = _selectedDrink == drinkId;
 
       return Expanded(
@@ -227,7 +220,7 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
                   : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Image.asset(drink['img'] as String, width: 40, height: 40),
+            child: Image.asset(drink.imagePath, width: 40, height: 40),
           ),
         ),
       );
@@ -257,22 +250,22 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
           // First row: 3 items
           Row(
             children: [
-              buildDrinkCard(drinks[0]),
-              const SizedBox(width: 12),
               buildDrinkCard(drinks[1]),
               const SizedBox(width: 12),
               buildDrinkCard(drinks[2]),
+              const SizedBox(width: 12),
+              buildDrinkCard(drinks[3]),
             ],
           ),
           const SizedBox(height: 12),
           // Second row: 2 items
           Row(
             children: [
-              buildDrinkCard(drinks[3]),
-              const SizedBox(width: 12),
               buildDrinkCard(drinks[4]),
               const SizedBox(width: 12),
-              const Expanded(child: SizedBox()), // Empty space for alignment
+              buildDrinkCard(drinks[5]),
+              const SizedBox(width: 12),
+              buildDrinkCard(drinks[6]),
             ],
           ),
         ],

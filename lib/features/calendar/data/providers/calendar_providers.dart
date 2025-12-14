@@ -11,10 +11,18 @@ final drinkingRecordServiceProvider = Provider<DrinkingRecordService>((ref) {
   return DrinkingRecordService();
 });
 
-/// Provider for streaming records for a specific month
-/// Returns a stream of drinking records for the given month
-final monthRecordsProvider = StreamProvider.autoDispose
+/// Provider to track when drinking records are updated
+/// Used to trigger refreshes of dependent providers
+final drinkingRecordsLastUpdatedProvider = StateProvider<DateTime>(
+  (ref) => DateTime.now(),
+);
+
+/// Provider for fetching records for a specific month
+/// Returns a list of drinking records for the given month
+/// Updates when drinkingRecordsLastUpdatedProvider changes
+final monthRecordsProvider = FutureProvider.autoDispose
     .family<List<DrinkingRecord>, DateTime>((ref, date) {
+      ref.watch(drinkingRecordsLastUpdatedProvider);
       final service = ref.watch(drinkingRecordServiceProvider);
-      return service.streamRecordsByMonth(date.year, date.month);
+      return service.getRecordsByMonth(date.year, date.month);
     });

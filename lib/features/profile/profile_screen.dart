@@ -37,6 +37,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Calculate initial position after layout
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateMainCharacterPosition();
+      _updateBottomColor();
     });
   }
 
@@ -98,6 +99,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to stats changes to update bottom color when data loads
+    ref.listen(currentProfileStatsProvider, (previous, next) {
+      if (next.hasValue) {
+        _updateBottomColor();
+      }
+    });
+
     if (_isAnalyticsVisible) {
       return ReportScreen(onBack: _handleBackFromAnalytics);
     }

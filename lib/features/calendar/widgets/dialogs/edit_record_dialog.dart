@@ -1,5 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
@@ -212,6 +212,10 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
 
       final service = DrinkingRecordService();
       await service.updateRecord(updatedRecord);
+
+      // 데이터 변경 알림
+      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+          DateTime.now();
 
       // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
       ref.invalidate(friendsProvider);

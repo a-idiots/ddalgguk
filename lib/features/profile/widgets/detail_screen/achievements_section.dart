@@ -8,9 +8,14 @@ import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart'
 import 'package:ddalgguk/features/profile/widgets/reusable_section.dart';
 
 class AchievementsSection extends ConsumerWidget {
-  const AchievementsSection({super.key, required this.theme});
+  const AchievementsSection({
+    super.key,
+    required this.theme,
+    this.onlyPinned = false,
+  });
 
   final AppTheme theme;
+  final bool onlyPinned;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,13 +23,17 @@ class AchievementsSection extends ConsumerWidget {
 
     return badgesAsync.when(
       skipLoadingOnReload: true,
-      data: (badges) {
+      data: (allBadges) {
+        final displayBadges = onlyPinned
+            ? allBadges.where((b) => b.isPinned).toList()
+            : allBadges;
+
         return ProfileSection(
           title: '나의 업적',
           titleOutside: true,
           subtitle: GestureDetector(
             onTap: () {
-              _showAllAchievements(context, badges, ref);
+              _showAllAchievements(context, allBadges, ref);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
@@ -50,7 +59,7 @@ class AchievementsSection extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 12),
             child: SizedBox(
               height: 110,
-              child: badges.isEmpty
+              child: displayBadges.isEmpty
                   ? const Center(
                       child: Text(
                         '아직 획득한 뱃지가 없습니다.',
@@ -59,9 +68,9 @@ class AchievementsSection extends ConsumerWidget {
                     )
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: badges.length,
+                      itemCount: displayBadges.length,
                       itemBuilder: (context, index) {
-                        final badge = badges[index];
+                        final badge = displayBadges[index];
                         final badgeData = badge.group == 'drinking'
                             ? drinkingBadges[badge.idx]
                             : sobrietyBadges[badge.idx];
@@ -70,7 +79,7 @@ class AchievementsSection extends ConsumerWidget {
                           return const SizedBox.shrink();
                         }
 
-                        final pinnedCount = badges
+                        final pinnedCount = allBadges
                             .where((b) => b.isPinned)
                             .length;
 
@@ -81,9 +90,11 @@ class AchievementsSection extends ConsumerWidget {
                             isUnlocked: true,
                             isPinned: badge.isPinned,
                             showPin: badge.isPinned || pinnedCount < 4,
-                            onPin: () => ref
-                                .read(authRepositoryProvider)
-                                .toggleBadgePin(badge.id),
+                            onPin: onlyPinned
+                                ? null
+                                : () => ref
+                                      .read(authRepositoryProvider)
+                                      .toggleBadgePin(badge.id),
                           ),
                         );
                       },
@@ -148,9 +159,8 @@ class AchievementsSection extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               _buildBadgeGrid(drinkingBadges, userBadges, 'drinking'),
-              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 2,
@@ -169,7 +179,7 @@ class AchievementsSection extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               _buildBadgeGrid(sobrietyBadges, userBadges, 'sobriety'),
             ],
           ),
@@ -238,9 +248,8 @@ class AchievementItem extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             AchievementIcon(
-              text1: data.iconText1,
-              text2: data.iconText2,
-              color: isUnlocked ? data.color : Colors.grey[300]!,
+              imagePath: data.imagePath,
+              isUnlocked: isUnlocked,
               size: compact ? 50 : 60,
             ),
             if (showPin && !compact)
@@ -293,57 +302,44 @@ class AchievementItem extends StatelessWidget {
 class AchievementIcon extends StatelessWidget {
   const AchievementIcon({
     super.key,
-    required this.text1,
-    this.text2,
-    required this.color,
+    required this.imagePath,
+    required this.isUnlocked,
     this.size = 60,
   });
 
-  final String text1;
-  final String? text2;
-  final Color color;
+  final String imagePath;
+  final bool isUnlocked;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    // Check if text1 is 2 characters
-    final bool isTwoChars = text1.length == 2;
-    // If text2 is present, we force standard size for text1 to match text2
-    final bool hasSubtitle = text2 != null;
-
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              text1,
-              style: TextStyle(
-                color: Colors.white,
-                // Use large font only if 2 chars AND no subtitle
-                fontSize: (isTwoChars && !hasSubtitle)
-                    ? size * 0.4
-                    : size * 0.3,
-                fontWeight: (isTwoChars && !hasSubtitle)
-                    ? FontWeight.w300
-                    : FontWeight.w400,
-                height: 1.0,
-              ),
-            ),
-            if (text2 != null)
-              Text(
-                text2!,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: size * 0.3,
-                  fontWeight: FontWeight.w400,
+    return ClipOval(
+      child: Container(
+        width: size,
+        height: size,
+        color: Colors.grey.withValues(alpha: 0.1), // Placeholder background
+        child: isUnlocked
+            ? Image.asset(
+                imagePath,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+              )
+            : ColorFiltered(
+                colorFilter: const ColorFilter.mode(
+                  Colors.grey,
+                  BlendMode.saturation,
+                ),
+                child: Opacity(
+                  opacity: 0.5,
+                  child: Image.asset(
+                    imagePath,
+                    width: size,
+                    height: size,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-          ],
-        ),
       ),
     );
   }

@@ -49,17 +49,34 @@ final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
 });
 
 /// Weekly stats provider (last 7 days)
-final weeklyStatsProvider = StreamProvider<WeeklyStats>((ref) {
+/// Weekly stats provider (last 7 days)
+final weeklyStatsProvider = FutureProvider<WeeklyStats>((ref) async {
+  // Watch for data updates
+  ref.watch(drinkingRecordsLastUpdatedProvider);
+
+  // Try to get data from current user first
+  final user = await ref.watch(currentUserProvider.future);
+  if (user != null &&
+      user.weeklyDrunkLevels != null &&
+      user.weeklyDrunkLevels!.length == 7) {
+    return ProfileStatsService.createWeeklyStatsFromList(
+      weeklyLevels: user.weeklyDrunkLevels,
+      endDate: DateTime.now(),
+    );
+  }
+
+  // Fallback to calculation from records
   final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateWeeklyStatsStream();
+  return service.calculateWeeklyStats();
 });
 
 /// Weekly stats provider with offset (0 = this week, 1 = last week, etc.)
 /// Week starts on Monday and ends on Sunday
-final weeklyStatsOffsetProvider = StreamProvider.family<WeeklyStats, int>((
+final weeklyStatsOffsetProvider = FutureProvider.family<WeeklyStats, int>((
   ref,
   offset,
 ) {
+  ref.watch(drinkingRecordsLastUpdatedProvider);
   final service = ref.watch(profileStatsServiceProvider);
   final now = DateTime.now();
 
@@ -71,18 +88,20 @@ final weeklyStatsOffsetProvider = StreamProvider.family<WeeklyStats, int>((
   // Go back by offset weeks
   final targetWeekMonday = thisWeekMonday.subtract(Duration(days: 7 * offset));
 
-  return service.calculateWeeklyStatsStream(targetWeekMonday);
+  return service.calculateWeeklyStats(targetWeekMonday);
 });
 
 /// Current profile stats provider (alcohol breakdown, drunk level, etc.)
-final currentProfileStatsProvider = StreamProvider<ProfileStats>((ref) {
+final currentProfileStatsProvider = FutureProvider<ProfileStats>((ref) {
+  ref.watch(drinkingRecordsLastUpdatedProvider);
   final service = ref.watch(profileStatsServiceProvider);
   final userInfoAsync = ref.watch(userPhysicalInfoProvider);
-  return service.calculateCurrentStatsStream(userInfoAsync.valueOrNull);
+  return service.calculateCurrentStats(userInfoAsync.valueOrNull);
 });
 
 /// Achievements provider
 final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
+  ref.watch(drinkingRecordsLastUpdatedProvider);
   final service = ref.watch(profileStatsServiceProvider);
   return service.calculateAchievements();
 });

@@ -1,5 +1,73 @@
 import 'package:flutter/material.dart';
 
+class Drink {
+  const Drink({
+    required this.id,
+    required this.name,
+    required this.imagePath,
+    required this.defaultAlcoholContent,
+    required this.defaultUnit,
+  });
+
+  final int id;
+  final String name;
+  final String imagePath;
+  final double defaultAlcoholContent;
+  final String defaultUnit;
+}
+
+const List<Drink> drinks = [
+  Drink(
+    id: 0,
+    name: '알 수 없음',
+    imagePath: 'assets/imgs/alcohol_icons/undecided.png',
+    defaultAlcoholContent: 0.0,
+    defaultUnit: '잔',
+  ),
+  Drink(
+    id: 1,
+    name: '소주',
+    imagePath: 'assets/imgs/alcohol_icons/soju.png',
+    defaultAlcoholContent: 16.5,
+    defaultUnit: '병',
+  ),
+  Drink(
+    id: 2,
+    name: '맥주',
+    imagePath: 'assets/imgs/alcohol_icons/beer.png',
+    defaultAlcoholContent: 5.0,
+    defaultUnit: 'ml',
+  ),
+  Drink(
+    id: 3,
+    name: '칵테일',
+    imagePath: 'assets/imgs/alcohol_icons/cocktail.png',
+    defaultAlcoholContent: 10.0,
+    defaultUnit: '잔',
+  ),
+  Drink(
+    id: 4,
+    name: '와인',
+    imagePath: 'assets/imgs/alcohol_icons/wine.png',
+    defaultAlcoholContent: 12.0,
+    defaultUnit: '잔',
+  ),
+  Drink(
+    id: 5,
+    name: '막걸리',
+    imagePath: 'assets/imgs/alcohol_icons/makgulli.png',
+    defaultAlcoholContent: 6.0,
+    defaultUnit: '병',
+  ),
+  Drink(
+    id: 6,
+    name: '위스키',
+    imagePath: 'assets/imgs/alcohol_icons/whiskey.png',
+    defaultAlcoholContent: 40.0,
+    defaultUnit: '잔',
+  ),
+];
+
 /// 술 종류에 따른 아이콘 반환
 Widget getDrinkIcon(int drinkType) {
   final iconPath = getDrinkIconPath(drinkType);
@@ -8,66 +76,20 @@ Widget getDrinkIcon(int drinkType) {
 
 /// 술 종류에 따른 아이콘 경로 반환
 String getDrinkIconPath(int drinkType) {
-  switch (drinkType) {
-    case 1: // 소주
-      return 'assets/imgs/alcohol_icons/soju.png';
-    case 2: // 맥주
-      return 'assets/imgs/alcohol_icons/beer.png';
-    case 3: // 칵테일
-      return 'assets/imgs/alcohol_icons/cocktail.png';
-    case 4: // 와인
-      return 'assets/imgs/alcohol_icons/wine.png';
-    case 5: // 막걸리
-      return 'assets/imgs/alcohol_icons/makgulli.png';
-    case 6: // 위스키
-      // TODO: 위스키 아이콘 추가 필요
-      return 'assets/imgs/alcohol_icons/undecided.png';
-    case 0: // 알 수 없음
-    default:
-      return 'assets/imgs/alcohol_icons/undecided.png';
-  }
+  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  return drink?.imagePath ?? 'assets/imgs/alcohol_icons/undecided.png';
 }
 
 /// 주종별 기본 도수
 double getDefaultAlcoholContent(int drinkType) {
-  switch (drinkType) {
-    case 1: // 소주
-      return 16.5;
-    case 2: // 맥주
-      return 5.0;
-    case 3: // 칵테일
-      return 10.0;
-    case 4: // 와인
-      return 12.0;
-    case 5: // 막걸리
-      return 6.0;
-    case 6: // 위스키
-      return 40.0;
-    case 0: // 알 수 없음
-    default:
-      return 0.0;
-  }
+  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  return drink?.defaultAlcoholContent ?? 0.0;
 }
 
 /// 주종별 기본 단위
 String getDefaultUnit(int drinkType) {
-  switch (drinkType) {
-    case 1: // 소주
-      return '병';
-    case 2: // 맥주
-      return 'ml';
-    case 3: // 칵테일
-      return '잔';
-    case 4: // 와인
-      return '잔';
-    case 5: // 막걸리
-      return '병';
-    case 6: // 위스키
-      return '잔';
-    case 0: // 알 수 없음
-    default:
-      return '잔';
-  }
+  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  return drink?.defaultUnit ?? '잔';
 }
 
 /// 단위별 ml 변환
@@ -88,24 +110,8 @@ double getUnitMultiplier(String unit) {
 
 /// 주종 이름
 String getDrinkTypeName(int drinkType) {
-  switch (drinkType) {
-    case 1:
-      return '소주';
-    case 2:
-      return '맥주';
-    case 3:
-      return '칵테일';
-    case 4:
-      return '와인';
-    case 5:
-      return '막걸리';
-    case 6:
-      return '위스키';
-    case 0:
-      return '알 수 없음';
-    default:
-      return '기타';
-  }
+  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  return drink?.name ?? '기타';
 }
 
 /// 알딸딸 지수에 따른 body 이미지 경로 반환

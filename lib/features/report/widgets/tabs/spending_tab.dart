@@ -219,24 +219,30 @@ class _DrinkingRecordList extends StatelessWidget {
           if (records.isEmpty) {
             return Padding(
               padding: const EdgeInsets.all(32),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.celebration_outlined,
-                    size: 48,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '이번 달 음주 기록이 없습니다',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '건강한 한 달을 보내고 계시네요!',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                  ),
-                ],
+              child: SizedBox(
+                height: 200,
+                width: double.infinity,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.celebration_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '이번 달 음주 기록이 없습니다',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '건강한 한 달을 보내고 계시네요!',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -368,30 +374,11 @@ class _DrinkingRecordItem extends StatelessWidget {
     }
     return amounts
         .map((a) {
-          final typeName = _getDrinkTypeName(a.drinkType);
+          final typeName = getDrinkTypeName(a.drinkType);
           final amountStr = _formatAmount(a.amount);
           return '$typeName $amountStr';
         })
         .join(', ');
-  }
-
-  String _getDrinkTypeName(int type) {
-    switch (type) {
-      case 1:
-        return '소주';
-      case 2:
-        return '맥주';
-      case 3:
-        return '와인';
-      case 4:
-        return '막걸리';
-      case 5:
-        return '칵테일';
-      case 6:
-        return '위스키';
-      default:
-        return '술';
-    }
   }
 
   String _formatAmount(double amount) {

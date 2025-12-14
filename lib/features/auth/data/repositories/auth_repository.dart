@@ -229,6 +229,20 @@ class AuthRepository {
     }
   }
 
+  /// Check if ID already exists
+  Future<bool> checkIdExists(String id) async {
+    try {
+      final snapshot = await _usersCollection
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      debugPrint('Check ID exists error: $e');
+      rethrow;
+    }
+  }
+
   /// Get current user (checks cache first, then Firestore)
   Future<AppUser?> getCurrentUser() async {
     try {
