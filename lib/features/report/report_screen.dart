@@ -54,14 +54,14 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   backgroundColor: Colors.white,
                   appBar: TabPageHeader(
                     title: 'Analytics',
-                    fontSize: 24,
-                    centerTitle: false,
                     bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(30),
+                      preferredSize: const Size.fromHeight(40),
                       child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 60,
-                          vertical: 10,
+                        margin: const EdgeInsets.only(
+                          left: 60,
+                          right: 60,
+                          top: 0,
+                          bottom: 10,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],

@@ -25,8 +25,6 @@ class SocialScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       appBar: TabPageHeader(
         title: 'SAKU Village',
-        fontSize: 28,
-        height: 64,
         actions: [
           IconButton(
             onPressed: () {

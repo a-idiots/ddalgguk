@@ -60,8 +60,8 @@ class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.actions,
-    this.height = 56,
-    this.fontSize = 18,
+    this.height = 68,
+    this.fontSize = 20,
     this.centerTitle = true,
     this.bottom,
   });
@@ -85,12 +85,16 @@ class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       automaticallyImplyLeading: false,
       toolbarHeight: height,
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.w700,
-          color: Colors.black,
+      titleSpacing: 0,
+      title: Padding(
+        padding: EdgeInsets.only(top: bottom != null ? 0 : 0),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
         ),
       ),
       actions: actions,
