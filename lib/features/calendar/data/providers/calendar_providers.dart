@@ -2,6 +2,7 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/profile/data/services/badge_service.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart'; // Added import for Badge
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Export the service for use in other modules
@@ -15,6 +16,12 @@ final badgeServiceProvider = Provider<BadgeService>((ref) {
   final service = BadgeService.instance;
   service.setAuthRepository(authRepository);
   return service;
+});
+
+/// Provider for Badge Earned Event Stream
+final badgeEarnedStreamProvider = StreamProvider<Badge>((ref) {
+  final service = ref.watch(badgeServiceProvider);
+  return service.onBadgeEarned;
 });
 
 /// Provider for DrinkingRecordService

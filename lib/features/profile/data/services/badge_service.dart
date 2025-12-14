@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:ddalgguk/features/auth/data/repositories/auth_repository.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
@@ -56,6 +59,10 @@ class BadgeService {
   };
 
   bool _isInitialized = false;
+
+  // Stream for new badges
+  final _badgeEarnedController = StreamController<Badge>.broadcast();
+  Stream<Badge> get onBadgeEarned => _badgeEarnedController.stream;
 
   /// Initialize and load data
   Future<void> init() async {
@@ -379,7 +386,112 @@ class BadgeService {
     _streaks['longest_sober'] = maxSober;
     _streaks['longest_drinking'] = maxDrinking;
 
-    // TODO: Check Badges here
+    await _checkBadges(changedDate);
+  }
+
+  /// Check and award badges
+  Future<void> _checkBadges(DateTime date) async {
+    if (_authRepository == null) {
+      debugPrint('BadgeService: AuthRepository not set. Skipping badge check.');
+      return;
+    }
+
+    final user = await _authRepository!.getCurrentUser();
+    if (user == null) {
+      return;
+    }
+
+    await _checkSoberBadges(user, date);
+    await _checkDrinkingBadges(user, date);
+  }
+
+  /// Check Sober Badges (Sequential: 7, 14, 21, 30, 60, 90, 180, 365)
+  Future<void> _checkSoberBadges(AppUser user, DateTime date) async {
+    final currentSoberStreak = _streaks['current_sober'] as int;
+    final thresholds = [7, 14, 21, 30, 60, 90, 180, 365];
+
+    for (int idx = 0; idx < thresholds.length; idx++) {
+      final days = thresholds[idx];
+      // Check if already achieved (Optimization: assume sequential, but check explicitly for safety)
+      final hasBadge = user.badges.any(
+        (b) => b.group == 'sober' && b.idx == idx,
+      );
+
+      if (hasBadge) {
+        continue; // Already has this level, check next
+      }
+
+      if (currentSoberStreak >= days) {
+        // Award Badge
+        final badge = Badge(group: 'sober', idx: idx, achievedDay: date);
+        await _authRepository!.addBadge(badge);
+        _badgeEarnedController.add(badge);
+      } else {
+        // If strict sequential requirement: if failed lower level, cannot get higher level?
+        // Logic says "satisfied when condition met". If streak is 7, get idx 0.
+        // If streak jumps to 30 (e.g. data import), should get 0, 1, 2, 3?
+        // Yes, "Checks smallest first".
+      }
+    }
+  }
+
+  /// Check Drinking Badges
+  /// 0: Drinking Streak >= 3
+  /// 1, 2, 3: Excessive Frequency (Monthly) >= 3, 5, 10
+  /// 4, 5, 6, 7: Alcohol Volume (Monthly) >= 500, 1000, 3000, 5000
+  Future<void> _checkDrinkingBadges(AppUser user, DateTime date) async {
+    // 0: Drinking Streak >= 3
+    final currentDrinkingStreak = _streaks['current_drinking'] as int;
+    if (currentDrinkingStreak >= 3) {
+      await _awardBadgeIfNotExists(user, 'drink', 0, date);
+    }
+
+    // Monthly Logic
+    final monthKey = DateFormat('yyyy-MM').format(date);
+
+    // Excessive Frequency
+    final excessiveDaysCount = _countExcessiveDaysInMonth(monthKey);
+    final excessiveThresholds = [3, 5, 10]; // idx 1, 2, 3
+
+    for (int i = 0; i < excessiveThresholds.length; i++) {
+      if (excessiveDaysCount >= excessiveThresholds[i]) {
+        await _awardBadgeIfNotExists(user, 'drink', 1 + i, date);
+      }
+    }
+
+    // Alcohol Volume
+    final monthlyTotal = _monthlyAlcohol[monthKey] ?? 0.0;
+    final volumeThresholds = [500, 1000, 3000, 5000]; // idx 4, 5, 6, 7
+
+    for (int i = 0; i < volumeThresholds.length; i++) {
+      if (monthlyTotal >= volumeThresholds[i]) {
+        await _awardBadgeIfNotExists(user, 'drink', 4 + i, date);
+      }
+    }
+  }
+
+  int _countExcessiveDaysInMonth(String monthKey) {
+    int count = 0;
+    _excessiveDays.forEach((key, isExcessive) {
+      if (key.startsWith(monthKey) && isExcessive) {
+        count++;
+      }
+    });
+    return count;
+  }
+
+  Future<void> _awardBadgeIfNotExists(
+    AppUser user,
+    String group,
+    int idx,
+    DateTime date,
+  ) async {
+    final hasBadge = user.badges.any((b) => b.group == group && b.idx == idx);
+    if (!hasBadge) {
+      final badge = Badge(group: group, idx: idx, achievedDay: date);
+      await _authRepository!.addBadge(badge);
+      _badgeEarnedController.add(badge);
+    }
   }
 
   void _resetStreaks() {

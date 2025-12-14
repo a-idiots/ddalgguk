@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/auth/data/services/google_auth_service.dart';
 import 'package:ddalgguk/features/auth/data/services/apple_auth_service.dart';
 import 'package:ddalgguk/features/auth/data/services/kakao_auth_service.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart'; // Added import for Badge
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 
 /// Authentication Repository
@@ -288,6 +289,49 @@ class AuthRepository {
     } catch (e) {
       debugPrint('Get current user error: $e');
       return null;
+    }
+  }
+
+  /// Add a badge to the current user
+  Future<void> addBadge(Badge badge) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        throw Exception('User not found');
+      }
+
+      // Check for duplicates (same group and idx)
+      final existingBadges = currentUser.badges;
+      final isDuplicate = existingBadges.any(
+        (b) => b.group == badge.group && b.idx == badge.idx,
+      );
+
+      if (isDuplicate) {
+        debugPrint(
+          'Badge already exists: ${badge.group}_${badge.idx}. Skipping.',
+        );
+        return;
+      }
+
+      final newBadges = List<Badge>.from(existingBadges)..add(badge);
+
+      // Save to Firestore
+      final updatedUser = currentUser.copyWith(badges: newBadges);
+      await _usersCollection
+          .doc(uid)
+          .set(updatedUser.toFirestore(), SetOptions(merge: true));
+
+      // Update cache
+      await _storageService.saveUserCache(updatedUser);
+      debugPrint('Badge added: ${badge.group}_${badge.idx}');
+    } catch (e) {
+      debugPrint('Add badge error: $e');
+      rethrow;
     }
   }
 

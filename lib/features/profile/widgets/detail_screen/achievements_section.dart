@@ -71,7 +71,7 @@ class AchievementsSection extends ConsumerWidget {
                       itemCount: displayBadges.length,
                       itemBuilder: (context, index) {
                         final badge = displayBadges[index];
-                        final badgeData = badge.group == 'drinking'
+                        final badgeData = badge.group == 'drink'
                             ? drinkingBadges[badge.idx]
                             : sobrietyBadges[badge.idx];
 
@@ -160,7 +160,7 @@ class AchievementsSection extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildBadgeGrid(drinkingBadges, userBadges, 'drinking'),
+              _buildBadgeGrid(drinkingBadges, userBadges, 'drink'),
               Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 2,
@@ -180,7 +180,7 @@ class AchievementsSection extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildBadgeGrid(sobrietyBadges, userBadges, 'sobriety'),
+              _buildBadgeGrid(sobrietyBadges, userBadges, 'sober'),
             ],
           ),
         ),

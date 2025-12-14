@@ -10,10 +10,19 @@ class Badge extends Equatable {
   });
 
   factory Badge.fromJson(Map<String, dynamic> json) {
+    DateTime parsedDate;
+    if (json['achievedDay'] is Timestamp) {
+      parsedDate = (json['achievedDay'] as Timestamp).toDate();
+    } else if (json['achievedDay'] is String) {
+      parsedDate = DateTime.parse(json['achievedDay'] as String);
+    } else {
+      parsedDate = DateTime.now(); // Fallback
+    }
+
     return Badge(
       group: json['group'] as String,
       idx: json['idx'] as int,
-      achievedDay: (json['achievedDay'] as Timestamp).toDate(),
+      achievedDay: parsedDate,
     );
   }
 
@@ -43,6 +52,14 @@ class Badge extends Equatable {
       'group': group,
       'idx': idx,
       'achievedDay': achievedDay.toIso8601String(),
+    };
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'group': group,
+      'idx': idx,
+      'achievedDay': Timestamp.fromDate(achievedDay),
     };
   }
 
