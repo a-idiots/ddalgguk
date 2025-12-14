@@ -8,9 +8,14 @@ import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart'
 import 'package:ddalgguk/features/profile/widgets/reusable_section.dart';
 
 class AchievementsSection extends ConsumerWidget {
-  const AchievementsSection({super.key, required this.theme});
+  const AchievementsSection({
+    super.key,
+    required this.theme,
+    this.onlyPinned = false,
+  });
 
   final AppTheme theme;
+  final bool onlyPinned;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,13 +23,17 @@ class AchievementsSection extends ConsumerWidget {
 
     return badgesAsync.when(
       skipLoadingOnReload: true,
-      data: (badges) {
+      data: (allBadges) {
+        final displayBadges = onlyPinned
+            ? allBadges.where((b) => b.isPinned).toList()
+            : allBadges;
+
         return ProfileSection(
           title: '나의 업적',
           titleOutside: true,
           subtitle: GestureDetector(
             onTap: () {
-              _showAllAchievements(context, badges, ref);
+              _showAllAchievements(context, allBadges, ref);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
@@ -50,7 +59,7 @@ class AchievementsSection extends ConsumerWidget {
             padding: const EdgeInsets.only(top: 12),
             child: SizedBox(
               height: 110,
-              child: badges.isEmpty
+              child: displayBadges.isEmpty
                   ? const Center(
                       child: Text(
                         '아직 획득한 뱃지가 없습니다.',
@@ -59,9 +68,9 @@ class AchievementsSection extends ConsumerWidget {
                     )
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: badges.length,
+                      itemCount: displayBadges.length,
                       itemBuilder: (context, index) {
-                        final badge = badges[index];
+                        final badge = displayBadges[index];
                         final badgeData = badge.group == 'drinking'
                             ? drinkingBadges[badge.idx]
                             : sobrietyBadges[badge.idx];
@@ -70,7 +79,7 @@ class AchievementsSection extends ConsumerWidget {
                           return const SizedBox.shrink();
                         }
 
-                        final pinnedCount = badges
+                        final pinnedCount = allBadges
                             .where((b) => b.isPinned)
                             .length;
 
@@ -81,9 +90,11 @@ class AchievementsSection extends ConsumerWidget {
                             isUnlocked: true,
                             isPinned: badge.isPinned,
                             showPin: badge.isPinned || pinnedCount < 4,
-                            onPin: () => ref
-                                .read(authRepositoryProvider)
-                                .toggleBadgePin(badge.id),
+                            onPin: onlyPinned
+                                ? null
+                                : () => ref
+                                      .read(authRepositoryProvider)
+                                      .toggleBadgePin(badge.id),
                           ),
                         );
                       },
