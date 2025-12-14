@@ -137,9 +137,6 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     // 3. Stats Grid
                     monthRecordsAsync.when(
                       data: (records) {
-                        if (records.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
                         return _buildStatsGrid(records);
                       },
                       loading: () => const SizedBox.shrink(),
@@ -255,10 +252,6 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   }
 
   Widget _buildStatsGrid(List<DrinkingRecord> records) {
-    if (records.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     // Calculate stats
     final drunkCount = records.where((r) => r.drunkLevel >= 7).length;
 
@@ -336,7 +329,12 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   Widget _buildHoleInWalletSection(List<DrinkingRecord> records) {
     if (records.isEmpty) {
-      return const SizedBox.shrink();
+      return _RecordHighlightSection(
+        title: '지갑에 빵꾸 뚫린 날',
+        subtitle: '${DateTime.now().month}월 술값 지출 부문 1위',
+        recordName: '-',
+        valueText: '0원',
+      );
     }
     final maxRecord = records.reduce(
       (curr, next) => curr.cost > next.cost ? curr : next,
@@ -352,7 +350,12 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   Widget _buildMostDrunkSection(List<DrinkingRecord> records) {
     if (records.isEmpty) {
-      return const SizedBox.shrink();
+      return _RecordHighlightSection(
+        title: '가장 얼큰했던 술자리',
+        subtitle: '${DateTime.now().month}월 가장 취한 부문 1위',
+        recordName: '-',
+        valueText: '0%',
+      );
     }
     final maxRecord = records.reduce(
       (curr, next) => curr.drunkLevel > next.drunkLevel ? curr : next,
