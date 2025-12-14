@@ -130,9 +130,10 @@ class _UnifiedProfileSetupPageState extends State<UnifiedProfileSetupPage> {
           height: 200,
           child: CupertinoDatePicker(
             mode: CupertinoDatePickerMode.date,
-            initialDateTime: widget.selectedDate ?? DateTime(2007, 1, 1),
+            initialDateTime:
+                widget.selectedDate ?? DateTime(DateTime.now().year - 19),
             minimumDate: DateTime(1900),
-            maximumDate: DateTime.now(),
+            maximumDate: DateTime(DateTime.now().year - 19),
             dateOrder: DatePickerDateOrder.ymd,
             onDateTimeChanged: widget.onDateSelected,
           ),
