@@ -598,8 +598,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final service = ref.read(drinkingRecordServiceProvider);
       await service.createRecord(record);
 
-      // 캘린더 새로고침을 위해 provider invalidate
-      ref.invalidate(monthRecordsProvider(_focusedDay));
+      // 캘린더 새로고침을 위해 provider notify
+      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+          DateTime.now();
       // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
       ref.invalidate(friendsProvider);
 
@@ -659,8 +660,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         selectedDate: selectedDate,
         sessionNumber: sessionNumber,
         onRecordAdded: () {
-          // 캘린더 새로고침을 위해 provider invalidate
-          ref.invalidate(monthRecordsProvider(_focusedDay));
+          // 캘린더 새로고침은 Dialog 내부에서 provider notify로 처리됨
+          // ref.invalidate(monthRecordsProvider(_focusedDay));
         },
       ),
     );
@@ -673,8 +674,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       child: EditRecordDialog(
         record: record,
         onRecordUpdated: () {
-          // 캘린더 새로고침을 위해 provider invalidate
-          ref.invalidate(monthRecordsProvider(_focusedDay));
+          // 캘린더 새로고침은 Dialog 내부에서 provider notify로 처리됨
+          // ref.invalidate(monthRecordsProvider(_focusedDay));
         },
       ),
     );
@@ -807,8 +808,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           }
         }
 
-        // 캘린더 새로고침을 위해 provider invalidate
-        ref.invalidate(monthRecordsProvider(_focusedDay));
+        // 캘린더 새로고침을 위해 provider notify
+        ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+            DateTime.now();
         // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
         ref.invalidate(friendsProvider);
 
