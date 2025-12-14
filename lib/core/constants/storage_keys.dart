@@ -13,6 +13,7 @@ class StorageKeys {
   // SharedPreferences Keys (unencrypted)
   static const String hasCompletedOnboarding = 'has_completed_onboarding';
   static const String lastLoginProvider = 'last_login_provider';
+  static const String badgeStats = 'badge_stats'; // Local stats JSON
 }
 
 /// Login provider types
