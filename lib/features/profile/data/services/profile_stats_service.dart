@@ -412,4 +412,49 @@ class ProfileStatsService {
       return {};
     }
   }
+
+  /// Create WeeklyStats from a list of drunk levels (e.g. from AppUser or FriendData)
+  /// Assumes the list represents the last 7 days ending on [endDate]
+  /// [weeklyLevels]: List of 7 integers (-1: no record, 0: sober, >0: drunk level)
+  static WeeklyStats createWeeklyStatsFromList({
+    required List<int>? weeklyLevels,
+    required DateTime endDate,
+  }) {
+    final normalizedEndDate = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+    );
+    final startDate = normalizedEndDate.subtract(const Duration(days: 6));
+
+    // Handle empty or invalid data
+    if (weeklyLevels == null || weeklyLevels.length != 7) {
+      return WeeklyStats.empty(startDate);
+    }
+
+    final dailyData = <DailySakuData>[];
+    for (int i = 0; i < 7; i++) {
+      final date = startDate.add(Duration(days: i));
+      final level = weeklyLevels[i];
+
+      dailyData.add(
+        DailySakuData(
+          date: date,
+          drunkLevel: level == -1 ? 0 : level,
+          hasRecords: level != -1,
+          totalAlcoholMl: 0, // Not available from simple int list
+        ),
+      );
+    }
+
+    final soberDays = weeklyLevels.where((l) => l == -1 || l == 0).length;
+
+    return WeeklyStats(
+      startDate: startDate,
+      endDate: normalizedEndDate,
+      dailyData: dailyData,
+      soberDays: soberDays,
+      drinkTypeStats: [], // Not available
+    );
+  }
 }

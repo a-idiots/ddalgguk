@@ -49,8 +49,23 @@ final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
 });
 
 /// Weekly stats provider (last 7 days)
-final weeklyStatsProvider = FutureProvider<WeeklyStats>((ref) {
+/// Weekly stats provider (last 7 days)
+final weeklyStatsProvider = FutureProvider<WeeklyStats>((ref) async {
+  // Watch for data updates
   ref.watch(drinkingRecordsLastUpdatedProvider);
+
+  // Try to get data from current user first
+  final user = await ref.watch(currentUserProvider.future);
+  if (user != null &&
+      user.weeklyDrunkLevels != null &&
+      user.weeklyDrunkLevels!.length == 7) {
+    return ProfileStatsService.createWeeklyStatsFromList(
+      weeklyLevels: user.weeklyDrunkLevels,
+      endDate: DateTime.now(),
+    );
+  }
+
+  // Fallback to calculation from records
   final service = ref.watch(profileStatsServiceProvider);
   return service.calculateWeeklyStats();
 });
