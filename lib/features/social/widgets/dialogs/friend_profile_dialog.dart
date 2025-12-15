@@ -164,7 +164,11 @@ class FriendProfileDialog extends ConsumerWidget {
       friendProfileStatsProvider(friendData.userId),
     );
     final profileStats = profileStatsAsync.valueOrNull;
-    final theme = AppColors.getTheme(profileStats?.thisMonthDrunkDays ?? 0);
+
+    // 친구가 아직 술이 분해되지 않았으면 빨간색 테마, 아니면 초록색 테마
+    final hasDrunkLevel =
+        profileStats != null && profileStats.currentAlcoholInBody > 0;
+    final theme = AppColors.getTheme(hasDrunkLevel ? 1 : 0);
 
     return Column(
       children: [
