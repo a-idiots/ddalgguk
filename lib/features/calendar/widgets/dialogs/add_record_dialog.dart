@@ -150,7 +150,8 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     final drinkAmounts = <DrinkAmount>[];
     for (var record in _completedRecords) {
       // ml로 변환
-      final amountInMl = record.amount * getUnitMultiplier(record.drinkType, record.unit);
+      final amountInMl =
+          record.amount * getUnitMultiplier(record.drinkType, record.unit);
 
       drinkAmounts.add(
         DrinkAmount(

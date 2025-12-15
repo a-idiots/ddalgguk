@@ -508,8 +508,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         String unit;
                         double amount;
 
-                        final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
-                        final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
+                        final bottleMultiplier = getUnitMultiplier(
+                          drink.drinkType,
+                          '병',
+                        );
+                        final glassMultiplier = getUnitMultiplier(
+                          drink.drinkType,
+                          '잔',
+                        );
 
                         if (drink.amount >= bottleMultiplier) {
                           unit = '병';

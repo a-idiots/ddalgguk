@@ -65,12 +65,12 @@ class NotificationSettingsScreen extends ConsumerWidget {
           ...NotificationType.values
               .where((type) => type != NotificationType.socialAlarm)
               .map((type) {
-            return _NotificationToggleTile(
-              type: type,
-              title: _getNotificationTypeName(type),
-              description: _getNotificationTypeDescription(type),
-            );
-          }),
+                return _NotificationToggleTile(
+                  type: type,
+                  title: _getNotificationTypeName(type),
+                  description: _getNotificationTypeDescription(type),
+                );
+              }),
           const SettingsSectionDivider(),
           const SizedBox(height: 16),
           Padding(

@@ -449,7 +449,9 @@ class FriendService {
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonday))
           .where(
             'date',
-            isLessThan: Timestamp.fromDate(thisSunday.add(const Duration(days: 1))),
+            isLessThan: Timestamp.fromDate(
+              thisSunday.add(const Duration(days: 1)),
+            ),
           )
           .get();
 
@@ -475,7 +477,10 @@ class FriendService {
           weeklyLevels.add(-1);
         } else {
           // 평균 음주 레벨 계산
-          final totalLevel = dayRecords.fold<int>(0, (total, level) => total + level);
+          final totalLevel = dayRecords.fold<int>(
+            0,
+            (total, level) => total + level,
+          );
           final avgLevel = (totalLevel / dayRecords.length).round();
           // 0-10 범위를 0-100으로 변환
           weeklyLevels.add(avgLevel * 10);
@@ -510,7 +515,9 @@ class FriendService {
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonday))
           .where(
             'date',
-            isLessThan: Timestamp.fromDate(thisSunday.add(const Duration(days: 1))),
+            isLessThan: Timestamp.fromDate(
+              thisSunday.add(const Duration(days: 1)),
+            ),
           )
           .get();
 
@@ -536,7 +543,10 @@ class FriendService {
           weeklyLevels.add(-1);
         } else {
           // 평균 음주 레벨 계산
-          final totalLevel = dayRecords.fold<int>(0, (total, level) => total + level);
+          final totalLevel = dayRecords.fold<int>(
+            0,
+            (total, level) => total + level,
+          );
           final avgLevel = (totalLevel / dayRecords.length).round();
           // 0-10 범위를 0-100으로 변환
           weeklyLevels.add(avgLevel * 10);
@@ -602,11 +612,15 @@ class FriendService {
 
     try {
       // 주간 음주 레벨 계산
-      final weeklyDrunkLevels = await _calculateWeeklyDrunkLevelsForUser(friendUserId);
+      final weeklyDrunkLevels = await _calculateWeeklyDrunkLevelsForUser(
+        friendUserId,
+      );
       debugPrint('Weekly drunk levels for $friendUserId: $weeklyDrunkLevels');
 
       // 현재 취한 정도 계산
-      final currentDrunkLevel = await _calculateCurrentDrunkLevelForUser(friendUserId);
+      final currentDrunkLevel = await _calculateCurrentDrunkLevelForUser(
+        friendUserId,
+      );
       debugPrint('Current drunk level for $friendUserId: $currentDrunkLevel');
 
       // 친구의 프로필 업데이트
@@ -747,7 +761,8 @@ class FriendService {
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
       final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
-      final currentUserProfilePhoto = currentUserData?['profilePhoto'] as int? ?? 0;
+      final currentUserProfilePhoto =
+          currentUserData?['profilePhoto'] as int? ?? 0;
 
       debugPrint('=== sendFriendRequest ===');
       debugPrint('From: $_currentUserId ($currentUserName)');

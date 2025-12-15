@@ -46,7 +46,10 @@ class AchievementsSection extends ConsumerWidget {
                     _showAllAchievements(context, allBadges, ref);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(20),

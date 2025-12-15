@@ -202,7 +202,9 @@ class NotificationService {
     final nextMonth = month == 12 ? 1 : month + 1;
     final nextYear = month == 12 ? year + 1 : year;
     final firstDayOfNextMonth = tz.TZDateTime(tz.local, nextYear, nextMonth, 1);
-    final lastDayOfMonth = firstDayOfNextMonth.subtract(const Duration(days: 1));
+    final lastDayOfMonth = firstDayOfNextMonth.subtract(
+      const Duration(days: 1),
+    );
 
     // Set the time
     return tz.TZDateTime(

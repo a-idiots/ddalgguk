@@ -11,36 +11,6 @@ import 'package:intl/intl.dart';
 class PostboxScreen extends ConsumerWidget {
   const PostboxScreen({super.key});
 
-  Widget _buildProfileAvatar(int? profilePhoto, {double size = 48}) {
-    final photo = profilePhoto ?? 0;
-
-    if (photo <= 10) {
-      return SakuCharacter(size: size, drunkLevel: photo * 10);
-    }
-
-    const alcoholIcons = [
-      'assets/imgs/alcohol_icons/soju.png',
-      'assets/imgs/alcohol_icons/beer.png',
-      'assets/imgs/alcohol_icons/cocktail.png',
-      'assets/imgs/alcohol_icons/wine.png',
-      'assets/imgs/alcohol_icons/makgulli.png',
-    ];
-    final iconIndex = photo - 11;
-
-    if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
-      return Center(
-        child: Image.asset(
-          alcoholIcons[iconIndex],
-          width: size * 0.9,
-          height: size * 0.9,
-          fit: BoxFit.contain,
-        ),
-      );
-    }
-
-    return SakuCharacter(size: size);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requestsAsync = ref.watch(friendRequestsProvider);
@@ -491,7 +461,10 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: _buildProfileAvatar(widget.request.toUserProfilePhoto, size: 48),
+                child: _buildProfileAvatar(
+                  widget.request.toUserProfilePhoto,
+                  size: 48,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -711,7 +684,10 @@ class _FriendRequestCardState extends State<_FriendRequestCard> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: _buildProfileAvatar(widget.request.fromUserProfilePhoto, size: 48),
+                child: _buildProfileAvatar(
+                  widget.request.fromUserProfilePhoto,
+                  size: 48,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

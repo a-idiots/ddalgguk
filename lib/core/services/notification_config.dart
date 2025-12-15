@@ -100,10 +100,7 @@ class NotificationConfig {
 
   /// Get all enabled notification types
   static List<NotificationType> getEnabledTypes() {
-    return [
-      NotificationType.recordAlarm,
-      NotificationType.recapAlarm,
-    ];
+    return [NotificationType.recordAlarm, NotificationType.recapAlarm];
   }
 
   /// Get notification ID for a specific type and schedule index

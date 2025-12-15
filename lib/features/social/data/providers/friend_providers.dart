@@ -43,7 +43,9 @@ final friendsProvider = FutureProvider.autoDispose<List<FriendWithData>>((
   // 친구들의 음주 데이터 업데이트 (병렬로 실행)
   if (friends.isNotEmpty) {
     await Future.wait(
-      friends.map((friend) => friendService.updateFriendDrinkingData(friend.userId)),
+      friends.map(
+        (friend) => friendService.updateFriendDrinkingData(friend.userId),
+      ),
     );
   }
 
