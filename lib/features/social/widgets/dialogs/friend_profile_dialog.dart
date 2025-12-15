@@ -19,18 +19,22 @@ class FriendProfileDialog extends ConsumerWidget {
   WeeklyStats _createWeeklyStats() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final startDate = today.subtract(const Duration(days: 6));
+
+    // 이번 주 월요일 계산 (weekday: 1=월요일, 7=일요일)
+    final daysSinceMonday = today.weekday - 1;
+    final thisMonday = today.subtract(Duration(days: daysSinceMonday));
+    final thisSunday = thisMonday.add(const Duration(days: 6));
 
     // weeklyDrunkLevels가 없으면 빈 통계 반환
     final weeklyLevels = friendData.weeklyDrunkLevels;
     if (weeklyLevels == null || weeklyLevels.length != 7) {
-      return WeeklyStats.empty(startDate);
+      return WeeklyStats.empty(thisMonday);
     }
 
-    // 일일 데이터 생성
+    // 일일 데이터 생성 [월(0), 화(1), 수(2), 목(3), 금(4), 토(5), 일(6)]
     final dailyData = <DailySakuData>[];
     for (int i = 0; i < 7; i++) {
-      final date = startDate.add(Duration(days: i));
+      final date = thisMonday.add(Duration(days: i));
       final level = weeklyLevels[i];
 
       dailyData.add(
@@ -43,8 +47,8 @@ class FriendProfileDialog extends ConsumerWidget {
     }
 
     return WeeklyStats(
-      startDate: startDate,
-      endDate: today,
+      startDate: thisMonday,
+      endDate: thisSunday,
       dailyData: dailyData,
       soberDays: weeklyLevels.where((l) => l == -1).length,
       drinkTypeStats: [],
@@ -79,8 +83,13 @@ class FriendProfileDialog extends ConsumerWidget {
     int thisMonthDrunkDays = 0;
     if (weeklyLevels != null) {
       final today = DateTime(now.year, now.month, now.day);
+      // 이번 주 월요일 계산
+      final daysSinceMonday = today.weekday - 1;
+      final thisMonday = today.subtract(Duration(days: daysSinceMonday));
+
+      // 이번 주 월~일 중 이번 달에 해당하는 음주일 계산
       for (int i = 0; i < 7; i++) {
-        final date = today.subtract(Duration(days: 6 - i));
+        final date = thisMonday.add(Duration(days: i));
         if (date.month == now.month && weeklyLevels[i] > 0) {
           thisMonthDrunkDays++;
         }

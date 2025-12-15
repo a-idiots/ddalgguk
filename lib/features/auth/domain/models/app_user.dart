@@ -115,7 +115,7 @@ class AppUser {
   // Recent Drink Info
   final int? currentDrunkLevel; // 현재 술 레벨 (0-10)
   final List<int>?
-  weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
+  weeklyDrunkLevels; // 이번 주차(월~일) 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
   final DateTime? lastDrinkDate; // 마지막 음주 날짜
 
   // Daily Status

@@ -404,7 +404,7 @@ class FriendService {
     }
 
     try {
-      // 주간 음주 레벨 계산 (최근 7일)
+      // 주간 음주 레벨 계산 (이번 주 월~일)
       final weeklyDrunkLevels = await _calculateWeeklyDrunkLevels();
       debugPrint('Weekly drunk levels: $weeklyDrunkLevels');
 
@@ -424,8 +424,9 @@ class FriendService {
     }
   }
 
-  /// 최근 7일 간의 음주 레벨 계산
+  /// 이번 주차(월요일~일요일) 음주 레벨 계산
   /// -1: 기록 없음, 0: 금주(기록 있지만 안 마심), 1-100: 음주 레벨
+  /// 배열 인덱스: [월(0), 화(1), 수(2), 목(3), 금(4), 토(5), 일(6)]
   Future<List<int>> _calculateWeeklyDrunkLevels() async {
     if (_currentUserId == null) {
       return List.filled(7, -1);
@@ -434,17 +435,21 @@ class FriendService {
     try {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final startDate = today.subtract(const Duration(days: 6));
 
-      // 최근 7일 간의 모든 음주 기록 가져오기
+      // 이번 주 월요일 계산 (weekday: 1=월요일, 7=일요일)
+      final daysSinceMonday = today.weekday - 1;
+      final thisMonday = today.subtract(Duration(days: daysSinceMonday));
+      final thisSunday = thisMonday.add(const Duration(days: 6));
+
+      // 이번 주 월요일~일요일 범위의 모든 음주 기록 가져오기
       final recordsSnapshot = await _firestore
           .collection('users')
           .doc(_currentUserId)
           .collection('drinkingRecords')
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonday))
           .where(
             'date',
-            isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
+            isLessThan: Timestamp.fromDate(thisSunday.add(const Duration(days: 1))),
           )
           .get();
 
@@ -458,10 +463,10 @@ class FriendService {
         recordsByDate.putIfAbsent(dateKey, () => []).add(drunkLevel);
       }
 
-      // 7일 배열 생성
+      // 7일 배열 생성 [월, 화, 수, 목, 금, 토, 일]
       final List<int> weeklyLevels = [];
       for (int i = 0; i < 7; i++) {
-        final date = startDate.add(Duration(days: i));
+        final date = thisMonday.add(Duration(days: i));
         final dateKey = '${date.year}-${date.month}-${date.day}';
         final dayRecords = recordsByDate[dateKey];
 
@@ -469,10 +474,11 @@ class FriendService {
           // 기록 없음
           weeklyLevels.add(-1);
         } else {
-          // 최대 음주 레벨 찾기
-          final maxLevel = dayRecords.reduce((a, b) => a > b ? a : b);
+          // 평균 음주 레벨 계산
+          final totalLevel = dayRecords.fold<int>(0, (total, level) => total + level);
+          final avgLevel = (totalLevel / dayRecords.length).round();
           // 0-10 범위를 0-100으로 변환
-          weeklyLevels.add(maxLevel * 10);
+          weeklyLevels.add(avgLevel * 10);
         }
       }
 
@@ -483,23 +489,28 @@ class FriendService {
     }
   }
 
-  /// 특정 사용자의 주간 음주 레벨 계산 (친구용)
+  /// 특정 사용자의 이번 주차(월요일~일요일) 음주 레벨 계산 (친구용)
   /// -1: 기록 없음, 0: 금주(기록 있지만 안 마심), 1-100: 음주 레벨
+  /// 배열 인덱스: [월(0), 화(1), 수(2), 목(3), 금(4), 토(5), 일(6)]
   Future<List<int>> _calculateWeeklyDrunkLevelsForUser(String userId) async {
     try {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final startDate = today.subtract(const Duration(days: 6));
 
-      // 최근 7일 간의 모든 음주 기록 가져오기
+      // 이번 주 월요일 계산 (weekday: 1=월요일, 7=일요일)
+      final daysSinceMonday = today.weekday - 1;
+      final thisMonday = today.subtract(Duration(days: daysSinceMonday));
+      final thisSunday = thisMonday.add(const Duration(days: 6));
+
+      // 이번 주 월요일~일요일 범위의 모든 음주 기록 가져오기
       final recordsSnapshot = await _firestore
           .collection('users')
           .doc(userId)
           .collection('drinkingRecords')
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(thisMonday))
           .where(
             'date',
-            isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
+            isLessThan: Timestamp.fromDate(thisSunday.add(const Duration(days: 1))),
           )
           .get();
 
@@ -513,10 +524,10 @@ class FriendService {
         recordsByDate.putIfAbsent(dateKey, () => []).add(drunkLevel);
       }
 
-      // 7일 배열 생성
+      // 7일 배열 생성 [월, 화, 수, 목, 금, 토, 일]
       final List<int> weeklyLevels = [];
       for (int i = 0; i < 7; i++) {
-        final date = startDate.add(Duration(days: i));
+        final date = thisMonday.add(Duration(days: i));
         final dateKey = '${date.year}-${date.month}-${date.day}';
         final dayRecords = recordsByDate[dateKey];
 
@@ -524,10 +535,11 @@ class FriendService {
           // 기록 없음
           weeklyLevels.add(-1);
         } else {
-          // 최대 음주 레벨 찾기
-          final maxLevel = dayRecords.reduce((a, b) => a > b ? a : b);
+          // 평균 음주 레벨 계산
+          final totalLevel = dayRecords.fold<int>(0, (total, level) => total + level);
+          final avgLevel = (totalLevel / dayRecords.length).round();
           // 0-10 범위를 0-100으로 변환
-          weeklyLevels.add(maxLevel * 10);
+          weeklyLevels.add(avgLevel * 10);
         }
       }
 
