@@ -74,10 +74,12 @@ class AchievementsSection extends ConsumerWidget {
             child: SizedBox(
               height: 110,
               child: displayBadges.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        '아직 획득한 뱃지가 없습니다.',
-                        style: TextStyle(color: Colors.grey),
+                        friendUserId != null
+                            ? '친구가 고정한 뱃지가 없습니다.'
+                            : '아직 획득한 뱃지가 없습니다.',
+                        style: const TextStyle(color: Colors.grey),
                       ),
                     )
                   : ListView.builder(

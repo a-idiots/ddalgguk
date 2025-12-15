@@ -50,33 +50,46 @@ final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
 });
 
 /// Friend badges provider (for specific user)
-final friendBadgesProvider = FutureProvider.family<List<Badge>, String>((
+final friendBadgesProvider = FutureProvider.autoDispose.family<List<Badge>, String>((
   ref,
   userId,
 ) async {
+  debugPrint('=== friendBadgesProvider ===');
+  debugPrint('Fetching badges for user: $userId');
+
   final friendService = ref.watch(friendServiceProvider);
   final friendProfile = await friendService.getFriendProfile(userId);
 
   if (friendProfile == null) {
+    debugPrint('❌ Friend profile is null');
     return <Badge>[];
   }
+
+  debugPrint('✅ Friend profile badges: ${friendProfile.badges.length}');
+  debugPrint('📌 Friend pinnedBadges list: ${friendProfile.pinnedBadges}');
 
   final pinnedBadges = friendProfile.pinnedBadges;
   final List<Badge> badges = friendProfile.badges.map((Badge b) {
     final isPinned = pinnedBadges.contains(b.id);
+    debugPrint(
+      '  Badge ${b.id}: isPinned = $isPinned (checking if ${b.id} is in $pinnedBadges)',
+    );
     return b.copyWith(isPinned: isPinned);
   }).toList();
 
   // Sort by pinned status (pinned first) then by date descending (newest first)
   badges.sort((a, b) {
-    if (a.isPinned == true && b.isPinned != true) {
+    if (a.isPinned && !b.isPinned) {
       return -1;
     }
-    if (a.isPinned != true && b.isPinned == true) {
+    if (!a.isPinned && b.isPinned) {
       return 1;
     }
     return b.achievedDay.compareTo(a.achievedDay);
   });
+
+  final pinnedCount = badges.where((b) => b.isPinned).length;
+  debugPrint('📍 Final pinned badges count: $pinnedCount');
 
   return badges;
 });
@@ -202,9 +215,10 @@ final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
     return {};
   }
 
+  // Ensure all values are properly serializable (no Timestamp objects)
   return {
     'gender': user.gender,
-    'birthDate': user.birthDate,
+    'birthDate': user.birthDate, // Already DateTime? from AppUser model
     'height': user.height,
     'weight': user.weight,
     'coefficient': user.coefficient,
