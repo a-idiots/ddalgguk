@@ -102,24 +102,39 @@ class NotificationService {
     required int hour,
     required int minute,
     bool repeatDaily = true,
+    bool isMonthlyLastDay = false,
   }) async {
     if (!_isInitialized) {
       await initialize();
     }
 
     final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
+    tz.TZDateTime scheduledDate;
 
-    // If the scheduled time has passed today, schedule for tomorrow
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    if (isMonthlyLastDay) {
+      // Schedule for the last day of current month
+      scheduledDate = _getLastDayOfMonth(now.year, now.month, hour, minute);
+
+      // If the scheduled time has passed this month, schedule for next month
+      if (scheduledDate.isBefore(now)) {
+        final nextMonth = now.month == 12 ? 1 : now.month + 1;
+        final nextYear = now.month == 12 ? now.year + 1 : now.year;
+        scheduledDate = _getLastDayOfMonth(nextYear, nextMonth, hour, minute);
+      }
+    } else {
+      scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+
+      // If the scheduled time has passed today, schedule for tomorrow
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
     }
 
     final androidDetails = AndroidNotificationDetails(
@@ -153,6 +168,20 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
+    } else if (isMonthlyLastDay) {
+      // For monthly notifications, we need to reschedule after each trigger
+      // This is a one-time notification that should be rescheduled monthly
+      await _notificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+      debugPrint('📅 Scheduled recap notification for: $scheduledDate');
     } else {
       await _notificationsPlugin.zonedSchedule(
         id,
@@ -165,6 +194,25 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
     }
+  }
+
+  /// Get the last day of a specific month
+  tz.TZDateTime _getLastDayOfMonth(int year, int month, int hour, int minute) {
+    // Get the first day of next month, then subtract 1 day
+    final nextMonth = month == 12 ? 1 : month + 1;
+    final nextYear = month == 12 ? year + 1 : year;
+    final firstDayOfNextMonth = tz.TZDateTime(tz.local, nextYear, nextMonth, 1);
+    final lastDayOfMonth = firstDayOfNextMonth.subtract(const Duration(days: 1));
+
+    // Set the time
+    return tz.TZDateTime(
+      tz.local,
+      lastDayOfMonth.year,
+      lastDayOfMonth.month,
+      lastDayOfMonth.day,
+      hour,
+      minute,
+    );
   }
 
   /// Cancel a specific notification

@@ -38,7 +38,10 @@ class NotificationConfig {
       // 나중에 추가될 소셜 알림 메시지
     ],
     NotificationType.recapAlarm: [
-      // 나중에 추가될 리캡 알림 메시지
+      NotificationMessage(
+        title: '{userName}님의 {month}월 음주 리포트 완성!',
+        body: '지금 바로 접속해서 이번 달 알코올 총 섭취량을 확인해보세요.',
+      ),
     ],
   };
 
@@ -56,7 +59,12 @@ class NotificationConfig {
       // 나중에 추가될 소셜 알림 스케줄
     ],
     NotificationType.recapAlarm: [
-      // 나중에 추가될 리캡 알림 스케줄
+      NotificationSchedule(
+        type: NotificationType.recapAlarm,
+        hour: 10, // 10 AM
+        minute: 0,
+        repeatDaily: false, // 매월 마지막날에만
+      ),
     ],
   };
 
@@ -65,6 +73,7 @@ class NotificationConfig {
   static NotificationMessage getMessage(
     NotificationType type, {
     String userName = '사용자',
+    int? month,
   }) {
     final messageList = messages[type];
     if (messageList == null || messageList.isEmpty) {
@@ -72,10 +81,16 @@ class NotificationConfig {
     }
 
     final message = messageList.first;
-    return NotificationMessage(
-      title: message.title.replaceAll('{userName}', userName),
-      body: message.body.replaceAll('{userName}', userName),
-    );
+    var title = message.title.replaceAll('{userName}', userName);
+    var body = message.body.replaceAll('{userName}', userName);
+
+    // For recap alarm, replace month placeholder
+    if (type == NotificationType.recapAlarm && month != null) {
+      title = title.replaceAll('{month}', month.toString());
+      body = body.replaceAll('{month}', month.toString());
+    }
+
+    return NotificationMessage(title: title, body: body);
   }
 
   /// Get all schedules for a specific type
@@ -87,7 +102,7 @@ class NotificationConfig {
   static List<NotificationType> getEnabledTypes() {
     return [
       NotificationType.recordAlarm,
-      // 나중에 다른 타입들도 활성화
+      NotificationType.recapAlarm,
     ];
   }
 
@@ -127,7 +142,7 @@ class NotificationConfig {
       case NotificationType.socialAlarm:
         return '소셜 알림';
       case NotificationType.recapAlarm:
-        return '리캡 알림';
+        return 'Recap 알림';
     }
   }
 
@@ -139,7 +154,7 @@ class NotificationConfig {
       case NotificationType.socialAlarm:
         return '친구들의 소식을 알려드립니다';
       case NotificationType.recapAlarm:
-        return '주간 음주 리캡을 알려드립니다';
+        return '월간 음주 리포트를 알려드립니다';
     }
   }
 }
