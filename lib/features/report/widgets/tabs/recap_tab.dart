@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 
 import 'dart:ui' as ui;
@@ -11,6 +11,10 @@ import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:appinio_social_share/appinio_social_share.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import 'dart:math' as math;
 
 class RecapTab extends ConsumerStatefulWidget {
@@ -23,8 +27,9 @@ class RecapTab extends ConsumerStatefulWidget {
 class _RecapTabState extends ConsumerState<RecapTab> {
   final GlobalKey _globalKey = GlobalKey();
   final SojuGlassController _sojuGlassController = SojuGlassController();
+  final AppinioSocialShare _appinioSocialShare = AppinioSocialShare();
 
-  Future<void> _captureAndSave() async {
+  Future<String?> _captureImage() async {
     try {
       final RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject()
@@ -35,23 +40,115 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       );
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-      await Gal.putImageBytes(
-        pngBytes,
-        name: 'ddalgguk_recap_${DateTime.now().millisecondsSinceEpoch}',
+      final tempDir = await getTemporaryDirectory();
+      final file = File(
+        '${tempDir.path}/ddalgguk_recap_${DateTime.now().millisecondsSinceEpoch}.png',
       );
+      await file.writeAsBytes(pngBytes);
+      return file.path;
+    } catch (e) {
+      debugPrint('Error capturing image: $e');
+      return null;
+    }
+  }
 
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('이미지가 갤러리에 저장되었습니다')));
+  Future<void> _saveToGallery() async {
+    final filePath = await _captureImage();
+    if (filePath != null) {
+      try {
+        await Gal.putImage(filePath);
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('이미지가 갤러리에 저장되었습니다')));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('저장 실패: $e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _shareToInstagramStory() async {
+    final filePath = await _captureImage();
+    if (filePath == null) {
+      return;
+    }
+
+    try {
+      String? result;
+      if (Platform.isAndroid) {
+        result = await _appinioSocialShare.android.shareToInstagramStory(
+          filePath,
+        );
+      } else if (Platform.isIOS) {
+        result = await _appinioSocialShare.iOS.shareToInstagramStory(
+          'facebook-app-id', // Placeholder, required by iOS API in this package version?
+          stickerImage: filePath,
+        );
+      }
+
+      if (mounted && result != null) {
+        debugPrint('Instagram Share Result: $result');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
+        ).showSnackBar(SnackBar(content: Text('인스타그램 공유 실패: $e')));
       }
     }
+  }
+
+  Future<void> _shareToSystem() async {
+    final filePath = await _captureImage();
+    if (filePath == null) {
+      return;
+    }
+
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: '나의 이번 달 음주 리캡을 확인해보세요!',
+          subject: '딸꾹 리캡',
+        ),
+      );
+    } catch (e) {
+      debugPrint('System Share Error: $e');
+    }
+  }
+
+  void _showShareOptions() {
+    showBottomHandleDialogue(
+      context: context,
+      fitContent: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt_outlined),
+            title: const Text('인스타그램 스토리 공유'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareToInstagramStory();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('다른 앱으로 공유'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareToSystem();
+            },
+          ),
+          const SizedBox(height: 20), // Add explicit bottom padding for comfort
+        ],
+      ),
+    );
   }
 
   @override
@@ -60,7 +157,6 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final now = DateTime.now();
     final normalizedDate = DateTime(now.year, now.month);
 
-    final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
@@ -120,10 +216,16 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     const SizedBox(height: 32),
 
                     // 2. Soju Glass (Total Volume)
-                    weeklyStatsAsync.when(
-                      data: (stats) {
+                    monthRecordsAsync.when(
+                      data: (records) {
+                        double totalMl = 0;
+                        for (final record in records) {
+                          for (final drink in record.drinkAmount) {
+                            totalMl += drink.amount;
+                          }
+                        }
                         return _SojuGlassWidget(
-                          totalMl: stats.totalAlcoholMl.toInt().clamp(0, 99999),
+                          totalMl: totalMl.toInt().clamp(0, 99999),
                           controller: _sojuGlassController,
                         );
                       },
@@ -138,7 +240,10 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     // 3. Stats Grid
                     monthRecordsAsync.when(
                       data: (records) {
-                        return _buildStatsGrid(records);
+                        return _buildStatsGrid(
+                          records,
+                          currentUserAsync.valueOrNull?.maxAlcohol,
+                        );
                       },
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
@@ -169,9 +274,23 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     // 6. One-line Review
                     monthRecordsAsync.when(
                       data: (records) {
-                        final drunkCount = records
-                            .where((r) => r.drunkLevel >= 7)
-                            .length;
+                        // Calculate drunk count consistently
+                        final maxAlcohol =
+                            currentUserAsync.valueOrNull?.maxAlcohol;
+                        final drunkCount = records.where((r) {
+                          if (maxAlcohol != null) {
+                            double totalPureAlcohol = 0;
+                            for (final drink in r.drinkAmount) {
+                              totalPureAlcohol +=
+                                  drink.amount * (drink.alcoholContent / 100);
+                            }
+                            final limitPureAlcohol = maxAlcohol * 59.4;
+                            return totalPureAlcohol > limitPureAlcohol;
+                          } else {
+                            return r.drunkLevel >= 9;
+                          }
+                        }).length;
+
                         return Column(
                           children: [
                             Align(
@@ -212,7 +331,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _captureAndSave,
+                    onPressed: _saveToGallery,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -229,9 +348,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Share logic
-                    },
+                    onPressed: _showShareOptions,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
@@ -252,9 +369,25 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     );
   }
 
-  Widget _buildStatsGrid(List<DrinkingRecord> records) {
+  Widget _buildStatsGrid(List<DrinkingRecord> records, double? maxAlcohol) {
     // Calculate stats
-    final drunkCount = records.where((r) => r.drunkLevel >= 7).length;
+    // 만취 횟수: 주량 초과 여부로 판단
+    // maxAlcohol(주량)이 있으면 주량 초과 시 만취로 간주
+    // 없으면 기존 로직(drunkLevel >= 9) 유지
+    final drunkCount = records.where((r) {
+      if (maxAlcohol != null) {
+        // Calculate total pure alcohol for this record
+        double totalPureAlcohol = 0;
+        for (final drink in r.drinkAmount) {
+          totalPureAlcohol += drink.amount * (drink.alcoholContent / 100);
+        }
+        // Soju 1 bottle (360ml, 16.5%) = ~59.4ml pure alcohol
+        final limitPureAlcohol = maxAlcohol * 59.4;
+        return totalPureAlcohol > limitPureAlcohol;
+      } else {
+        return r.drunkLevel >= 9;
+      }
+    }).length;
 
     double totalBottles = 0;
     for (var r in records) {
@@ -266,20 +399,23 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         totalBottles += (d.amount / bottleVolume).clamp(0, 1000);
       }
     }
-    final avgBottles = records.isEmpty
-        ? 0.0
-        : (totalBottles / records.length).clamp(0, 100);
 
-    final avgDrunkLevel = records.isEmpty
+    final actualDrinkRecords = records.where((r) => r.drinkAmount.isNotEmpty);
+
+    final avgBottles = actualDrinkRecords.isEmpty
+        ? 0.0
+        : (totalBottles / actualDrinkRecords.length).clamp(0, 100);
+
+    final avgDrunkLevel = actualDrinkRecords.isEmpty
         ? 0
-        : (records.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
-                  records.length *
+        : (actualDrinkRecords.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
+                  actualDrinkRecords.length *
                   10)
               .round();
 
     // Consecutive days
     final sortedDates =
-        records
+        actualDrinkRecords
             .map((r) => DateTime(r.date.year, r.date.month, r.date.day))
             .toSet()
             .toList()
@@ -321,7 +457,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: _StatCard(value: '$maxConsecutive일', label: '연속 음주'),
+              child: _StatCard(value: '$maxConsecutive일', label: '음주'),
             ),
           ],
         ),
@@ -387,13 +523,13 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         '이번 달은 잘 살았습니다. 근데 이제 술을 곁들인.',
         '캘린더가 젖어있네요? 이거 술인가요?',
         '필름: 저 외근 좀 갔다 올게요.',
-        '아직은 사람인데, 곧 액체 괴물이 될 예정이랍니다.',
-        '인생의 ctrl+s를 월에 1~3번 정도 누르지 않았어요.',
+        '아직 사람인데, 곧 액체괴물이 될 예정이랍니다.',
+        '인생 ctrl+s를 월에 1~3번 정도 누르지 않았어요.',
       ];
     } else if (drunkCount <= 7) {
       candidates = [
         '당신은 술이랑 썸을 넘어 동거중이에요.',
-        '음주력은 일반인 대비 300%이지만 기억력은 30%에요.',
+        '음주력은 일반인보다 300%이지만 기억력은 30%에요.',
         '갓생. 갓구운 생선구이에 한 잔 하자는 뜻이죠!',
         '행복은 짧고 숙취는 길다.',
       ];
@@ -502,11 +638,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+            style: const TextStyle(fontSize: 18, color: Colors.black),
           ),
           Text(
             label,

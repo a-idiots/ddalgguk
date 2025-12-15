@@ -89,10 +89,7 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                   children: [
                     Text(
                       _getWeekLabel(_currentIndex),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
