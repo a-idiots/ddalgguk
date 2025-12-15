@@ -26,12 +26,17 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
       // ml을 단위에 맞게 변환
       String unit;
       double amount;
-      if (drink.amount >= 1000) {
+
+      // 주종별 병 용량 기준으로 1병 이상인지 확인
+      final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
+      final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
+
+      if (drink.amount >= bottleMultiplier) {
         unit = '병';
-        amount = drink.amount / 500;
-      } else if (drink.amount >= 150) {
+        amount = drink.amount / bottleMultiplier;
+      } else if (drink.amount >= glassMultiplier) {
         unit = '잔';
-        amount = drink.amount / 150;
+        amount = drink.amount / glassMultiplier;
       } else {
         unit = 'ml';
         amount = drink.amount;
