@@ -49,13 +49,43 @@ class NotificationManager {
     // Get schedules for this type
     final schedules = NotificationConfig.getSchedules(type);
 
-    // Get message for this type
-    final message = NotificationConfig.getMessage(type, userName: userName);
-
     // Schedule each notification
     for (var i = 0; i < schedules.length; i++) {
       final schedule = schedules[i];
       final notificationId = NotificationConfig.getNotificationId(type, i);
+
+      // For recap alarm, we need to determine the next month
+      int? month;
+      bool isMonthlyLastDay = false;
+
+      if (type == NotificationType.recapAlarm) {
+        final now = DateTime.now();
+        // Calculate which month's recap this will be for
+        // The notification shows on the last day, so it's for the current month
+        month = now.month;
+        isMonthlyLastDay = true;
+
+        // If today is past the last day schedule, it's for next month
+        final lastDayThisMonth = DateTime(now.year, now.month + 1, 0);
+        final scheduledTimeToday = DateTime(
+          now.year,
+          now.month,
+          lastDayThisMonth.day,
+          schedule.hour,
+          schedule.minute,
+        );
+
+        if (now.isAfter(scheduledTimeToday)) {
+          month = now.month == 12 ? 1 : now.month + 1;
+        }
+      }
+
+      // Get message for this type
+      final message = NotificationConfig.getMessage(
+        type,
+        userName: userName,
+        month: month,
+      );
 
       await _service.scheduleNotification(
         id: notificationId,
@@ -65,6 +95,7 @@ class NotificationManager {
         hour: schedule.hour,
         minute: schedule.minute,
         repeatDaily: schedule.repeatDaily,
+        isMonthlyLastDay: isMonthlyLastDay,
       );
     }
   }

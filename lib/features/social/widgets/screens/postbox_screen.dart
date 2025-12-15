@@ -2,6 +2,7 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -300,6 +301,36 @@ class _SentFriendRequestCard extends StatefulWidget {
 class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
   bool _isProcessing = false;
 
+  Widget _buildProfileAvatar(int? profilePhoto, {double size = 48}) {
+    final photo = profilePhoto ?? 0;
+
+    if (photo <= 10) {
+      return SakuCharacter(size: size, drunkLevel: photo * 10);
+    }
+
+    const alcoholIcons = [
+      'assets/imgs/alcohol_icons/soju.png',
+      'assets/imgs/alcohol_icons/beer.png',
+      'assets/imgs/alcohol_icons/cocktail.png',
+      'assets/imgs/alcohol_icons/wine.png',
+      'assets/imgs/alcohol_icons/makgulli.png',
+    ];
+    final iconIndex = photo - 11;
+
+    if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
+      return Center(
+        child: Image.asset(
+          alcoholIcons[iconIndex],
+          width: size * 0.9,
+          height: size * 0.9,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    return SakuCharacter(size: size);
+  }
+
   Future<void> _cancelRequest() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -423,13 +454,16 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.grey[200],
-                child: const Icon(
-                  Icons.person,
-                  size: 28,
-                  color: Colors.black45,
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: _buildProfileAvatar(
+                  widget.request.toUserProfilePhoto,
+                  size: 48,
                 ),
               ),
               const SizedBox(width: 12),
@@ -529,6 +563,36 @@ class _FriendRequestCard extends StatefulWidget {
 class _FriendRequestCardState extends State<_FriendRequestCard> {
   bool _isProcessing = false;
 
+  Widget _buildProfileAvatar(int? profilePhoto, {double size = 48}) {
+    final photo = profilePhoto ?? 0;
+
+    if (photo <= 10) {
+      return SakuCharacter(size: size, drunkLevel: photo * 10);
+    }
+
+    const alcoholIcons = [
+      'assets/imgs/alcohol_icons/soju.png',
+      'assets/imgs/alcohol_icons/beer.png',
+      'assets/imgs/alcohol_icons/cocktail.png',
+      'assets/imgs/alcohol_icons/wine.png',
+      'assets/imgs/alcohol_icons/makgulli.png',
+    ];
+    final iconIndex = photo - 11;
+
+    if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
+      return Center(
+        child: Image.asset(
+          alcoholIcons[iconIndex],
+          width: size * 0.9,
+          height: size * 0.9,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    return SakuCharacter(size: size);
+  }
+
   Future<void> _acceptRequest() async {
     setState(() => _isProcessing = true);
 
@@ -613,14 +677,17 @@ class _FriendRequestCardState extends State<_FriendRequestCard> {
           Row(
             children: [
               // 프로필 이미지 또는 아이콘
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: widget.request.fromUserPhoto != null
-                    ? NetworkImage(widget.request.fromUserPhoto!)
-                    : null,
-                child: widget.request.fromUserPhoto == null
-                    ? const Icon(Icons.person, size: 28)
-                    : null,
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: _buildProfileAvatar(
+                  widget.request.fromUserProfilePhoto,
+                  size: 48,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

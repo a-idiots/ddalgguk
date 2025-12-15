@@ -511,7 +511,7 @@ class _MaxSpendingCard extends StatelessWidget {
 
     for (final amount in amounts) {
       final unit = getDefaultUnit(amount.drinkType);
-      final multiplier = getUnitMultiplier(unit);
+      final multiplier = getUnitMultiplier(amount.drinkType, unit);
 
       // Calculate total units (e.g., bottles)
       final totalUnits = amount.amount / multiplier;

@@ -504,6 +504,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     // 음주량
                     if (record.drinkAmount.isNotEmpty) ...[
                       ...record.drinkAmount.map((drink) {
+                        // ml을 주종별 단위로 변환
+                        String unit;
+                        double amount;
+
+                        final bottleMultiplier = getUnitMultiplier(
+                          drink.drinkType,
+                          '병',
+                        );
+                        final glassMultiplier = getUnitMultiplier(
+                          drink.drinkType,
+                          '잔',
+                        );
+
+                        if (drink.amount >= bottleMultiplier) {
+                          unit = '병';
+                          amount = drink.amount / bottleMultiplier;
+                        } else if (drink.amount >= glassMultiplier) {
+                          unit = '잔';
+                          amount = drink.amount / glassMultiplier;
+                        } else {
+                          unit = 'ml';
+                          amount = drink.amount;
+                        }
+
+                        // 소수점 처리
+                        final amountText = amount % 1 == 0
+                            ? amount.toInt().toString()
+                            : amount.toStringAsFixed(1);
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 2),
                           child: Row(
@@ -527,7 +556,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 ),
                               ),
                               Text(
-                                formatDrinkAmount(drink.amount),
+                                '$amountText$unit',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,

@@ -150,7 +150,8 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     final drinkAmounts = <DrinkAmount>[];
     for (var record in _completedRecords) {
       // ml로 변환
-      final amountInMl = record.amount * getUnitMultiplier(record.unit);
+      final amountInMl =
+          record.amount * getUnitMultiplier(record.drinkType, record.unit);
 
       drinkAmounts.add(
         DrinkAmount(
@@ -374,14 +375,12 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 8),
 
                 // 완료된 기록 리스트
-                ..._completedRecords.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final record = entry.value;
+                ..._completedRecords.map((record) {
                   return CompletedDrinkCard(
                     record: record,
                     onDelete: () {
                       setState(() {
-                        _completedRecords.removeAt(index);
+                        _completedRecords.remove(record);
                       });
                     },
                   );

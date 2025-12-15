@@ -100,12 +100,24 @@ class DrinkingRecordService {
           'Records for date: ${records.length}, Average drunk level: $avgDrunkLevel',
         );
 
-        await _friendService.updateMyDrinkingData(
-          drunkLevel: avgDrunkLevel,
-          lastDrinkDate: record.date,
-        );
-        debugPrint('Updated friend drinking data with average');
-        debugPrint('Updated friend drinking data with average');
+        // 금주 기록이 아닌 경우에만 lastDrinkDate 업데이트
+        // (drunkLevel > 0 또는 실제 음주량이 있는 경우)
+        final isDrinkingRecord = records.any((r) {
+          if (r.drunkLevel > 0) {
+            return true;
+          }
+          return r.drinkAmount.any((d) => d.amount > 0);
+        });
+
+        if (isDrinkingRecord) {
+          await _friendService.updateMyDrinkingData(
+            drunkLevel: avgDrunkLevel,
+            lastDrinkDate: record.date,
+          );
+          debugPrint('Updated friend drinking data with lastDrinkDate');
+        } else {
+          debugPrint('Skipped lastDrinkDate update (금주 기록)');
+        }
       } catch (e) {
         // 친구 데이터 업데이트 실패해도 기록 생성은 성공으로 처리
         debugPrint('Failed to update friend drinking data: $e');
@@ -260,11 +272,23 @@ class DrinkingRecordService {
             ? (totalDrunkLevel / records.length).round()
             : 0;
 
-        await _friendService.updateMyDrinkingData(
-          drunkLevel: avgDrunkLevel,
-          lastDrinkDate: record.date,
-        );
-        debugPrint('Updated friend drinking data after record update');
+        // 금주 기록이 아닌 경우에만 lastDrinkDate 업데이트
+        final isDrinkingRecord = records.any((r) {
+          if (r.drunkLevel > 0) {
+            return true;
+          }
+          return r.drinkAmount.any((d) => d.amount > 0);
+        });
+
+        if (isDrinkingRecord) {
+          await _friendService.updateMyDrinkingData(
+            drunkLevel: avgDrunkLevel,
+            lastDrinkDate: record.date,
+          );
+          debugPrint('Updated friend drinking data after record update');
+        } else {
+          debugPrint('Skipped lastDrinkDate update (금주 기록)');
+        }
       } catch (e) {
         debugPrint('Failed to update friend drinking data: $e');
       }
@@ -320,24 +344,38 @@ class DrinkingRecordService {
           // 해당 날짜의 기록이 모두 삭제됨
           debugPrint('No records left for date: $recordDate');
 
-          // 가장 최근 음주 기록을 찾아서 weeklyDrunkLevels 업데이트
+          // 가장 최근 음주 기록(금주 아닌 기록)을 찾아서 weeklyDrunkLevels 업데이트
           final latestRecord = await _getRecordsCollection()
               .orderBy('date', descending: true)
-              .limit(1)
+              .limit(50) // 충분한 개수를 가져와서 금주 아닌 기록 찾기
               .get();
 
           if (latestRecord.docs.isNotEmpty) {
-            // 다른 날짜에 기록이 있음
-            final latest = DrinkingRecord.fromFirestore(
-              latestRecord.docs.first,
-            );
-            await _friendService.updateMyDrinkingData(
-              drunkLevel: latest.drunkLevel,
-              lastDrinkDate: latest.date,
-            );
-            debugPrint(
-              'Updated weeklyDrunkLevels with latest record: ${latest.date}',
-            );
+            // 금주가 아닌 실제 음주 기록 찾기
+            DrinkingRecord? lastDrinkingRecord;
+            for (final doc in latestRecord.docs) {
+              final record = DrinkingRecord.fromFirestore(doc);
+              final isDrinking =
+                  record.drunkLevel > 0 ||
+                  record.drinkAmount.any((d) => d.amount > 0);
+              if (isDrinking) {
+                lastDrinkingRecord = record;
+                break;
+              }
+            }
+
+            if (lastDrinkingRecord != null) {
+              await _friendService.updateMyDrinkingData(
+                drunkLevel: lastDrinkingRecord.drunkLevel,
+                lastDrinkDate: lastDrinkingRecord.date,
+              );
+              debugPrint(
+                'Updated with latest drinking record: ${lastDrinkingRecord.date}',
+              );
+            } else {
+              // 모든 기록이 금주 기록임
+              debugPrint('All remaining records are sober records');
+            }
           } else {
             // 모든 기록이 삭제됨 - drunkLevel 0으로 초기화
             debugPrint(
@@ -359,11 +397,23 @@ class DrinkingRecordService {
           );
           final avgDrunkLevel = (totalDrunkLevel / records.length).round();
 
-          await _friendService.updateMyDrinkingData(
-            drunkLevel: avgDrunkLevel,
-            lastDrinkDate: recordDate,
-          );
-          debugPrint('Updated friend drinking data after record deletion');
+          // 금주 기록이 아닌 경우에만 lastDrinkDate 업데이트
+          final isDrinkingRecord = records.any((r) {
+            if (r.drunkLevel > 0) {
+              return true;
+            }
+            return r.drinkAmount.any((d) => d.amount > 0);
+          });
+
+          if (isDrinkingRecord) {
+            await _friendService.updateMyDrinkingData(
+              drunkLevel: avgDrunkLevel,
+              lastDrinkDate: recordDate,
+            );
+            debugPrint('Updated friend drinking data after record deletion');
+          } else {
+            debugPrint('Skipped lastDrinkDate update (금주 기록)');
+          }
         }
       } catch (e) {
         debugPrint('Failed to update friend drinking data: $e');
