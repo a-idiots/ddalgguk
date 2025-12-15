@@ -226,7 +226,9 @@ class ProfileStatsService {
     final currentYearMonth =
         '${now.year}-${now.month.toString().padLeft(2, '0')}';
     final thisMonthDrinkingCount = records
-        .where((r) => r.yearMonth == currentYearMonth)
+        .where(
+          (r) => r.yearMonth == currentYearMonth && r.drinkAmount.isNotEmpty,
+        )
         .map((r) => _getDateKey(r.date))
         .toSet()
         .length;

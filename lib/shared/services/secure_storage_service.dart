@@ -131,6 +131,27 @@ class SecureStorageService {
     return LoginProvider.fromString(value);
   }
 
+  /// Save badge stats (local only)
+  Future<void> saveBadgeStats(Map<String, dynamic> stats) async {
+    await _ensurePrefsInitialized();
+    final jsonString = jsonEncode(stats);
+    await _prefs!.setString(StorageKeys.badgeStats, jsonString);
+  }
+
+  /// Get badge stats
+  Future<Map<String, dynamic>?> getBadgeStats() async {
+    await _ensurePrefsInitialized();
+    final jsonString = _prefs!.getString(StorageKeys.badgeStats);
+    if (jsonString == null) {
+      return null;
+    }
+    try {
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Clear all SharedPreferences data
   Future<void> clearPreferences() async {
     await _ensurePrefsInitialized();

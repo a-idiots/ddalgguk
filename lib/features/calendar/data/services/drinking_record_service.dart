@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/social/data/services/friend_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:ddalgguk/features/profile/data/services/badge_service.dart';
 import 'package:flutter/foundation.dart';
 
 /// 음주 기록을 관리하는 Firebase 서비스
@@ -11,13 +12,16 @@ class DrinkingRecordService {
     FirebaseFirestore? firestore,
     FirebaseAuth? firebaseAuth,
     FriendService? friendService,
+    BadgeService? badgeService, // Injected
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
-       _friendService = friendService ?? FriendService();
+       _friendService = friendService ?? FriendService(),
+       _badgeService = badgeService ?? BadgeService.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final FriendService _friendService;
+  final BadgeService _badgeService;
 
   /// 현재 로그인한 사용자 ID 가져오기
   String? get _currentUserId => _auth.currentUser?.uid;
@@ -101,9 +105,17 @@ class DrinkingRecordService {
           lastDrinkDate: record.date,
         );
         debugPrint('Updated friend drinking data with average');
+        debugPrint('Updated friend drinking data with average');
       } catch (e) {
         // 친구 데이터 업데이트 실패해도 기록 생성은 성공으로 처리
         debugPrint('Failed to update friend drinking data: $e');
+      }
+
+      // Update Local Stats (BadgeService)
+      try {
+        await _updateLocalStats(record.date);
+      } catch (e) {
+        debugPrint('Failed to update local stats: $e');
       }
 
       return docRef.id;
@@ -256,6 +268,13 @@ class DrinkingRecordService {
       } catch (e) {
         debugPrint('Failed to update friend drinking data: $e');
       }
+
+      // Update Local Stats (BadgeService)
+      try {
+        await _updateLocalStats(record.date);
+      } catch (e) {
+        debugPrint('Failed to update local stats: $e');
+      }
     } catch (e) {
       debugPrint('Error updating drinking record: $e');
       rethrow;
@@ -349,6 +368,13 @@ class DrinkingRecordService {
       } catch (e) {
         debugPrint('Failed to update friend drinking data: $e');
       }
+
+      // Update Local Stats (BadgeService)
+      try {
+        await _updateLocalStats(recordDate);
+      } catch (e) {
+        debugPrint('Failed to update local stats: $e');
+      }
     } catch (e) {
       debugPrint('Error deleting drinking record: $e');
       rethrow;
@@ -425,5 +451,54 @@ class DrinkingRecordService {
               .map((doc) => DrinkingRecord.fromFirestore(doc))
               .toList(),
         );
+  }
+
+  /// Helper: Update local stats for a specific date
+  Future<void> _updateLocalStats(DateTime date) async {
+    final records = await getRecordsByDate(date);
+
+    // 1. Determine DayStatus
+    DayStatus status = DayStatus.none;
+    if (records.isNotEmpty) {
+      // Check if ANY record is a "Drinking" record
+      final isDrinkingDay = records.any((r) {
+        if (r.drunkLevel > 0) {
+          return true;
+        }
+
+        // If there are any drink amounts > 0, it's drinking
+        // We check drinkAmount list.
+        if (r.drinkAmount.any((d) => d.amount > 0)) {
+          return true;
+        }
+
+        // Otherwise, it's a sober record (e.g. '금주' or plain record with 0 alcohol)
+        return false;
+      });
+
+      debugPrint(
+        'DRService.updateLocalStats: Date $date, Records: ${records.length}',
+      );
+      debugPrint(' - isDrinkingDay: $isDrinkingDay');
+
+      if (isDrinkingDay) {
+        status = DayStatus.drinking;
+      } else {
+        // If all are sober (no alcohol), then Sober
+        status = DayStatus.sober;
+      }
+    }
+    await _badgeService.updateDailyStatus(date, status);
+
+    // 2. Calculate Total Pure Alcohol
+    double totalAlcohol = 0.0;
+    for (final record in records) {
+      for (final drink in record.drinkAmount) {
+        final pureAlc = drink.amount * (drink.alcoholContent / 100);
+        totalAlcohol += pureAlc;
+      }
+    }
+
+    await _badgeService.updateDailyAlcohol(date, totalAlcohol);
   }
 }

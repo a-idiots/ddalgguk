@@ -187,6 +187,8 @@ class AppUser {
     if (lastDrinkDate != null) {
       json['lastDrinkDate'] = Timestamp.fromDate(lastDrinkDate!);
     }
+    // Convert badges to Firestore format (with Timestamps)
+    json['badge'] = badges.map((e) => e.toFirestore()).toList();
     return json;
   }
 

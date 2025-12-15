@@ -72,6 +72,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       });
     });
 
+    // Listen for new badges
+    ref.listen(badgeEarnedStreamProvider, (previous, next) {
+      next.whenData((badge) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 새로운 뱃지를 획득했어요! 프로필에서 확인해보세요.'),
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.primaryPink,
+          ),
+        );
+      });
+    });
+
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
