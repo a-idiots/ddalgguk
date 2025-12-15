@@ -46,7 +46,7 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
         title,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w500,
           color: Colors.black,
         ),
       ),

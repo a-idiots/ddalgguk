@@ -560,6 +560,7 @@ class FriendService {
     required String toUserId,
     required String toUserName,
     String? toUserPhoto,
+    int? toUserProfilePhoto,
     required String message,
   }) async {
     if (_currentUserId == null) {
@@ -575,6 +576,7 @@ class FriendService {
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['name'] as String? ?? 'Unknown';
       final currentUserPhotoURL = currentUserData?['photoURL'] as String?;
+      final currentUserProfilePhoto = currentUserData?['profilePhoto'] as int? ?? 0;
 
       debugPrint('=== sendFriendRequest ===');
       debugPrint('From: $_currentUserId ($currentUserName)');
@@ -589,6 +591,17 @@ class FriendService {
       final alreadyFriends = await isFriend(toUserId);
       if (alreadyFriends) {
         throw Exception('이미 친구로 등록된 사용자입니다');
+      }
+
+      // toUser의 프로필 정보 가져오기
+      int finalToUserProfilePhoto = toUserProfilePhoto ?? 0;
+      if (toUserProfilePhoto == null) {
+        final toUserDoc = await _firestore
+            .collection('users')
+            .doc(toUserId)
+            .get();
+        final toUserData = toUserDoc.data();
+        finalToUserProfilePhoto = toUserData?['profilePhoto'] as int? ?? 0;
       }
 
       // 이미 요청을 보냈는지 확인
@@ -610,8 +623,10 @@ class FriendService {
         'fromUserId': _currentUserId,
         'fromUserName': currentUserName,
         'fromUserPhoto': currentUserPhotoURL,
+        'fromUserProfilePhoto': currentUserProfilePhoto,
         'toUserId': toUserId,
         'toUserName': toUserName,
+        'toUserProfilePhoto': finalToUserProfilePhoto,
         'message': message,
         'createdAt': Timestamp.now(),
         'status': FriendRequestStatus.pending.name,
