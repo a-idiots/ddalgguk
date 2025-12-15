@@ -10,6 +10,10 @@ import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:appinio_social_share/appinio_social_share.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import 'dart:math' as math;
 
 class RecapTab extends ConsumerStatefulWidget {
@@ -22,8 +26,9 @@ class RecapTab extends ConsumerStatefulWidget {
 class _RecapTabState extends ConsumerState<RecapTab> {
   final GlobalKey _globalKey = GlobalKey();
   final SojuGlassController _sojuGlassController = SojuGlassController();
+  final AppinioSocialShare _appinioSocialShare = AppinioSocialShare();
 
-  Future<void> _captureAndSave() async {
+  Future<String?> _captureImage() async {
     try {
       final RenderRepaintBoundary boundary =
           _globalKey.currentContext!.findRenderObject()
@@ -34,23 +39,117 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       );
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-      await Gal.putImageBytes(
-        pngBytes,
-        name: 'ddalgguk_recap_${DateTime.now().millisecondsSinceEpoch}',
+      final tempDir = await getTemporaryDirectory();
+      final file = File(
+        '${tempDir.path}/ddalgguk_recap_${DateTime.now().millisecondsSinceEpoch}.png',
       );
+      await file.writeAsBytes(pngBytes);
+      return file.path;
+    } catch (e) {
+      debugPrint('Error capturing image: $e');
+      return null;
+    }
+  }
 
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('이미지가 갤러리에 저장되었습니다')));
+  Future<void> _saveToGallery() async {
+    final filePath = await _captureImage();
+    if (filePath != null) {
+      try {
+        await Gal.putImage(filePath);
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('이미지가 갤러리에 저장되었습니다')));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('저장 실패: $e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _shareToInstagramStory() async {
+    final filePath = await _captureImage();
+    if (filePath == null) {
+      return;
+    }
+
+    try {
+      String? result;
+      if (Platform.isAndroid) {
+        result = await _appinioSocialShare.android.shareToInstagramStory(
+          filePath,
+        );
+      } else if (Platform.isIOS) {
+        result = await _appinioSocialShare.iOS.shareToInstagramStory(
+          'facebook-app-id', // Placeholder, required by iOS API in this package version?
+          stickerImage: filePath,
+        );
+      }
+
+      if (mounted && result != null) {
+        debugPrint('Instagram Share Result: $result');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
+        ).showSnackBar(SnackBar(content: Text('인스타그램 공유 실패: $e')));
       }
     }
+  }
+
+  Future<void> _shareToSystem() async {
+    final filePath = await _captureImage();
+    if (filePath == null) {
+      return;
+    }
+
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: '나의 이번 달 음주 리캡을 확인해보세요!',
+          subject: '딸꾹 리캡',
+        ),
+      );
+    } catch (e) {
+      debugPrint('System Share Error: $e');
+    }
+  }
+
+  void _showShareOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('인스타그램 스토리 공유'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _shareToInstagramStory();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: const Text('다른 앱으로 공유'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _shareToSystem();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -228,7 +327,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _captureAndSave,
+                    onPressed: _saveToGallery,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -245,9 +344,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Share logic
-                    },
+                    onPressed: _showShareOptions,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,

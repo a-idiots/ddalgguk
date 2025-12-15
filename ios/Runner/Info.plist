@@ -55,6 +55,7 @@
 		<string>kakaokompassauth</string>
 		<string>kakaolink</string>
 		<string>kakaoplus</string>
+		<string>instagram-stories</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

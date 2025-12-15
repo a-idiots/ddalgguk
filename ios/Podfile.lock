@@ -9,10 +9,22 @@ PODS:
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
+  - appinio_social_share (0.0.1):
+    - FBSDKCoreKit (= 17.0.2)
+    - FBSDKShareKit (= 17.0.2)
+    - Flutter
   - cloud_firestore (6.1.0):
     - Firebase/Firestore (= 12.4.0)
     - firebase_core
     - Flutter
+  - FBAEMKit (17.0.2):
+    - FBSDKCoreKit_Basics (= 17.0.2)
+  - FBSDKCoreKit (17.0.2):
+    - FBAEMKit (= 17.0.2)
+    - FBSDKCoreKit_Basics (= 17.0.2)
+  - FBSDKCoreKit_Basics (17.0.2)
+  - FBSDKShareKit (17.0.2):
+    - FBSDKCoreKit (= 17.0.2)
   - Firebase/Auth (12.4.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 12.4.0)
@@ -133,6 +145,8 @@ PODS:
     - FlutterMacOS
   - PromisesObjC (2.4.0)
   - RecaptchaInterop (101.0.0)
+  - share_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -143,6 +157,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - appinio_social_share (from `.symlinks/plugins/appinio_social_share/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -154,6 +169,7 @@ DEPENDENCIES:
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - kakao_flutter_sdk_common (from `.symlinks/plugins/kakao_flutter_sdk_common/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
@@ -162,6 +178,10 @@ SPEC REPOS:
   trunk:
     - AppAuth
     - AppCheckCore
+    - FBAEMKit
+    - FBSDKCoreKit
+    - FBSDKCoreKit_Basics
+    - FBSDKShareKit
     - Firebase
     - FirebaseAppCheckInterop
     - FirebaseAuth
@@ -186,6 +206,8 @@ SPEC REPOS:
     - RecaptchaInterop
 
 EXTERNAL SOURCES:
+  appinio_social_share:
+    :path: ".symlinks/plugins/appinio_social_share/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   firebase_auth:
@@ -209,6 +231,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/kakao_flutter_sdk_common/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sign_in_with_apple:
@@ -224,7 +248,12 @@ CHECKOUT OPTIONS:
 SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
+  appinio_social_share: 25605b916b5a35606a7f2ba8153d0218a4c0282e
   cloud_firestore: 7a6d8a533ec7418a7fe46b3a5dabf55661a5b298
+  FBAEMKit: 619f96ea65427e8afca240d5b0f4703738dfdf5c
+  FBSDKCoreKit: a5f384db2e9ee84e98494fed8f983d2bd79accff
+  FBSDKCoreKit_Basics: d35c775aaf243a2d731dfae7be3a74b1987285ab
+  FBSDKShareKit: e7ec3bed8e82dabc04e56f3cf44ef99a1864309e
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e
   firebase_auth: 9225db04db5d8e3b46dc8940e04bc6aec6833e27
   firebase_core: f1aafb21c14f497e5498f7ffc4dc63cbb52b2594
@@ -257,6 +286,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
