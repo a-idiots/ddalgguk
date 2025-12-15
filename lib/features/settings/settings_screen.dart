@@ -225,12 +225,12 @@ class SettingsScreen extends ConsumerWidget {
           // Other Section
           const SettingsSectionHeader(title: '기타'),
           SettingsListTile(
-            title: '회원 탈퇴',
-            onTap: () => _handleAccountDeletion(context, ref),
-          ),
-          SettingsListTile(
             title: '로그아웃',
             onTap: () => _handleLogout(context, ref),
+          ),
+          SettingsListTile(
+            title: '회원 탈퇴',
+            onTap: () => _handleAccountDeletion(context, ref),
           ),
         ],
       ),
