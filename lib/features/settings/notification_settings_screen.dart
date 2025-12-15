@@ -15,18 +15,18 @@ class NotificationSettingsScreen extends ConsumerWidget {
       case NotificationType.socialAlarm:
         return '소셜 알림';
       case NotificationType.recapAlarm:
-        return '리캡 알림';
+        return 'Recap 알림';
     }
   }
 
   String _getNotificationTypeDescription(NotificationType type) {
     switch (type) {
       case NotificationType.recordAlarm:
-        return '매일 밤 9시에 음주 기록 업데이트를 알려드립니다';
+        return '매일 밤 9시에 음주 기록 업데이트를 알려드려요.';
       case NotificationType.socialAlarm:
         return '친구들의 소식을 알려드립니다';
       case NotificationType.recapAlarm:
-        return '주간 음주 리캡을 알려드립니다';
+        return '월간 음주 리포트가 완성되면 알려드려요.';
     }
   }
 
@@ -62,7 +62,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          ...NotificationType.values.map((type) {
+          ...NotificationType.values
+              .where((type) => type != NotificationType.socialAlarm)
+              .map((type) {
             return _NotificationToggleTile(
               type: type,
               title: _getNotificationTypeName(type),
@@ -82,53 +84,6 @@ class NotificationSettingsScreen extends ConsumerWidget {
                     fontFamily: 'Inter',
                     fontSize: 12,
                     color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      try {
-                        final testFn = ref.read(
-                          showDelayedTestNotificationProvider,
-                        );
-                        await testFn(delaySeconds: 5);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                '5초 후에 알림이 옵니다!\n홈 화면으로 나가서 확인해주세요.',
-                              ),
-                              duration: Duration(seconds: 4),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('알림 전송 실패: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.notifications_active),
-                    label: const Text(
-                      '테스트 알림 보내기 (5초 후)',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: const BorderSide(color: Color(0xFFFF6B6B)),
-                      foregroundColor: const Color(0xFFFF6B6B),
-                    ),
                   ),
                 ),
               ],
