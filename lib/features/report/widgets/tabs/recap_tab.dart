@@ -4,6 +4,7 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -394,10 +395,8 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         continue;
       }
       for (var d in r.drinkAmount) {
-        totalBottles += (d.amount / 360.0).clamp(
-          0,
-          1000,
-        ); // Standard Soju bottle 360ml
+        final bottleVolume = getUnitMultiplier(d.drinkType, '병');
+        totalBottles += (d.amount / bottleVolume).clamp(0, 1000);
       }
     }
 

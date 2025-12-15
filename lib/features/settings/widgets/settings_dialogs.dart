@@ -182,8 +182,8 @@ Future<bool?> showLogoutDialog(BuildContext context) {
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: 'Inter',
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
           color: Colors.black87,
         ),
       ),

@@ -7,6 +7,8 @@ class Drink {
     required this.imagePath,
     required this.defaultAlcoholContent,
     required this.defaultUnit,
+    required this.glassVolume,
+    required this.bottleVolume,
   });
 
   final int id;
@@ -14,6 +16,8 @@ class Drink {
   final String imagePath;
   final double defaultAlcoholContent;
   final String defaultUnit;
+  final double glassVolume; // 1잔 용량 (ml)
+  final double bottleVolume; // 1병 용량 (ml)
 }
 
 const List<Drink> drinks = [
@@ -23,6 +27,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/undecided.png',
     defaultAlcoholContent: 0.0,
     defaultUnit: '잔',
+    glassVolume: 50.0,
+    bottleVolume: 360.0,
   ),
   Drink(
     id: 1,
@@ -30,6 +36,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/soju.png',
     defaultAlcoholContent: 16.5,
     defaultUnit: '병',
+    glassVolume: 50.0,
+    bottleVolume: 360.0,
   ),
   Drink(
     id: 2,
@@ -37,6 +45,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/beer.png',
     defaultAlcoholContent: 5.0,
     defaultUnit: 'ml',
+    glassVolume: 300.0,
+    bottleVolume: 500.0,
   ),
   Drink(
     id: 3,
@@ -44,6 +54,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/cocktail.png',
     defaultAlcoholContent: 10.0,
     defaultUnit: '잔',
+    glassVolume: 200.0,
+    bottleVolume: 750.0,
   ),
   Drink(
     id: 4,
@@ -51,6 +63,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/wine.png',
     defaultAlcoholContent: 12.0,
     defaultUnit: '잔',
+    glassVolume: 150.0,
+    bottleVolume: 750.0,
   ),
   Drink(
     id: 5,
@@ -58,6 +72,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/makgulli.png',
     defaultAlcoholContent: 6.0,
     defaultUnit: '병',
+    glassVolume: 200.0,
+    bottleVolume: 750.0,
   ),
   Drink(
     id: 6,
@@ -65,6 +81,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/whiskey.png',
     defaultAlcoholContent: 40.0,
     defaultUnit: '잔',
+    glassVolume: 30.0,
+    bottleVolume: 750.0,
   ),
 ];
 
@@ -92,15 +110,30 @@ String getDefaultUnit(int drinkType) {
   return drink?.defaultUnit ?? '잔';
 }
 
-/// 단위별 ml 변환
-double getUnitMultiplier(String unit) {
+/// 주종별 단위를 ml로 변환
+/// drinkType: 주종 ID, unit: 단위 (잔/병/ml)
+double getUnitMultiplier(int drinkType, String unit) {
+  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+
+  if (drink == null) {
+    // 주종을 찾을 수 없는 경우 기본값 반환
+    switch (unit) {
+      case '병':
+        return 360.0;
+      case '잔':
+        return 50.0;
+      case 'ml':
+        return 1.0;
+      default:
+        return 1.0;
+    }
+  }
+
   switch (unit) {
     case '병':
-      return 360.0; // 소주 기준 (일반적으로 360ml) - 하지만 막걸리는 750ml, 맥주는 500ml 등 다양함.
-    // TODO: 주종별 병 용량 차이 처리가 필요할 수 있음. 현재는 단순 단위 변환만 수행.
+      return drink.bottleVolume;
     case '잔':
-      return 50.0; // 소주잔 기준? 와인잔 150ml? 위스키잔 30ml?
-    // 로직 수정 필요할 수 있으나 기존 로직 유지
+      return drink.glassVolume;
     case 'ml':
       return 1.0;
     default:

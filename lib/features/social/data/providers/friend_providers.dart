@@ -1,4 +1,5 @@
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
+import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/social/data/services/friend_service.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
@@ -40,7 +41,16 @@ final friendsProvider = FutureProvider.autoDispose<List<FriendWithData>>((
     );
   }
 
-  // 친구들의 전체 데이터 가져오기
+  // 친구들의 음주 데이터 업데이트 (병렬로 실행)
+  if (friends.isNotEmpty) {
+    await Future.wait(
+      friends.map(
+        (friend) => friendService.updateFriendDrinkingData(friend.userId),
+      ),
+    );
+  }
+
+  // 친구들의 전체 데이터 가져오기 (업데이트된 데이터 포함)
   for (final friend in friends) {
     final friendUserData = await friendService.getFriendProfile(friend.userId);
     if (friendUserData != null) {
@@ -94,3 +104,37 @@ final hasFriendRequestsProvider = Provider.autoDispose<bool>((ref) {
   final count = ref.watch(friendRequestCountProvider);
   return count > 0;
 });
+
+/// 친구의 프로필 통계 계산 프로바이더
+/// 친구의 체중, 키, 성별 등을 모두 고려하여 정확한 혈중 알코올 농도와 분해 시간 계산
+final friendProfileStatsProvider = FutureProvider.autoDispose
+    .family<ProfileStats?, String>((ref, userId) async {
+      final friendService = ref.watch(friendServiceProvider);
+
+      // 친구의 알코올 통계 계산
+      final alcoholStats = await friendService.calculateFriendAlcoholStats(
+        userId,
+      );
+
+      if (alcoholStats == null ||
+          alcoholStats.currentAlcoholRemaining <= 0 ||
+          alcoholStats.currentDrunkLevel <= 0) {
+        return ProfileStats.empty();
+      }
+
+      final breakdown = AlcoholBreakdown(
+        alcoholRemaining: alcoholStats.currentAlcoholRemaining,
+        progressPercentage: alcoholStats.progressPercentage,
+        lastDrinkTime: alcoholStats.lastDrinkTime,
+        estimatedSoberTime: alcoholStats.estimatedSoberTime,
+      );
+
+      return ProfileStats(
+        thisMonthDrunkDays: 0, // 친구의 이번 달 음주일은 별도로 계산 필요
+        currentAlcoholInBody: alcoholStats.currentAlcoholRemaining,
+        timeToSober: alcoholStats.timeToSober,
+        statusMessage: alcoholStats.statusMessage,
+        breakdown: breakdown,
+        todayDrunkLevel: alcoholStats.currentDrunkLevel.round(),
+      );
+    });

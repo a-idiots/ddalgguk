@@ -64,12 +64,12 @@ class AppUser {
           ? List<int>.from(json['weeklyDrunkLevels'] as List)
           : null,
       lastDrinkDate: json['lastDrinkDate'] != null
-          ? (json['lastDrinkDate'] as Timestamp).toDate()
+          ? (json['lastDrinkDate'] is Timestamp
+                ? (json['lastDrinkDate'] as Timestamp).toDate()
+                : DateTime.tryParse(json['lastDrinkDate'].toString()))
           : null,
       dailyStatus: json['dailyStatus'] != null
-          ? DailyStatus.fromFirestore(
-              json['dailyStatus'] as Map<String, dynamic>,
-            )
+          ? DailyStatus.fromJson(json['dailyStatus'] as Map<String, dynamic>)
           : null,
       badges: json['badge'] != null
           ? (json['badge'] as List)
@@ -115,7 +115,7 @@ class AppUser {
   // Recent Drink Info
   final int? currentDrunkLevel; // 현재 술 레벨 (0-10)
   final List<int>?
-  weeklyDrunkLevels; // 최근 7일 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
+  weeklyDrunkLevels; // 이번 주차(월~일) 술 레벨 (-1: 기록없음, 0: 금주, 1-100: 음주레벨)
   final DateTime? lastDrinkDate; // 마지막 음주 날짜
 
   // Daily Status
@@ -166,7 +166,8 @@ class AppUser {
       'currentDrunkLevel': currentDrunkLevel,
       'weeklyDrunkLevels': weeklyDrunkLevels,
       'lastDrinkDate': lastDrinkDate?.toIso8601String(),
-      'dailyStatus': dailyStatus?.toMap(),
+      'dailyStatus': dailyStatus
+          ?.toJson(), // Use toJson() instead of toMap() for cache
       'badge': badges.map((e) => e.toJson()).toList(),
       'pinnedBadges': pinnedBadges,
       'stats': stats,

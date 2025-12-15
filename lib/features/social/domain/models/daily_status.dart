@@ -19,6 +19,25 @@ class DailyStatus {
     );
   }
 
+  /// JSON에서 불러오기 (캐시용 - ISO 문자열 처리)
+  factory DailyStatus.fromJson(Map<String, dynamic> data) {
+    // Timestamp와 String 둘 다 처리
+    DateTime parseDate(dynamic value) {
+      if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is String) {
+        return DateTime.parse(value);
+      }
+      return DateTime.now();
+    }
+
+    return DailyStatus(
+      message: data['message'] as String? ?? defaultMessage,
+      createdAt: parseDate(data['createdAt']),
+      expiresAt: parseDate(data['expiresAt']),
+    );
+  }
+
   /// 새 상태 생성 (24시간 만료)
   factory DailyStatus.create(String message) {
     final now = DateTime.now();
@@ -48,6 +67,15 @@ class DailyStatus {
       'message': message,
       'createdAt': Timestamp.fromDate(createdAt),
       'expiresAt': Timestamp.fromDate(expiresAt),
+    };
+  }
+
+  /// JSON으로 변환 (캐시용 - DateTime을 ISO 문자열로 변환)
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'createdAt': createdAt.toIso8601String(),
+      'expiresAt': expiresAt.toIso8601String(),
     };
   }
 
