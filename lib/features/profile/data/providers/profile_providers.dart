@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 
 /// Profile stats service provider
 final profileStatsServiceProvider = Provider<ProfileStatsService>((ref) {
@@ -46,6 +47,38 @@ final userBadgesProvider = StreamProvider<List<Badge>>((ref) {
 
     return badges;
   });
+});
+
+/// Friend badges provider (for specific user)
+final friendBadgesProvider = FutureProvider.family<List<Badge>, String>((
+  ref,
+  userId,
+) async {
+  final friendService = ref.watch(friendServiceProvider);
+  final friendProfile = await friendService.getFriendProfile(userId);
+
+  if (friendProfile == null) {
+    return <Badge>[];
+  }
+
+  final pinnedBadges = friendProfile.pinnedBadges;
+  final List<Badge> badges = friendProfile.badges.map((Badge b) {
+    final isPinned = pinnedBadges.contains(b.id);
+    return b.copyWith(isPinned: isPinned);
+  }).toList();
+
+  // Sort by pinned status (pinned first) then by date descending (newest first)
+  badges.sort((a, b) {
+    if (a.isPinned == true && b.isPinned != true) {
+      return -1;
+    }
+    if (a.isPinned != true && b.isPinned == true) {
+      return 1;
+    }
+    return b.achievedDay.compareTo(a.achievedDay);
+  });
+
+  return badges;
 });
 
 /// Weekly stats provider (last 7 days)

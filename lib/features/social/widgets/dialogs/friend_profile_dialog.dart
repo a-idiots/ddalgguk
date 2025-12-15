@@ -229,7 +229,7 @@ class FriendProfileDialog extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.only(top: 8, left: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -276,7 +276,13 @@ class FriendProfileDialog extends ConsumerWidget {
                 WeeklySakuSection(weeklyStats: weeklyStats, theme: theme),
                 const SizedBox(height: 16),
                 // 업적
-                AchievementsSection(theme: theme),
+                AchievementsSection(
+                  theme: theme,
+                  customTitle: '업적',
+                  showMoreButton: false,
+                  onlyPinned: true,
+                  friendUserId: friendData.userId,
+                ),
                 const SizedBox(height: 16),
                 // 알콜 분해 정보
                 if (profileStats != null)

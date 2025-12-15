@@ -483,6 +483,165 @@ class FriendService {
     }
   }
 
+  /// 특정 사용자의 주간 음주 레벨 계산 (친구용)
+  /// -1: 기록 없음, 0: 금주(기록 있지만 안 마심), 1-100: 음주 레벨
+  Future<List<int>> _calculateWeeklyDrunkLevelsForUser(String userId) async {
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final startDate = today.subtract(const Duration(days: 6));
+
+      // 최근 7일 간의 모든 음주 기록 가져오기
+      final recordsSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('drinkingRecords')
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where(
+            'date',
+            isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
+          )
+          .get();
+
+      // 날짜별로 그룹화
+      final Map<String, List<int>> recordsByDate = {};
+      for (final doc in recordsSnapshot.docs) {
+        final data = doc.data();
+        final date = (data['date'] as Timestamp).toDate();
+        final dateKey = '${date.year}-${date.month}-${date.day}';
+        final drunkLevel = data['drunkLevel'] as int;
+        recordsByDate.putIfAbsent(dateKey, () => []).add(drunkLevel);
+      }
+
+      // 7일 배열 생성
+      final List<int> weeklyLevels = [];
+      for (int i = 0; i < 7; i++) {
+        final date = startDate.add(Duration(days: i));
+        final dateKey = '${date.year}-${date.month}-${date.day}';
+        final dayRecords = recordsByDate[dateKey];
+
+        if (dayRecords == null || dayRecords.isEmpty) {
+          // 기록 없음
+          weeklyLevels.add(-1);
+        } else {
+          // 최대 음주 레벨 찾기
+          final maxLevel = dayRecords.reduce((a, b) => a > b ? a : b);
+          // 0-10 범위를 0-100으로 변환
+          weeklyLevels.add(maxLevel * 10);
+        }
+      }
+
+      return weeklyLevels;
+    } catch (e) {
+      debugPrint('Error calculating weekly drunk levels for user $userId: $e');
+      return List.filled(7, -1);
+    }
+  }
+
+  /// 특정 사용자의 현재 취한 정도 계산 (친구용)
+  /// 오늘 음주 기록이 있으면 최대값, 없으면 0
+  Future<int?> _calculateCurrentDrunkLevelForUser(String userId) async {
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      // 오늘의 음주 기록 가져오기
+      final recordsSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('drinkingRecords')
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(today))
+          .where(
+            'date',
+            isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
+          )
+          .get();
+
+      if (recordsSnapshot.docs.isEmpty) {
+        // 오늘 기록 없음 -> 0
+        return 0;
+      }
+
+      // 오늘의 최대 drunkLevel 찾기
+      int maxLevel = 0;
+      for (final doc in recordsSnapshot.docs) {
+        final data = doc.data();
+        final drunkLevel = data['drunkLevel'] as int;
+        if (drunkLevel > maxLevel) {
+          maxLevel = drunkLevel;
+        }
+      }
+
+      return maxLevel;
+    } catch (e) {
+      debugPrint('Error calculating current drunk level for user $userId: $e');
+      return null;
+    }
+  }
+
+  /// 특정 친구의 음주 데이터 업데이트
+  Future<void> updateFriendDrinkingData(String friendUserId) async {
+    debugPrint('=== updateFriendDrinkingData START ===');
+    debugPrint('Friend User ID: $friendUserId');
+
+    if (_currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      // 주간 음주 레벨 계산
+      final weeklyDrunkLevels = await _calculateWeeklyDrunkLevelsForUser(friendUserId);
+      debugPrint('Weekly drunk levels for $friendUserId: $weeklyDrunkLevels');
+
+      // 현재 취한 정도 계산
+      final currentDrunkLevel = await _calculateCurrentDrunkLevelForUser(friendUserId);
+      debugPrint('Current drunk level for $friendUserId: $currentDrunkLevel');
+
+      // 친구의 프로필 업데이트
+      final updateData = <String, dynamic>{
+        'weeklyDrunkLevels': weeklyDrunkLevels,
+      };
+
+      if (currentDrunkLevel != null) {
+        updateData['currentDrunkLevel'] = currentDrunkLevel;
+      }
+
+      await _firestore.collection('users').doc(friendUserId).update(updateData);
+      debugPrint('✅ Friend $friendUserId profile updated');
+      debugPrint('=== updateFriendDrinkingData END ===');
+    } catch (e) {
+      debugPrint('❌ Error updating friend drinking data: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
+      // 에러가 발생해도 계속 진행 (다른 친구들은 업데이트되어야 함)
+    }
+  }
+
+  /// 모든 친구들의 음주 데이터 업데이트
+  Future<void> updateAllFriendsDrinkingData() async {
+    debugPrint('=== updateAllFriendsDrinkingData START ===');
+
+    if (_currentUserId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      // 친구 목록 가져오기
+      final friends = await getFriends();
+      debugPrint('Updating drinking data for ${friends.length} friends');
+
+      // 모든 친구의 데이터를 병렬로 업데이트
+      await Future.wait(
+        friends.map((friend) => updateFriendDrinkingData(friend.userId)),
+      );
+
+      debugPrint('✅ All friends drinking data updated');
+      debugPrint('=== updateAllFriendsDrinkingData END ===');
+    } catch (e) {
+      debugPrint('❌ Error updating all friends drinking data: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
+    }
+  }
+
   // ==================== 친구 요청 ====================
 
   /// 친구 요청 컬렉션 참조

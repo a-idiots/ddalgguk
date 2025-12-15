@@ -22,10 +22,15 @@ service cloud.firestore {
       // 모든 인증된 사용자는 다른 사용자 프로필 읽기 가능 (친구 검색, 프로필 보기)
       allow read: if isAuthenticated();
 
-      // 본인만 자신의 문서 생성/수정 가능
+      // 본인만 자신의 문서 생성/삭제 가능
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
+
+      // 본인은 모든 필드 수정 가능
+      // 친구는 weeklyDrunkLevels와 currentDrunkLevel만 수정 가능
+      allow update: if isOwner(userId) ||
+                       (isFriend(userId) &&
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['weeklyDrunkLevels', 'currentDrunkLevel']));
 
       // Friends subcollection
       match /friends/{friendId} {
@@ -52,8 +57,9 @@ service cloud.firestore {
 
       // Drinking Records subcollection
       match /drinkingRecords/{recordId} {
-        // 본인의 음주 기록만 읽기/쓰기 가능
-        allow read, write: if isOwner(userId);
+        // 본인은 읽기/쓰기 모두 가능, 친구는 읽기만 가능
+        allow read: if isOwner(userId) || isFriend(userId);
+        allow write: if isOwner(userId);
       }
     }
 

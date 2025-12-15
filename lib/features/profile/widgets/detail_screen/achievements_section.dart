@@ -12,14 +12,23 @@ class AchievementsSection extends ConsumerWidget {
     super.key,
     required this.theme,
     this.onlyPinned = false,
+    this.customTitle,
+    this.showMoreButton = true,
+    this.friendUserId,
   });
 
   final AppTheme theme;
   final bool onlyPinned;
+  final String? customTitle;
+  final bool showMoreButton;
+  final String? friendUserId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final badgesAsync = ref.watch(userBadgesProvider);
+    // 친구 뱃지 또는 내 뱃지 선택
+    final badgesAsync = friendUserId != null
+        ? ref.watch(friendBadgesProvider(friendUserId!))
+        : ref.watch(userBadgesProvider);
 
     return badgesAsync.when(
       skipLoadingOnReload: true,
@@ -29,32 +38,34 @@ class AchievementsSection extends ConsumerWidget {
             : allBadges;
 
         return ProfileSection(
-          title: '나의 업적',
+          title: customTitle ?? '나의 업적',
           titleOutside: true,
-          subtitle: GestureDetector(
-            onTap: () {
-              _showAllAchievements(context, allBadges, ref);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: theme.secondaryColor.withValues(alpha: 0.5),
-                  width: 1,
-                ),
-              ),
-              child: Text(
-                '더 많은 뱃지 확인하기',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: theme.secondaryColor.withValues(alpha: 1),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
+          subtitle: showMoreButton
+              ? GestureDetector(
+                  onTap: () {
+                    _showAllAchievements(context, allBadges, ref);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: theme.secondaryColor.withValues(alpha: 0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      '더 많은 뱃지 확인하기',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.secondaryColor.withValues(alpha: 1),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
           content: Padding(
             padding: const EdgeInsets.only(top: 12),
             child: SizedBox(

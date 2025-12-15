@@ -40,7 +40,14 @@ final friendsProvider = FutureProvider.autoDispose<List<FriendWithData>>((
     );
   }
 
-  // 친구들의 전체 데이터 가져오기
+  // 친구들의 음주 데이터 업데이트 (병렬로 실행)
+  if (friends.isNotEmpty) {
+    await Future.wait(
+      friends.map((friend) => friendService.updateFriendDrinkingData(friend.userId)),
+    );
+  }
+
+  // 친구들의 전체 데이터 가져오기 (업데이트된 데이터 포함)
   for (final friend in friends) {
     final friendUserData = await friendService.getFriendProfile(friend.userId);
     if (friendUserData != null) {
