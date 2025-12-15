@@ -111,29 +111,18 @@ class _SpendingSummaryCard extends StatelessWidget {
                 children: [
                   const Text(
                     '이번 달은 지난 달보다',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
                   ),
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(fontSize: 18, color: Colors.black),
                       children: [
                         TextSpan(
                           text: NumberFormat('#,###').format(diffAbs),
                           style: const TextStyle(color: Color(0xFFF27B7B)),
                         ),
                         const TextSpan(text: '원 '),
-                        TextSpan(
-                          text: isSaving ? '아끼고' : '더 쓰고',
-                          style: const TextStyle(color: Color(0xFFF27B7B)),
-                        ),
+                        TextSpan(text: isSaving ? '아끼고' : '더 쓰고'),
                         const TextSpan(text: ' 있어요'),
                       ],
                     ),

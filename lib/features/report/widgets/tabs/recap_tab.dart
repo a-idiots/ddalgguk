@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -122,33 +122,31 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   }
 
   void _showShareOptions() {
-    showModalBottomSheet(
+    showBottomHandleDialogue(
       context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text('인스타그램 스토리 공유'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _shareToInstagramStory();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.share),
-                title: const Text('다른 앱으로 공유'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _shareToSystem();
-                },
-              ),
-            ],
+      fitContent: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt_outlined),
+            title: const Text('인스타그램 스토리 공유'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareToInstagramStory();
+            },
           ),
-        );
-      },
+          ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('다른 앱으로 공유'),
+            onTap: () {
+              Navigator.pop(context);
+              _shareToSystem();
+            },
+          ),
+          const SizedBox(height: 20), // Add explicit bottom padding for comfort
+        ],
+      ),
     );
   }
 
@@ -158,7 +156,6 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final now = DateTime.now();
     final normalizedDate = DateTime(now.year, now.month);
 
-    final weeklyStatsAsync = ref.watch(weeklyStatsProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
 
@@ -218,10 +215,16 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     const SizedBox(height: 32),
 
                     // 2. Soju Glass (Total Volume)
-                    weeklyStatsAsync.when(
-                      data: (stats) {
+                    monthRecordsAsync.when(
+                      data: (records) {
+                        double totalMl = 0;
+                        for (final record in records) {
+                          for (final drink in record.drinkAmount) {
+                            totalMl += drink.amount;
+                          }
+                        }
                         return _SojuGlassWidget(
-                          totalMl: stats.totalAlcoholMl.toInt().clamp(0, 99999),
+                          totalMl: totalMl.toInt().clamp(0, 99999),
                           controller: _sojuGlassController,
                         );
                       },
@@ -521,7 +524,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         '이번 달은 잘 살았습니다. 근데 이제 술을 곁들인.',
         '캘린더가 젖어있네요? 이거 술인가요?',
         '필름: 저 외근 좀 갔다 올게요.',
-        '아직은 사람인데, 곧 액체 괴물이 될 예정이랍니다.',
+        '아직 사람인데, 곧 액체괴물이 될 예정이랍니다.',
         '인생 ctrl+s를 월에 1~3번 정도 누르지 않았어요.',
       ];
     } else if (drunkCount <= 7) {
@@ -636,11 +639,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+            style: const TextStyle(fontSize: 18, color: Colors.black),
           ),
           Text(
             label,
