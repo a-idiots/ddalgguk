@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
+import 'package:ddalgguk/shared/utils/alcohol_calculator.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/foundation.dart';
 
@@ -561,18 +563,36 @@ class FriendService {
   }
 
   /// 특정 사용자의 현재 취한 정도 계산 (친구용)
-  /// 오늘 음주 기록이 있으면 최대값, 없으면 0
+  /// AlcoholCalculator를 사용하여 최근 3일 기록 기반으로 정확하게 계산
   Future<int?> _calculateCurrentDrunkLevelForUser(String userId) async {
+    try {
+      final result = await calculateFriendAlcoholStats(userId);
+      return result?.currentDrunkLevel.round();
+    } catch (e) {
+      debugPrint('Error calculating current drunk level for user $userId: $e');
+      return null;
+    }
+  }
+
+  /// 친구의 알코올 통계 전체 계산 (프로필 다이얼로그용)
+  /// 친구의 체중, 키, 성별 등을 모두 고려하여 정확한 혈중 알코올 농도와 분해 시간 계산
+  Future<AlcoholCalculationResult?> calculateFriendAlcoholStats(
+    String userId,
+  ) async {
     try {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
+      final threeDaysAgo = today.subtract(const Duration(days: 2));
 
-      // 오늘의 음주 기록 가져오기
+      // 최근 3일간의 음주 기록 가져오기
       final recordsSnapshot = await _firestore
           .collection('users')
           .doc(userId)
           .collection('drinkingRecords')
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(today))
+          .where(
+            'date',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(threeDaysAgo),
+          )
           .where(
             'date',
             isLessThan: Timestamp.fromDate(today.add(const Duration(days: 1))),
@@ -580,23 +600,59 @@ class FriendService {
           .get();
 
       if (recordsSnapshot.docs.isEmpty) {
-        // 오늘 기록 없음 -> 0
-        return 0;
+        return null;
       }
 
-      // 오늘의 최대 drunkLevel 찾기
-      int maxLevel = 0;
-      for (final doc in recordsSnapshot.docs) {
-        final data = doc.data();
-        final drunkLevel = data['drunkLevel'] as int;
-        if (drunkLevel > maxLevel) {
-          maxLevel = drunkLevel;
+      // DrinkingRecord 리스트로 변환
+      final records = recordsSnapshot.docs.map((doc) {
+        return DrinkingRecord.fromFirestore(doc);
+      }).toList();
+
+      // 친구의 userInfo 가져오기
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+
+      Map<String, dynamic>? userInfo;
+      if (userData != null) {
+        userInfo = {
+          'gender': userData['gender'],
+          'birthDate': userData['birthDate'] != null
+              ? (userData['birthDate'] as Timestamp).toDate()
+              : null,
+          'height': userData['height'],
+          'weight': userData['weight'],
+          'coefficient': userData['coefficient'],
+        };
+
+        // 기본값 적용 및 로그
+        if (userInfo['weight'] == null) {
+          debugPrint(
+            '⚠️ Friend $userId has no weight data, using default 60kg',
+          );
+          userInfo['weight'] = 60.0;
         }
+        if (userInfo['height'] == null) {
+          debugPrint(
+            '⚠️ Friend $userId has no height data, using default 170cm',
+          );
+          userInfo['height'] = 170.0;
+        }
+      } else {
+        debugPrint('⚠️ Friend $userId has no user data, using all defaults');
+        userInfo = {'weight': 60.0, 'height': 170.0};
       }
 
-      return maxLevel;
+      // AlcoholCalculator로 정확한 계산 - 전체 결과 반환
+      final result = AlcoholCalculator.calculate(
+        userInfo: userInfo,
+        records: records,
+        now: now,
+        today: today,
+      );
+
+      return result;
     } catch (e) {
-      debugPrint('Error calculating current drunk level for user $userId: $e');
+      debugPrint('Error calculating friend alcohol stats for user $userId: $e');
       return null;
     }
   }

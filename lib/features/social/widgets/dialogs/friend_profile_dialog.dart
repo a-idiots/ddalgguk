@@ -1,6 +1,5 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/achievements_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/alcohol_breakdown_section.dart';
@@ -52,65 +51,6 @@ class FriendProfileDialog extends ConsumerWidget {
       dailyData: dailyData,
       soberDays: weeklyLevels.where((l) => l == -1).length,
       drinkTypeStats: [],
-    );
-  }
-
-  ProfileStats? _createProfileStats() {
-    final lastDrinkDate = friendData.lastDrinkDate;
-    final currentDrunkLevel = friendData.currentDrunkLevel;
-
-    if (lastDrinkDate == null ||
-        currentDrunkLevel == null ||
-        currentDrunkLevel == 0) {
-      return ProfileStats.empty();
-    }
-
-    final now = DateTime.now();
-    final estimatedTotalAlcohol = currentDrunkLevel * 10.0;
-    final hoursSinceLastDrink = now.difference(lastDrinkDate).inMinutes / 60.0;
-    final alcoholProcessed = hoursSinceLastDrink * 7;
-    final alcoholRemaining = (estimatedTotalAlcohol - alcoholProcessed)
-        .clamp(0.0, estimatedTotalAlcohol)
-        .toDouble();
-    final progressPercentage = estimatedTotalAlcohol > 0
-        ? ((alcoholProcessed / estimatedTotalAlcohol) * 100)
-              .clamp(0.0, 100.0)
-              .toDouble()
-        : 100.0;
-    final timeToSober = alcoholRemaining > 0 ? alcoholRemaining / 7 : 0.0;
-
-    final weeklyLevels = friendData.weeklyDrunkLevels;
-    int thisMonthDrunkDays = 0;
-    if (weeklyLevels != null) {
-      final today = DateTime(now.year, now.month, now.day);
-      // 이번 주 월요일 계산
-      final daysSinceMonday = today.weekday - 1;
-      final thisMonday = today.subtract(Duration(days: daysSinceMonday));
-
-      // 이번 주 월~일 중 이번 달에 해당하는 음주일 계산
-      for (int i = 0; i < 7; i++) {
-        final date = thisMonday.add(Duration(days: i));
-        if (date.month == now.month && weeklyLevels[i] > 0) {
-          thisMonthDrunkDays++;
-        }
-      }
-    }
-
-    return ProfileStats(
-      thisMonthDrunkDays: thisMonthDrunkDays,
-      currentAlcoholInBody: alcoholRemaining,
-      timeToSober: timeToSober,
-      statusMessage: alcoholRemaining > 0 ? '분해 중' : '깨끗한 상태',
-      breakdown: AlcoholBreakdown(
-        alcoholRemaining: alcoholRemaining,
-        progressPercentage: progressPercentage,
-        lastDrinkTime: lastDrinkDate,
-        estimatedSoberTime: timeToSober > 0
-            ? lastDrinkDate.add(
-                Duration(hours: (hoursSinceLastDrink + timeToSober).ceil()),
-              )
-            : lastDrinkDate,
-      ),
     );
   }
 
@@ -220,7 +160,10 @@ class FriendProfileDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyStats = _createWeeklyStats();
-    final profileStats = _createProfileStats();
+    final profileStatsAsync = ref.watch(
+      friendProfileStatsProvider(friendData.userId),
+    );
+    final profileStats = profileStatsAsync.valueOrNull;
     final theme = AppColors.getTheme(profileStats?.thisMonthDrunkDays ?? 0);
 
     return Column(
@@ -293,8 +236,9 @@ class FriendProfileDialog extends ConsumerWidget {
                   friendUserId: friendData.userId,
                 ),
                 const SizedBox(height: 16),
-                // 알콜 분해 정보
-                if (profileStats != null)
+                // 알콜 분해 정보 - provider에서 가져온 정확한 통계 사용
+                if (profileStats != null &&
+                    profileStats.currentAlcoholInBody > 0)
                   AlcoholBreakdownSection(
                     stats: profileStats,
                     theme: theme,

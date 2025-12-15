@@ -375,14 +375,12 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
                 const SizedBox(height: 8),
 
                 // 완료된 기록 리스트
-                ..._completedRecords.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final record = entry.value;
+                ..._completedRecords.map((record) {
                   return CompletedDrinkCard(
                     record: record,
                     onDelete: () {
                       setState(() {
-                        _completedRecords.removeAt(index);
+                        _completedRecords.remove(record);
                       });
                     },
                   );
