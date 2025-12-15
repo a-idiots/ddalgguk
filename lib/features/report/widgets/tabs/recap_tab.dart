@@ -727,28 +727,6 @@ class _SojuGlassWidgetState extends State<_SojuGlassWidget>
 
   @override
   Widget build(BuildContext context) {
-    // We can use NotificationListener here to capture scrolls from parent if not passed?
-    // But parent SingleChildScrollView is above.
-    // Actually, NotificationListener works for DESCENDANT scrollables usually.
-    // If we want to capture Parent's scroll, we need to pass a controller or notification bubbling.
-    // But SingleChildScrollView -> Column -> SojuGlassWidget.
-    // The scroll happens in SingleChildScrollView.
-    // NotificationListener on SingleChildScrollView (in RecapTab) sees it.
-    // We already wrap in RecapTab.
-    // But wait, the previous edit removed the GestureDetector logic in RecapTab? No.
-    // I need to update RecapTab to pass scroll to this widget.
-    // OR, I can use NotificationListener<ScrollUpdateNotification>(onNotification: ... return false?)
-    // But bubbles UP. If I put NotificationListener inside SojuGlassWidget, it listens to children.
-    // So SojuGlassWidget cannot listen to parent scroll directly this way.
-    //
-    // However, I added `SojuGlassController` class.
-    // I should create it in `RecapTab` and pass it down.
-    // BUT, the current code instantiates it locally in `_SojuGlassWidgetState`.
-    // It's local physics.
-    // The user drag (GestureDetector) I added is on the widget itself.
-    // "위아래로 스크롤 할 때" -> When scrolling the PAGE.
-    // So `RecapTab` must capture scroll and feed the controller.
-
     return SizedBox(
       height: 170,
       width: 190,

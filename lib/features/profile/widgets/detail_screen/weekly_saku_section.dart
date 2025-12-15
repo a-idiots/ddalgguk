@@ -92,10 +92,6 @@ class _WeeklySakuSectionState extends ConsumerState<WeeklySakuSection> {
           itemBuilder: (context, index) {
             final itemOffset = _getOffsetFromPageIndex(index);
 
-            // Use the passed weeklyStats for offset 0 to avoid flicker/reload if possible,
-            // but for consistency we can just watch the provider for all.
-            // However, widget.weeklyStats is already available.
-
             if (itemOffset == 0) {
               return _buildWeekRow(widget.weeklyStats);
             }

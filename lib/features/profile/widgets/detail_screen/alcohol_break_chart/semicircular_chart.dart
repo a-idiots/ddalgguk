@@ -237,14 +237,7 @@ class _SemicircularChartPainter extends CustomPainter {
       clockwise: true,
     );
 
-    // 7. Inner Arc (drawn in reverse direction implicitly by order, but arcTo needs positive sweep usually?
-    // Actually we want to draw from thetaInnerEnd to thetaInnerStart.
-    // Since we are drawing clockwise, the angle decreases? No, angle increases clockwise in Flutter?
-    // Flutter coordinates: +x right, +y down. 0 is right. PI/2 is down.
-    // We are drawing from PI (left) to 2PI (right).
-    // So angle increases clockwise.
-    // Outer arc: thetaOuterStart -> thetaOuterEnd (increasing).
-    // Inner arc: thetaInnerEnd -> thetaInnerStart (decreasing).
+    // 내부 호 그리기
     path.arcTo(
       Rect.fromCircle(center: center, radius: innerRadius),
       thetaInnerEnd,

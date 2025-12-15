@@ -157,22 +157,9 @@ class BadgeService {
       await init();
     }
 
-    // 1. Update Monthly Total
+    // 월별 총량 업데이트
     final monthKey = DateFormat('yyyy-MM').format(date);
     final dateKey = DateFormat('yyyy-MM-dd').format(date);
-
-    // To update monthly strictly correctly, we'd need to subtract the old value for this day.
-    // BUT, we don't store daily totals to subtract.
-    // So, updateDailyAlcohol is expected to be called with the *CORRECT FINAL TOTAL* for that day.
-    // We need to re-aggregate the month? That's expensive (DB Scan).
-    // Alternative: We store daily totals in a map?
-    // User requested "Minimal calculation".
-    // Best approach: Store daily totals locally too?
-    // If we only store monthly sum, we can't easily correct it if a record changes without knowing the delta.
-    // Since we are building a robust local cache, let's keep a separate map for 'daily_alcohol_map' inside monthly_alcohol logic?
-    // Actually, let's change `_monthly_alcohol` to dynamically sum from a stored `_daily_alcohol_totals`.
-    // It's safer. A year of data is 365 entries. 10 years = 3650 doubles. ~30KB RAM. Trivial.
-    // Let's add `_dailyAlcohol` map.
 
     debugPrint(
       'BadgeService: Updating alcohol for $dateKey: $totalPureAlcoholMl ml',
@@ -251,11 +238,7 @@ class BadgeService {
   /// We mainly care about the "Current" streak ending today or yesterday.
   /// And "Longest" streak updates.
   Future<void> _recalculateStreaks(DateTime changedDate) async {
-    // To be perfectly accurate for "Longest" streak, we might need to scan the whole history
-    // if a record in the middle was broken.
-    // However, for "Current", we just scan back from today.
-
-    // Sort keys to scan
+    // 현재 연속 일수는 오늘부터 역순 스캔
     final sortedKeys = _calendarStatus.keys.toList()..sort();
     if (sortedKeys.isEmpty) {
       _resetStreaks();
@@ -290,24 +273,7 @@ class BadgeService {
       // We assume max streak is size of map, just loop integers
       // But we need to check CONSECUTIVE days
       // If we skip the sortedKeys.indexOf logic and just subtract days logically
-      // it might be cleaner but slower if we check non-existent keys.
-      // Given sorting:
-      // We can just iterate backwards from 'startKey' using sortedKeys?
-      // No, sortedKeys is low->high.
-      // We need to find index of startKey and iterate down.
-
-      // Warning: 'startIndex' unused warning was here.
-      // Let's use it for optimization or just use logical date subtraction?
-      // Logical subtraction is safest for 'Consecutive'.
-      // If map is dense, fast. If sparse, we stop immediately.
-
-      // Actually, to use 'sortedKeys', we would do:
-      // int index = sortedKeys.indexOf(startKey);
-      // for (int i = index; i >= 0; i--) { ... }
-      // But 'consecutive' check is harder with list access. Dates are clearer.
-
-      // Let's stick to Date subtraction loop as it's visibly correct for 'Status at Date'.
-      // We'll limit the loop to avoid infinite if something goes wrong (e.g. 10 years).
+      // 연속 일수 계산 (최대 10년)
       for (int i = 0; i < 3650; i++) {
         final dateStr = DateFormat('yyyy-MM-dd').format(pointerDate);
         final status = _calendarStatus[dateStr];
@@ -332,11 +298,7 @@ class BadgeService {
       );
     }
 
-    // 2. Calculate Longest Streak (Expensive?)
-    // If we inserted a record connecting two streaks, longest might change.
-    // We can do a full pass if `sortedKeys.length` is reasonable (< 5000).
-    // Let's do a full pass for correctness. It's just iterating integers.
-
+    // 최장 연속 일수 계산
     int maxSober = 0;
     int maxDrinking = 0;
 
