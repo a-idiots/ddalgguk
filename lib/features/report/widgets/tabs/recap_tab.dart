@@ -137,7 +137,10 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     // 3. Stats Grid
                     monthRecordsAsync.when(
                       data: (records) {
-                        return _buildStatsGrid(records);
+                        return _buildStatsGrid(
+                          records,
+                          currentUserAsync.valueOrNull?.maxAlcohol,
+                        );
                       },
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
@@ -168,9 +171,23 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                     // 6. One-line Review
                     monthRecordsAsync.when(
                       data: (records) {
-                        final drunkCount = records
-                            .where((r) => r.drunkLevel >= 7)
-                            .length;
+                        // Calculate drunk count consistently
+                        final maxAlcohol =
+                            currentUserAsync.valueOrNull?.maxAlcohol;
+                        final drunkCount = records.where((r) {
+                          if (maxAlcohol != null) {
+                            double totalPureAlcohol = 0;
+                            for (final drink in r.drinkAmount) {
+                              totalPureAlcohol +=
+                                  drink.amount * (drink.alcoholContent / 100);
+                            }
+                            final limitPureAlcohol = maxAlcohol * 59.4;
+                            return totalPureAlcohol > limitPureAlcohol;
+                          } else {
+                            return r.drunkLevel >= 9;
+                          }
+                        }).length;
+
                         return Column(
                           children: [
                             Align(
@@ -251,9 +268,25 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     );
   }
 
-  Widget _buildStatsGrid(List<DrinkingRecord> records) {
+  Widget _buildStatsGrid(List<DrinkingRecord> records, double? maxAlcohol) {
     // Calculate stats
-    final drunkCount = records.where((r) => r.drunkLevel >= 7).length;
+    // 만취 횟수: 주량 초과 여부로 판단
+    // maxAlcohol(주량)이 있으면 주량 초과 시 만취로 간주
+    // 없으면 기존 로직(drunkLevel >= 9) 유지
+    final drunkCount = records.where((r) {
+      if (maxAlcohol != null) {
+        // Calculate total pure alcohol for this record
+        double totalPureAlcohol = 0;
+        for (final drink in r.drinkAmount) {
+          totalPureAlcohol += drink.amount * (drink.alcoholContent / 100);
+        }
+        // Soju 1 bottle (360ml, 16.5%) = ~59.4ml pure alcohol
+        final limitPureAlcohol = maxAlcohol * 59.4;
+        return totalPureAlcohol > limitPureAlcohol;
+      } else {
+        return r.drunkLevel >= 9;
+      }
+    }).length;
 
     double totalBottles = 0;
     for (var r in records) {
@@ -261,23 +294,29 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         continue;
       }
       for (var d in r.drinkAmount) {
-        totalBottles += (d.amount / 500.0).clamp(0, 1000);
+        totalBottles += (d.amount / 360.0).clamp(
+          0,
+          1000,
+        ); // Standard Soju bottle 360ml
       }
     }
-    final avgBottles = records.isEmpty
-        ? 0.0
-        : (totalBottles / records.length).clamp(0, 100);
 
-    final avgDrunkLevel = records.isEmpty
+    final actualDrinkRecords = records.where((r) => r.drinkAmount.isNotEmpty);
+
+    final avgBottles = actualDrinkRecords.isEmpty
+        ? 0.0
+        : (totalBottles / actualDrinkRecords.length).clamp(0, 100);
+
+    final avgDrunkLevel = actualDrinkRecords.isEmpty
         ? 0
-        : (records.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
-                  records.length *
+        : (actualDrinkRecords.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
+                  actualDrinkRecords.length *
                   10)
               .round();
 
     // Consecutive days
     final sortedDates =
-        records
+        actualDrinkRecords
             .map((r) => DateTime(r.date.year, r.date.month, r.date.day))
             .toSet()
             .toList()
@@ -319,7 +358,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: _StatCard(value: '$maxConsecutive일', label: '연속 음주'),
+              child: _StatCard(value: '$maxConsecutive일', label: '음주'),
             ),
           ],
         ),
