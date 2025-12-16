@@ -35,8 +35,9 @@ class FriendWithData {
   /// 표시용 음주 레벨 (0-100)
   int get displayDrunkLevel {
     // currentDrunkLevel을 우선적으로 사용 (실시간 상태 반영)
+    // currentDrunkLevel은 이미 0-100 범위
     if (currentDrunkLevel != null) {
-      return currentDrunkLevel! * 10;
+      return currentDrunkLevel!;
     }
     // currentDrunkLevel이 없으면 weeklyDrunkLevels에서 가장 최근 값 사용
     if (weeklyDrunkLevels != null && weeklyDrunkLevels!.isNotEmpty) {

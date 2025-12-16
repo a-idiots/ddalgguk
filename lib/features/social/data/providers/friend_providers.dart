@@ -4,6 +4,7 @@ import 'package:ddalgguk/features/social/data/services/friend_service.dart';
 import 'package:ddalgguk/features/social/domain/models/friend.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_request.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// FriendService 프로바이더
@@ -29,25 +30,44 @@ final friendsProvider = FutureProvider.autoDispose<List<FriendWithData>>((
 
   final friendsWithData = <FriendWithData>[];
 
-  // 나의 프로필 추가 (Friend 객체를 임시로 생성)
+  debugPrint('=== friendsProvider: Updating drinking data ===');
+  debugPrint('My uid: ${myProfile?.uid}');
+  debugPrint('Friends count: ${friends.length}');
+
+  // 나 + 친구들의 음주 데이터 업데이트 (병렬로 실행)
+  final allUserIds = <String>[];
   if (myProfile != null) {
-    final myFriendInfo = Friend(
-      userId: myProfile.uid,
-      name: myProfile.name ?? 'Me',
-      createdAt: DateTime.now(),
-    );
-    friendsWithData.add(
-      FriendWithData(friend: myFriendInfo, userData: myProfile),
-    );
+    allUserIds.add(myProfile.uid);
+  }
+  if (friends.isNotEmpty) {
+    allUserIds.addAll(friends.map((f) => f.userId));
   }
 
-  // 친구들의 음주 데이터 업데이트 (병렬로 실행)
-  if (friends.isNotEmpty) {
+  debugPrint('Total users to update: ${allUserIds.length}');
+
+  if (allUserIds.isNotEmpty) {
     await Future.wait(
-      friends.map(
-        (friend) => friendService.updateFriendDrinkingData(friend.userId),
+      allUserIds.map(
+        (userId) => friendService.updateFriendDrinkingData(userId),
       ),
     );
+    debugPrint('✅ All users updated');
+  }
+
+  // 나의 프로필 추가 (업데이트된 데이터로 다시 가져오기)
+  if (myProfile != null) {
+    final updatedMyProfile = await friendService.getMyProfile();
+    if (updatedMyProfile != null) {
+      debugPrint('My currentDrunkLevel: ${updatedMyProfile.currentDrunkLevel}');
+      final myFriendInfo = Friend(
+        userId: updatedMyProfile.uid,
+        name: updatedMyProfile.name ?? 'Me',
+        createdAt: DateTime.now(),
+      );
+      friendsWithData.add(
+        FriendWithData(friend: myFriendInfo, userData: updatedMyProfile),
+      );
+    }
   }
 
   // 친구들의 전체 데이터 가져오기 (업데이트된 데이터 포함)
@@ -62,10 +82,12 @@ final friendsProvider = FutureProvider.autoDispose<List<FriendWithData>>((
 
   // 만료된 상태 메시지 정리 (백그라운드에서 실행, 결과를 기다리지 않음)
   // 나 + 모든 친구들의 userId 수집
-  final allUserIds = friendsWithData.map((f) => f.userId).toList();
-  if (allUserIds.isNotEmpty) {
+  final cleanupUserIds = friendsWithData.map((f) => f.userId).toList();
+  if (cleanupUserIds.isNotEmpty) {
     // 백그라운드에서 비동기 실행 (await 없이)
-    friendService.cleanupExpiredDailyStatuses(allUserIds).catchError((error) {
+    friendService.cleanupExpiredDailyStatuses(cleanupUserIds).catchError((
+      error,
+    ) {
       // 에러가 발생해도 무시 (로그만 출력됨)
       return;
     });
