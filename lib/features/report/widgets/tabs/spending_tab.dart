@@ -19,7 +19,9 @@ class SpendingTab extends ConsumerWidget {
     final monthlySpendingAsync = ref.watch(
       monthlySpendingProvider(normalizedDate),
     );
-    final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
+    final monthRecordsAsync = ref.watch(
+      analyticsMonthRecordsProvider(normalizedDate),
+    );
     final comparisonAsync = ref.watch(
       monthlySpendingComparisonProvider(normalizedDate),
     );

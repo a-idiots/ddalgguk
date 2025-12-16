@@ -158,7 +158,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     final normalizedDate = DateTime(now.year, now.month);
 
     final currentUserAsync = ref.watch(currentUserProvider);
-    final monthRecordsAsync = ref.watch(monthRecordsProvider(normalizedDate));
+    final monthRecordsAsync = ref.watch(
+      analyticsMonthRecordsProvider(normalizedDate),
+    );
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
