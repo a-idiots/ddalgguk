@@ -4,7 +4,6 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
-import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
@@ -95,23 +94,11 @@ final friendBadgesProvider = FutureProvider.autoDispose.family<List<Badge>, Stri
 });
 
 /// Weekly stats provider (last 7 days)
-/// Weekly stats provider (last 7 days)
 final weeklyStatsProvider = FutureProvider<WeeklyStats>((ref) async {
   // Watch for data updates
   ref.watch(drinkingRecordsLastUpdatedProvider);
 
-  // Try to get data from current user first
-  final user = await ref.watch(currentUserProvider.future);
-  if (user != null &&
-      user.weeklyDrunkLevels != null &&
-      user.weeklyDrunkLevels!.length == 7) {
-    return ProfileStatsService.createWeeklyStatsFromList(
-      weeklyLevels: user.weeklyDrunkLevels,
-      endDate: DateTime.now(),
-    );
-  }
-
-  // Fallback to calculation from records
+  // Always calculate from records to ensure real-time updates when records change
   final service = ref.watch(profileStatsServiceProvider);
   return service.calculateWeeklyStats();
 });
@@ -143,13 +130,6 @@ final currentProfileStatsProvider = FutureProvider<ProfileStats>((ref) {
   final service = ref.watch(profileStatsServiceProvider);
   final userInfoAsync = ref.watch(userPhysicalInfoProvider);
   return service.calculateCurrentStats(userInfoAsync.valueOrNull);
-});
-
-/// Achievements provider
-final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
-  ref.watch(drinkingRecordsLastUpdatedProvider);
-  final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateAchievements();
 });
 
 /// Monthly spending provider

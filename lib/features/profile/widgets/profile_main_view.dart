@@ -13,13 +13,15 @@ class ProfileMainView extends ConsumerStatefulWidget {
     this.showCharacter = true,
     this.characterKey,
     this.opacity = 1.0,
-    this.onDrunkLevelChanged,
+    required this.theme,
+    required this.drunkLevel,
   });
 
   final bool showCharacter;
   final GlobalKey? characterKey;
   final double opacity;
-  final ValueChanged<int>? onDrunkLevelChanged;
+  final AppTheme theme;
+  final int drunkLevel;
 
   @override
   ConsumerState<ProfileMainView> createState() => _ProfileMainViewState();
@@ -36,10 +38,7 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
       next.whenData((stats) {
         final authRepository = ref.read(authRepositoryProvider);
         authRepository.updateCurrentDrunkLevel(stats.todayDrunkLevel);
-        // Notify parent about drunk level change
-        widget.onDrunkLevelChanged?.call(
-          stats.breakdown.progressPercentage.round(),
-        );
+        // Parent already has the data via provider, no need to notify back
       });
     });
 
@@ -53,19 +52,8 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
         return currentStatsAsync.when(
           skipLoadingOnReload: true,
           data: (stats) {
-            // Notify parent about drunk level when data is available
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              widget.onDrunkLevelChanged?.call(
-                100 - stats.breakdown.progressPercentage.round(),
-              );
-            });
-
-            final theme = AppColors.getTheme(
-              100 - stats.breakdown.progressPercentage.round(),
-            );
-
             return ProfileGradientBackground(
-              theme: theme,
+              theme: widget.theme,
               child: SafeArea(
                 child: Stack(
                   children: [
@@ -95,27 +83,32 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
                                     color: Colors.black,
                                   ),
                                   children: [
-                                    if (stats.consecutiveDrinkingDays > 0) ...[
+                                    if (stats.hasTodayRecord &&
+                                        stats.isTodayDrinking) ...[
+                                      // Case 1: Drinking today
                                       const TextSpan(text: '이번 달 '),
                                       TextSpan(
                                         text:
-                                            '${stats.thisMonthDrinkingCount}번',
+                                            '${stats.thisMonthDrinkingCount}일',
                                         style: TextStyle(
-                                          color: theme.secondaryColor,
+                                          color: widget.theme.secondaryColor,
                                         ),
                                       ),
                                       const TextSpan(text: ' 술을 마셨어요!'),
-                                    ] else if (stats.consecutiveSoberDays >
-                                        0) ...[
+                                    ] else if (stats.hasTodayRecord &&
+                                        !stats.isTodayDrinking) ...[
+                                      // Case 2: Sober today
+                                      const TextSpan(text: '이번 달 '),
                                       TextSpan(
-                                        text: '${stats.consecutiveSoberDays}일째',
+                                        text: '${stats.thisMonthSoberCount}일',
                                         style: TextStyle(
-                                          color: theme.secondaryColor,
+                                          color: widget.theme.secondaryColor,
                                         ),
                                       ),
-                                      const TextSpan(text: ' 금주 중이네요!'),
+                                      const TextSpan(text: ' 금주 성공했어요!'),
                                     ] else ...[
-                                      const TextSpan(text: '아직 기록이 없어요!'),
+                                      // Case 3: No records at all
+                                      const TextSpan(text: '오늘 기록을 추가해주세요!'),
                                     ],
                                   ],
                                 ),
@@ -130,10 +123,7 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
                             child: widget.showCharacter
                                 ? SakuCharacter(
                                     size: 150,
-                                    drunkLevel:
-                                        100 -
-                                        stats.breakdown.progressPercentage
-                                            .round(),
+                                    drunkLevel: widget.drunkLevel,
                                   )
                                 : Container(key: widget.characterKey),
                           ),

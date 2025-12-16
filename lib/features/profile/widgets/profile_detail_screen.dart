@@ -16,15 +16,15 @@ class ProfileDetailScreen extends ConsumerStatefulWidget {
     this.onBack,
     this.onNavigateToAnalytics,
     this.showCharacter = true,
-    this.drunkLevel,
-    this.onDrunkLevelChanged,
+    required this.theme,
+    required this.drunkLevel,
   });
 
   final VoidCallback? onBack;
   final VoidCallback? onNavigateToAnalytics;
   final bool showCharacter;
-  final int? drunkLevel;
-  final ValueChanged<int>? onDrunkLevelChanged;
+  final AppTheme theme;
+  final int drunkLevel;
 
   @override
   ConsumerState<ProfileDetailScreen> createState() =>
@@ -55,19 +55,10 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
         return currentStatsAsync.when(
           skipLoadingOnReload: true,
           data: (currentStats) {
-            final theme = AppColors.getTheme(currentStats.thisMonthDrunkDays);
-
-            // Notify parent about drunk level
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              widget.onDrunkLevelChanged?.call(
-                100 - currentStats.breakdown.progressPercentage.round(),
-              );
-            });
-
             return Scaffold(
               backgroundColor: Colors.transparent,
               body: ProfileGradientBackground(
-                theme: theme,
+                theme: widget.theme,
                 reversed: true,
                 child: SafeArea(
                   child: CustomScrollView(
@@ -78,10 +69,9 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                       SliverToBoxAdapter(
                         child: ProfileHeader(
                           user: user,
-                          theme: theme,
+                          theme: widget.theme,
                           showCharacter: widget.showCharacter,
-                          drunkLevel:
-                              widget.drunkLevel ?? currentStats.todayDrunkLevel,
+                          drunkLevel: widget.drunkLevel,
                         ),
                       ),
                       // Content
@@ -92,7 +82,7 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             skipLoadingOnReload: true,
                             data: (weeklyStats) => WeeklySakuSection(
                               weeklyStats: weeklyStats,
-                              theme: theme,
+                              theme: widget.theme,
                             ),
                             loading: () => const Center(
                               child: Padding(
@@ -104,12 +94,12 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                           ),
                           const SizedBox(height: 8),
                           // Section 2-2: Achievements
-                          AchievementsSection(theme: theme),
+                          AchievementsSection(theme: widget.theme),
                           const SizedBox(height: 8),
                           // Section 2-3: Alcohol Breakdown
                           AlcoholBreakdownSection(
                             stats: currentStats,
-                            theme: theme,
+                            theme: widget.theme,
                             extraComment: true,
                           ),
                           const SizedBox(height: 32),
