@@ -57,7 +57,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _updateBottomColor() {
     final currentStatsAsync = ref.read(currentProfileStatsProvider);
     currentStatsAsync.whenData((stats) {
-      final drunkLevel = 100 - stats.breakdown.progressPercentage.round();
+      final drunkLevel = stats.todayDrunkLevel;
       final theme = AppColors.getTheme(drunkLevel);
       final progress = (_currentPage * 5).clamp(0.0, 1.0);
 
@@ -144,7 +144,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return currentStatsAsync.when(
       data: (stats) {
-        final drunkLevel = 100 - stats.breakdown.progressPercentage.round();
+        final drunkLevel = stats.todayDrunkLevel;
         final theme = AppColors.getTheme(drunkLevel);
 
         return Scaffold(

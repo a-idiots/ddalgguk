@@ -43,8 +43,8 @@ class FriendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // currentDrunkLevel (0-10)을 0-100으로 변환
-    final drunkLevel = (friendData.currentDrunkLevel ?? 0) * 10;
+    // currentDrunkLevel은 이미 0-100 범위
+    final drunkLevel = friendData.currentDrunkLevel ?? 0;
     final backgroundColor = AppColors.getSakuBackgroundColor(drunkLevel);
     final status = friendData.displayStatus;
 
