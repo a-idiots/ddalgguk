@@ -522,16 +522,16 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       ];
     } else if (drunkCount <= 3) {
       candidates = [
-        '이번 달은 잘 살았습니다. 근데 이제 술을 곁들인.',
+        '이번 달은 잘 살았습니다. 술과 함께.',
         '캘린더가 젖어있네요? 이거 술인가요?',
         '필름: 저 외근 좀 갔다 올게요.',
         '아직 사람인데, 곧 액체괴물이 될 예정이랍니다.',
-        '인생 ctrl+s를 월에 1~3번 정도 누르지 않았어요.',
+        '인생 ctrl+s를 가끔 까먹었어요.',
       ];
     } else if (drunkCount <= 7) {
       candidates = [
         '당신은 술이랑 썸을 넘어 동거중이에요.',
-        '음주력은 일반인보다 300%이지만 기억력은 30%에요.',
+        '음주력은 300%이지만, 기억력은 30%에요.',
         '갓생. 갓구운 생선구이에 한 잔 하자는 뜻이죠!',
         '행복은 짧고 숙취는 길다.',
       ];
@@ -591,14 +591,19 @@ class _RecordHighlightSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              recordName,
-              style: const TextStyle(
-                fontFamily: 'GriunSimsimche',
-                fontSize: 30,
-                fontWeight: FontWeight.w400,
+            Expanded(
+              child: Text(
+                recordName,
+                style: const TextStyle(
+                  fontFamily: 'GriunSimsimche',
+                  fontSize: 30,
+                  fontWeight: FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 16),
             Text(
               valueText,
               style: const TextStyle(
