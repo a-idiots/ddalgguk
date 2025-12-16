@@ -27,7 +27,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   // Layout state
   Offset? _mainCharacterPosition;
-  int? _mainCharacterDrunkLevel;
 
   @override
   void initState() {
@@ -58,7 +57,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _updateBottomColor() {
     final currentStatsAsync = ref.read(currentProfileStatsProvider);
     currentStatsAsync.whenData((stats) {
-      final theme = AppColors.getTheme(stats.thisMonthDrunkDays);
+      final drunkLevel = 100 - stats.breakdown.progressPercentage.round();
+      final theme = AppColors.getTheme(drunkLevel);
       final progress = (_currentPage * 5).clamp(0.0, 1.0);
 
       // Interpolate between Primary (Main Page) and White (Detail Page)
@@ -138,90 +138,71 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final currentSize = lerpDouble(startSize, targetSize, progress)!;
 
     // Visibility logic
-    // Show floating character when:
-    // 1. We are scrolling (progress > 0 && progress < 1)
-    // 2. OR we haven't calculated the main position yet (fallback)
-    // 3. Actually, for smoothness, let's ALWAYS show floating character
-    //    and hide the static ones in the pages.
-    //    BUT, the static ones are part of the page layout (scrolling content).
-    //    So, when settled at 0, show Main static. When settled at 1, show Detail static.
-    //    When moving, show Floating.
-
     final showMainStatic = progress <= 0.01;
     final showDetailStatic = progress >= 0.99;
     final showFloating = !showMainStatic && !showDetailStatic;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // PageView for vertical navigation
-          PageView(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            physics: const ClampingScrollPhysics(), // Or BouncingScrollPhysics
+    return currentStatsAsync.when(
+      data: (stats) {
+        final drunkLevel = 100 - stats.breakdown.progressPercentage.round();
+        final theme = AppColors.getTheme(drunkLevel);
+
+        return Scaffold(
+          body: Stack(
             children: [
-              // Page 0: Main View
-              ProfileMainView(
-                showCharacter: showMainStatic,
-                characterKey: _mainCharacterKey,
-                opacity: (1.0 - progress).clamp(0.0, 1.0),
-                onDrunkLevelChanged: (drunkLevel) {
-                  if (mounted && _mainCharacterDrunkLevel != drunkLevel) {
-                    setState(() {
-                      _mainCharacterDrunkLevel = drunkLevel;
-                    });
-                  }
-                },
+              // PageView for vertical navigation
+              PageView(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                physics: const ClampingScrollPhysics(),
+                children: [
+                  // Page 0: Main View
+                  ProfileMainView(
+                    showCharacter: showMainStatic,
+                    characterKey: _mainCharacterKey,
+                    opacity: (1.0 - progress).clamp(0.0, 1.0),
+                    theme: theme,
+                    drunkLevel: drunkLevel,
+                  ),
+                  // Page 1: Detail View
+                  ProfileDetailScreen(
+                    onBack: () {
+                      _pageController.animateToPage(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    onNavigateToAnalytics: _handleNavigateToAnalytics,
+                    showCharacter: showDetailStatic,
+                    theme: theme,
+                    drunkLevel: drunkLevel,
+                  ),
+                ],
               ),
-              // Page 1: Detail View
-              ProfileDetailScreen(
-                onBack: () {
-                  _pageController.animateToPage(
-                    0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                onNavigateToAnalytics: _handleNavigateToAnalytics,
-                showCharacter: showDetailStatic,
-                drunkLevel: _mainCharacterDrunkLevel,
-                onDrunkLevelChanged: (drunkLevel) {
-                  if (mounted && _mainCharacterDrunkLevel != drunkLevel) {
-                    setState(() {
-                      _mainCharacterDrunkLevel = drunkLevel;
-                    });
-                  }
-                },
-              ),
+
+              // Floating Character
+              if (showFloating)
+                Positioned(
+                  top: currentTop,
+                  left: currentLeft,
+                  width: currentSize,
+                  height: currentSize,
+                  child: IgnorePointer(
+                    child: SakuCharacter(
+                      size: currentSize,
+                      drunkLevel: drunkLevel,
+                    ),
+                  ),
+                ),
             ],
           ),
-
-          // Floating Character
-          if (showFloating)
-            Positioned(
-              top: currentTop,
-              left: currentLeft,
-              width: currentSize,
-              height: currentSize,
-              child: IgnorePointer(
-                child: _mainCharacterDrunkLevel != null
-                    ? SakuCharacter(
-                        size: currentSize,
-                        drunkLevel: _mainCharacterDrunkLevel!,
-                      )
-                    : currentStatsAsync.when(
-                        data: (stats) => SakuCharacter(
-                          size: currentSize,
-                          drunkLevel:
-                              100 - stats.breakdown.progressPercentage.round(),
-                        ),
-                        loading: () => SakuCharacter(size: currentSize),
-                        error: (_, __) => SakuCharacter(size: currentSize),
-                      ),
-              ),
-            ),
-        ],
-      ),
+        );
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) =>
+          Scaffold(body: Center(child: Text('Error: $error'))),
     );
   }
 }
