@@ -4,7 +4,6 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
-import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
@@ -143,13 +142,6 @@ final currentProfileStatsProvider = FutureProvider<ProfileStats>((ref) {
   final service = ref.watch(profileStatsServiceProvider);
   final userInfoAsync = ref.watch(userPhysicalInfoProvider);
   return service.calculateCurrentStats(userInfoAsync.valueOrNull);
-});
-
-/// Achievements provider
-final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
-  ref.watch(drinkingRecordsLastUpdatedProvider);
-  final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateAchievements();
 });
 
 /// Monthly spending provider

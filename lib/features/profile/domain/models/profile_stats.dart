@@ -5,10 +5,11 @@ class ProfileStats {
     required this.timeToSober,
     required this.statusMessage,
     required this.breakdown,
-    this.consecutiveDrinkingDays = 0,
-    this.consecutiveSoberDays = 0,
-    this.todayDrunkLevel = 0,
     this.thisMonthDrinkingCount = 0,
+    this.thisMonthSoberCount = 0,
+    this.todayDrunkLevel = 0,
+    this.hasTodayRecord = false,
+    this.isTodayDrinking = false,
   });
 
   factory ProfileStats.empty() {
@@ -18,10 +19,11 @@ class ProfileStats {
       timeToSober: 0,
       statusMessage: '건강한 상태입니다',
       breakdown: AlcoholBreakdown.empty(),
-      consecutiveDrinkingDays: 0,
-      consecutiveSoberDays: 0,
-      todayDrunkLevel: 0,
       thisMonthDrinkingCount: 0,
+      thisMonthSoberCount: 0,
+      todayDrunkLevel: 0,
+      hasTodayRecord: false,
+      isTodayDrinking: false,
     );
   }
 
@@ -30,10 +32,11 @@ class ProfileStats {
   final double timeToSober; // in hours
   final String statusMessage;
   final AlcoholBreakdown breakdown;
-  final int consecutiveDrinkingDays;
-  final int consecutiveSoberDays;
-  final int todayDrunkLevel;
   final int thisMonthDrinkingCount;
+  final int thisMonthSoberCount;
+  final int todayDrunkLevel;
+  final bool hasTodayRecord;
+  final bool isTodayDrinking;
 
   ProfileStats copyWith({
     int? currentDrunkLevel,
@@ -41,10 +44,11 @@ class ProfileStats {
     double? timeToSober,
     String? statusMessage,
     AlcoholBreakdown? breakdown,
-    int? consecutiveDrinkingDays,
-    int? consecutiveSoberDays,
-    int? todayDrunkLevel,
     int? thisMonthDrinkingCount,
+    int? thisMonthSoberCount,
+    int? todayDrunkLevel,
+    bool? hasTodayRecord,
+    bool? isTodayDrinking,
   }) {
     return ProfileStats(
       thisMonthDrunkDays: currentDrunkLevel ?? thisMonthDrunkDays,
@@ -52,12 +56,12 @@ class ProfileStats {
       timeToSober: timeToSober ?? this.timeToSober,
       statusMessage: statusMessage ?? this.statusMessage,
       breakdown: breakdown ?? this.breakdown,
-      consecutiveDrinkingDays:
-          consecutiveDrinkingDays ?? this.consecutiveDrinkingDays,
-      consecutiveSoberDays: consecutiveSoberDays ?? this.consecutiveSoberDays,
-      todayDrunkLevel: todayDrunkLevel ?? this.todayDrunkLevel,
       thisMonthDrinkingCount:
           thisMonthDrinkingCount ?? this.thisMonthDrinkingCount,
+      thisMonthSoberCount: thisMonthSoberCount ?? this.thisMonthSoberCount,
+      todayDrunkLevel: todayDrunkLevel ?? this.todayDrunkLevel,
+      hasTodayRecord: hasTodayRecord ?? this.hasTodayRecord,
+      isTodayDrinking: isTodayDrinking ?? this.isTodayDrinking,
     );
   }
 }

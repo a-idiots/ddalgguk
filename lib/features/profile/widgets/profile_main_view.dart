@@ -83,27 +83,32 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
                                     color: Colors.black,
                                   ),
                                   children: [
-                                    if (stats.consecutiveDrinkingDays > 0) ...[
+                                    if (stats.hasTodayRecord &&
+                                        stats.isTodayDrinking) ...[
+                                      // Case 1: Drinking today
                                       const TextSpan(text: '이번 달 '),
                                       TextSpan(
                                         text:
-                                            '${stats.thisMonthDrinkingCount}번',
+                                            '${stats.thisMonthDrinkingCount}일',
                                         style: TextStyle(
                                           color: widget.theme.secondaryColor,
                                         ),
                                       ),
                                       const TextSpan(text: ' 술을 마셨어요!'),
-                                    ] else if (stats.consecutiveSoberDays >
-                                        0) ...[
+                                    ] else if (stats.hasTodayRecord &&
+                                        !stats.isTodayDrinking) ...[
+                                      // Case 2: Sober today
+                                      const TextSpan(text: '이번 달 '),
                                       TextSpan(
-                                        text: '${stats.consecutiveSoberDays}일째',
+                                        text: '${stats.thisMonthSoberCount}일',
                                         style: TextStyle(
                                           color: widget.theme.secondaryColor,
                                         ),
                                       ),
-                                      const TextSpan(text: ' 금주 중이네요!'),
+                                      const TextSpan(text: ' 금주 성공했어요!'),
                                     ] else ...[
-                                      const TextSpan(text: '아직 기록이 없어요!'),
+                                      // Case 3: No records at all
+                                      const TextSpan(text: '오늘 기록을 추가해주세요!'),
                                     ],
                                   ],
                                 ),

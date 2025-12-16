@@ -1,6 +1,5 @@
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/data/services/drinking_record_service.dart';
-import 'package:ddalgguk/features/profile/domain/models/achievement.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/shared/utils/alcohol_calculator.dart';
@@ -174,64 +173,54 @@ class ProfileStatsService {
     DateTime today,
     Map<String, dynamic>? userInfo,
   ) {
-    // Group by date
-    final recordsByDate = <String, List<DrinkingRecord>>{};
-    for (var r in records) {
-      final key = _getDateKey(r.date);
-      recordsByDate.putIfAbsent(key, () => []).add(r);
-    }
+    // 1. Filter records for this month only
+    final currentYearMonth =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final recordsInThisMonth = records
+        .where((r) => r.yearMonth == currentYearMonth)
+        .toList();
 
-    final todayKey = _getDateKey(today);
-    final todayRecords = recordsByDate[todayKey] ?? [];
-
-    int consecutiveDrinkingDays = 0;
-    int consecutiveSoberDays = 0;
-    int todayDrunkLevel = 0;
-
-    if (records.isNotEmpty) {
-      final latestRecord = records.reduce(
-        (a, b) => a.date.compareTo(b.date) > 0 ? a : b,
-      );
-      final latestDate = DateTime(
-        latestRecord.date.year,
-        latestRecord.date.month,
-        latestRecord.date.day,
-      );
-      final diff = today.difference(latestDate).inDays;
-      consecutiveSoberDays = diff > 0 ? diff : 0;
-    }
-
-    if (todayRecords.isNotEmpty) {
-      // Today is a drinking day
-      consecutiveDrinkingDays = 1;
-      // Check previous days
-      for (int i = 1; i <= 30; i++) {
-        final date = today.subtract(Duration(days: i));
-        final key = _getDateKey(date);
-        if (recordsByDate.containsKey(key)) {
-          consecutiveDrinkingDays++;
-        } else {
-          break;
-        }
+    // 2. Identify drinking days (drinkAmount > 0)
+    final drinkingDays = <String>{};
+    final soberDays = <String>{};
+    for (var r in recordsInThisMonth) {
+      // Check if any drink amount > 0
+      final hasDrink = r.drinkAmount.any((d) => d.amount > 0);
+      if (hasDrink) {
+        drinkingDays.add(_getDateKey(r.date));
+      } else {
+        soberDays.add(_getDateKey(r.date));
       }
+    }
 
-      // Calculate today's drunk level (max of today's records)
+    // Remove days that have both drinking and sober records (count as drinking)
+    soberDays.removeAll(drinkingDays);
+
+    // 3. Count drinking days and sober days in this month
+    final drinkingCount = drinkingDays.length;
+    final soberCount = soberDays.length;
+
+    // 4. Check today's status
+    final todayKey = _getDateKey(today);
+    // Find records for today
+    final todayRecords = recordsInThisMonth
+        .where((r) => _getDateKey(r.date) == todayKey)
+        .toList();
+
+    final hasTodayRecord = todayRecords.isNotEmpty;
+    // Today is drinking if any record today has drinkAmount > 0
+    final isTodayDrinking = todayRecords.any(
+      (r) => r.drinkAmount.any((d) => d.amount > 0),
+    );
+
+    // Calculate today's drunk level (max of today's records)
+    int todayDrunkLevel = 0;
+    if (todayRecords.isNotEmpty) {
       todayDrunkLevel = todayRecords.fold(
         0,
         (max, r) => r.drunkLevel > max ? r.drunkLevel : max,
       );
     }
-
-    // Calculate this month drinking count
-    final currentYearMonth =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}';
-    final thisMonthDrinkingCount = records
-        .where(
-          (r) => r.yearMonth == currentYearMonth && r.drinkAmount.isNotEmpty,
-        )
-        .map((r) => _getDateKey(r.date))
-        .toSet()
-        .length;
 
     // --- Alcohol Calculation using User Info and 3-day history ---
     final alcoholStats = AlcoholCalculator.calculate(
@@ -257,108 +246,12 @@ class ProfileStatsService {
       timeToSober: alcoholStats.timeToSober,
       statusMessage: alcoholStats.statusMessage,
       breakdown: breakdown,
-      consecutiveDrinkingDays: consecutiveDrinkingDays,
-      consecutiveSoberDays: consecutiveSoberDays,
+      thisMonthDrinkingCount: drinkingCount,
+      thisMonthSoberCount: soberCount,
       todayDrunkLevel: alcoholStats.currentDrunkLevel.round(),
-      thisMonthDrinkingCount: thisMonthDrinkingCount,
+      hasTodayRecord: hasTodayRecord,
+      isTodayDrinking: isTodayDrinking,
     );
-  }
-
-  /// Calculate achievements based on drinking records
-  Future<List<Achievement>> calculateAchievements() async {
-    final achievements = <Achievement>[];
-
-    try {
-      final now = DateTime.now();
-
-      // Get current month's records
-      final monthRecords = await _drinkingRecordService.getRecordsByMonth(
-        now.year,
-        now.month,
-      );
-
-      // Get last 7 days for streak calculations
-      final weeklyStats = await calculateWeeklyStats();
-
-      // Achievement 1: Consistent Tracker
-      final trackingProgress = (monthRecords.length / 30).clamp(0.0, 1.0);
-      achievements.add(
-        Achievement(
-          id: 'consistent_tracker',
-          title: '꾸준한 기록자',
-          description: '이번 달 ${monthRecords.length}일 기록 중',
-          iconPath: 'assets/imgs/achievements/tracker.png',
-          isUnlocked: monthRecords.length >= 15,
-          progress: trackingProgress,
-          type: AchievementType.tracking,
-        ),
-      );
-
-      // Achievement 2: Sober Week
-      final soberDays = weeklyStats.soberDays;
-      achievements.add(
-        Achievement(
-          id: 'sober_week',
-          title: '금주의 달인',
-          description: '이번 주 $soberDays일 금주 성공',
-          iconPath: 'assets/imgs/achievements/sober.png',
-          isUnlocked: soberDays >= 5,
-          progress: (soberDays / 7).clamp(0.0, 1.0),
-          type: AchievementType.sober,
-        ),
-      );
-
-      // Achievement 3: Low Level Drinker
-      final avgDrunkLevel = weeklyStats.averageDrunkLevel;
-      final lowLevelProgress = avgDrunkLevel <= 5
-          ? 1.0
-          : (5 / avgDrunkLevel).clamp(0.0, 1.0);
-      achievements.add(
-        Achievement(
-          id: 'moderate_drinker',
-          title: '절제의 달인',
-          description: '평균 취기 ${avgDrunkLevel.toStringAsFixed(1)}% 유지',
-          iconPath: 'assets/imgs/achievements/moderate.png',
-          isUnlocked: avgDrunkLevel <= 5 && weeklyStats.totalSessions > 0,
-          progress: lowLevelProgress,
-          type: AchievementType.drinking,
-        ),
-      );
-
-      // Achievement 4: VT 5초 횟플
-      final vt5Sessions = monthRecords.where((r) {
-        // VT 5초 means: drunkLevel 5 (50%)
-        return r.drunkLevel == 5;
-      }).length;
-      achievements.add(
-        Achievement(
-          id: 'vt5_master',
-          title: 'VT 5초 횟플이',
-          description: '이번 달 $vt5Sessions회 VT 5초 달성',
-          iconPath: 'assets/imgs/achievements/vt5.png',
-          isUnlocked: vt5Sessions >= 3,
-          progress: (vt5Sessions / 5).clamp(0.0, 1.0),
-          type: AchievementType.special,
-        ),
-      );
-
-      // Achievement 5: Monthly Goal
-      achievements.add(
-        Achievement(
-          id: 'monthly_record',
-          title: '이번달 완벽',
-          description: '한 달 내내 기록 완료',
-          iconPath: 'assets/imgs/achievements/perfect.png',
-          isUnlocked: monthRecords.length >= 30,
-          progress: (monthRecords.length / 30).clamp(0.0, 1.0),
-          type: AchievementType.tracking,
-        ),
-      );
-
-      return achievements;
-    } catch (e) {
-      return achievements;
-    }
   }
 
   /// Helper to get date key for grouping
