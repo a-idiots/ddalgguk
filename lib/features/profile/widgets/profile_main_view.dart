@@ -99,12 +99,12 @@ class _ProfileMainViewState extends ConsumerState<ProfileMainView> {
                                       const TextSpan(text: '이번 달 '),
                                       TextSpan(
                                         text:
-                                            '${stats.thisMonthDrinkingCount}번째',
+                                            '${stats.thisMonthDrinkingCount}번',
                                         style: TextStyle(
                                           color: theme.secondaryColor,
                                         ),
                                       ),
-                                      const TextSpan(text: ' 음주 중이네요!'),
+                                      const TextSpan(text: ' 술을 마셨어요!'),
                                     ] else if (stats.consecutiveSoberDays >
                                         0) ...[
                                       TextSpan(
