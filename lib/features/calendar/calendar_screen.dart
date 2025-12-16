@@ -75,6 +75,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     // Listen for new badges
     ref.listen(badgeEarnedStreamProvider, (previous, next) {
       next.whenData((badge) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('🎉 새로운 뱃지를 획득했어요! 프로필에서 확인해보세요.'),
@@ -614,6 +615,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     if (normalizedDate.isAfter(normalizedToday)) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('미래의 기록은 미리 추가할 수 없습니다'),
@@ -648,6 +650,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ref.invalidate(friendsProvider);
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('금주 기록이 추가되었습니다!'),
@@ -658,6 +661,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('기록 추가 실패: $e'),
@@ -684,6 +688,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     if (normalizedSelectedDate.isAfter(normalizedToday)) {
       // 미래 날짜인 경우 스낵바 표시
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('미래의 기록은 미리 추가할 수 없습니다'),

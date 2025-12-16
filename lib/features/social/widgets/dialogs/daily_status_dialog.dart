@@ -26,6 +26,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
     final message = _controller.text.trim();
 
     if (message.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('상태 메시지를 입력해주세요')));
@@ -33,6 +34,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
     }
 
     if (message.length > DailyStatus.maxLength) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('상태 메시지는 최대 ${DailyStatus.maxLength}자까지 입력 가능합니다'),
@@ -52,12 +54,14 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
         ref.invalidate(friendsProvider);
 
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('상태가 업데이트되었습니다')));
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('오류: $e')));

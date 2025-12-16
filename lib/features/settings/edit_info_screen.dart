@@ -130,6 +130,7 @@ class EditInfoScreen extends ConsumerWidget {
                     ref.invalidate(currentUserProvider);
 
                     if (context.mounted) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -141,6 +142,7 @@ class EditInfoScreen extends ConsumerWidget {
                   }
                 } catch (e) {
                   if (context.mounted) {
+                    ScaffoldMessenger.of(context).clearSnackBars();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('변경 실패: $e'),
@@ -346,6 +348,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('성별이 저장되었습니다')));
@@ -362,6 +365,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
       return;
     }
 
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -557,6 +561,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
     final weightText = _weightController.text.trim();
 
     if (heightText.isEmpty && weightText.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('키 또는 몸무게를 입력해주세요')));
@@ -576,6 +581,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('신체 정보가 저장되었습니다')));
@@ -775,12 +781,14 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('생년월일이 저장되었습니다')));
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
         );

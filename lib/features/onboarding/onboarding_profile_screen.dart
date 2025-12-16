@@ -162,6 +162,7 @@ class _OnboardingProfileScreenState
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('프로필 저장 실패: $e'), backgroundColor: Colors.red),
         );
@@ -363,6 +364,7 @@ class _OnboardingProfileScreenState
                             weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
                           );
                         } else {
+                          ScaffoldMessenger.of(context).clearSnackBars();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('모든 정보를 입력해주세요.')),
                           );

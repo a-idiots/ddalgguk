@@ -58,12 +58,14 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       try {
         await Gal.putImage(filePath);
         if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('이미지가 갤러리에 저장되었습니다')));
         }
       } catch (e) {
         if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('저장 실패: $e')));
@@ -96,6 +98,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('인스타그램 공유 실패: $e')));

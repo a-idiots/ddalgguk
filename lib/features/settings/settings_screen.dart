@@ -26,6 +26,7 @@ class SettingsScreen extends ConsumerWidget {
         ref.invalidate(authStateProvider);
       } catch (e) {
         if (context.mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('로그아웃 실패: $e'), backgroundColor: Colors.red),
           );
@@ -50,6 +51,7 @@ class SettingsScreen extends ConsumerWidget {
         ref.invalidate(authStateProvider);
       } catch (e) {
         if (context.mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('회원 탈퇴 실패: $e'),

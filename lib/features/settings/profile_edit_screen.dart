@@ -298,6 +298,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('프로필이 저장되었습니다')));
@@ -320,6 +321,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       return;
     }
 
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),

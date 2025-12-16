@@ -177,6 +177,7 @@ class _NotificationToggleTileState
                             await toggleFn(widget.type, !isEnabled);
                           } catch (e) {
                             if (context.mounted) {
+                              ScaffoldMessenger.of(context).clearSnackBars();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('알림 설정 변경 실패: $e'),

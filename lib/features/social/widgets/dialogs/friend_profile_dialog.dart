@@ -144,12 +144,14 @@ class FriendProfileDialog extends ConsumerWidget {
       if (context.mounted) {
         ref.invalidate(friendsProvider);
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${friendData.name}님을 친구에서 삭제했습니다')),
         );
       }
     } catch (e) {
       if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('친구 삭제 중 오류가 발생했습니다: $e')));

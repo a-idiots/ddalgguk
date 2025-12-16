@@ -173,6 +173,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     }
 
     if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('사용자 ID를 입력해주세요')));
@@ -195,6 +196,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         });
       } else {
         if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('사용자를 찾을 수 없습니다')));
@@ -222,6 +224,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
   Future<void> _sendRequest() async {
     if (_foundUserId == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('먼저 사용자를 검색해주세요')));
@@ -230,6 +233,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
     final message = _messageController.text.trim();
     if (message.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('요청 메시지를 입력해주세요')));
@@ -237,6 +241,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     }
 
     if (message.length > FriendRequest.maxMessageLength) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -259,6 +264,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('친구 요청을 보냈습니다')));
