@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/report/data/providers/report_providers.dart'; // Import analytics provider
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 

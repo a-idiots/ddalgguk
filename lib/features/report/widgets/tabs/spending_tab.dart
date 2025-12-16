@@ -1,4 +1,4 @@
-import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
+import 'package:ddalgguk/features/report/data/providers/report_providers.dart'; // Import analytics provider
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
