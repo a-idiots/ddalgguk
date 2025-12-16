@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// 둥근 슬라이더 위젯
@@ -103,10 +104,20 @@ class _CircularSliderState extends State<CircularSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanStart: (details) => _handlePanStart(details.localPosition),
-      onPanUpdate: (details) => _handlePanUpdate(details.localPosition),
-      onPanEnd: (details) => _handlePanEnd(),
+    return RawGestureDetector(
+      gestures: {
+        _EagerPanGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<_EagerPanGestureRecognizer>(
+              () => _EagerPanGestureRecognizer(),
+              (_EagerPanGestureRecognizer instance) {
+                instance.onStart = (details) =>
+                    _handlePanStart(details.localPosition);
+                instance.onUpdate = (details) =>
+                    _handlePanUpdate(details.localPosition);
+                instance.onEnd = (details) => _handlePanEnd();
+              },
+            ),
+      },
       child: SizedBox(
         width: widget.size,
         height: widget.size,
@@ -209,5 +220,13 @@ class _CircularSliderPainter extends CustomPainter {
         oldDelegate.activeColor != activeColor ||
         oldDelegate.thumbColor != thumbColor ||
         oldDelegate.thumbRadius != thumbRadius;
+  }
+}
+
+class _EagerPanGestureRecognizer extends PanGestureRecognizer {
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    super.addAllowedPointer(event);
+    resolve(GestureDisposition.accepted);
   }
 }
