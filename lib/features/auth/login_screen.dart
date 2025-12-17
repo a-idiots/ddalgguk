@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/auth/widgets/google_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/apple_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/kakao_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/animated_login_transition.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// Login Screen with social login options
 class LoginScreen extends ConsumerStatefulWidget {
@@ -78,13 +79,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Future<void> _handleGoogleLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.signInWithGoogle();
+      await AnalyticsService.instance.logLoginStart('google');
+      await ref.read(authRepositoryProvider).signInWithGoogle();
 
       if (mounted) {
         // Set flag to indicate user just logged in
@@ -111,13 +110,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Future<void> _handleAppleLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.signInWithApple();
+      await AnalyticsService.instance.logLoginStart('apple');
+      await ref.read(authRepositoryProvider).signInWithApple();
 
       if (mounted) {
         // Set flag to indicate user just logged in
@@ -144,13 +141,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   Future<void> _handleKakaoLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.signInWithKakao();
+      await AnalyticsService.instance.logLoginStart('kakao');
+      await ref.read(authRepositoryProvider).signInWithKakao();
 
       if (mounted) {
         // Set flag to indicate user just logged in

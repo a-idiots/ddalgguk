@@ -6,6 +6,7 @@ import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/features/onboarding/widgets/info_input_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_goal_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_habits_page.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
@@ -151,6 +152,9 @@ class _OnboardingProfileScreenState
         height: _height,
         weight: _weight,
       );
+
+      // Log profile setup complete
+      await AnalyticsService.instance.logProfileSetupComplete();
 
       // Clear saved state
       await _clearSavedState();

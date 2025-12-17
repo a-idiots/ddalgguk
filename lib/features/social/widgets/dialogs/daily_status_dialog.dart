@@ -3,6 +3,7 @@ import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// 일일 상태 추가/수정 다이얼로그
 class DailyStatusDialog extends ConsumerStatefulWidget {
@@ -52,6 +53,8 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
       if (mounted) {
         // 친구 목록 새로고침
         ref.invalidate(friendsProvider);
+
+        await AnalyticsService.instance.logUpdateStatusMessage();
 
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).clearSnackBars();

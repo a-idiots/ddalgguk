@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/report/widgets/tabs/recap_tab.dart';
 import 'package:ddalgguk/features/report/widgets/tabs/spending_tab.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
   const ReportScreen({super.key, this.onBack});
@@ -17,7 +18,45 @@ class ReportScreen extends ConsumerStatefulWidget {
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _ReportScreenState extends ConsumerState<ReportScreen> {
+class _ReportScreenState extends ConsumerState<ReportScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_handleTabSelection);
+
+    // Log initial tab view
+    AnalyticsService.instance.logViewReportTab('alcohol');
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _handleTabSelection() {
+    if (_tabController.indexIsChanging) {
+      final index = _tabController.index;
+      String tabName = 'unknown';
+      switch (index) {
+        case 0:
+          tabName = 'alcohol';
+          break;
+        case 1:
+          tabName = 'spending';
+          break;
+        case 2:
+          tabName = 'recap';
+          break;
+      }
+      AnalyticsService.instance.logViewReportTab(tabName);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUserAsync = ref.watch(currentUserProvider);
@@ -48,61 +87,64 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   }
                 }
               },
-              child: DefaultTabController(
-                length: 3,
-                child: Scaffold(
-                  backgroundColor: Colors.white,
-                  appBar: TabPageHeader(
-                    title: 'Analytics',
-                    bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(40),
-                      child: Container(
-                        margin: const EdgeInsets.only(
-                          left: 60,
-                          right: 60,
-                          top: 0,
-                          bottom: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                appBar: TabPageHeader(
+                  title: 'Analytics',
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(40),
+                    child: Container(
+                      margin: const EdgeInsets.only(
+                        left: 60,
+                        right: 60,
+                        top: 0,
+                        bottom: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        indicator: BoxDecoration(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: TabBar(
-                          indicator: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          labelColor: Colors.black,
-                          unselectedLabelColor: Colors.grey,
-                          labelStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                          unselectedLabelStyle: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 10,
-                          ),
-                          dividerColor: Colors.transparent,
-                          tabs: const [
-                            Tab(height: 28, text: '알콜섭취량'),
-                            Tab(height: 28, text: '소비 금액'),
-                            Tab(height: 28, text: '레포트'),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
                           ],
                         ),
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        labelColor: Colors.black,
+                        unselectedLabelColor: Colors.grey,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                        ),
+                        dividerColor: Colors.transparent,
+                        tabs: const [
+                          Tab(height: 28, text: '알콜섭취량'),
+                          Tab(height: 28, text: '소비 금액'),
+                          Tab(height: 28, text: '레포트'),
+                        ],
                       ),
                     ),
                   ),
-                  body: const TabBarView(
-                    children: [AlcoholIntakeTab(), SpendingTab(), RecapTab()],
-                  ),
+                ),
+                body: TabBarView(
+                  controller: _tabController,
+                  children: const [
+                    AlcoholIntakeTab(),
+                    SpendingTab(),
+                    RecapTab(),
+                  ],
                 ),
               ),
             );

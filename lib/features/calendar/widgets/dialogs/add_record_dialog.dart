@@ -12,6 +12,7 @@ import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// 기록 추가 다이얼로그
 class AddRecordDialog extends ConsumerStatefulWidget {
@@ -42,6 +43,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
   // 완료된 기록들
   final List<CompletedDrinkRecord> _completedRecords = [];
 
+  // 성공적으로 추가되었는지 여부 (취소 로그 방지용)
+  bool _isSuccess = false;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +53,7 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     _costController = TextEditingController();
     _memoController = TextEditingController();
     _currentInput = _createNewInput();
+    AnalyticsService.instance.logDrinkRecordStart();
   }
 
   @override
@@ -57,6 +62,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     _costController.dispose();
     _memoController.dispose();
     _currentInput.dispose();
+    if (!_isSuccess) {
+      AnalyticsService.instance.logDrinkRecordCancel();
+    }
     super.dispose();
   }
 
@@ -197,6 +205,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       ref.invalidate(friendsProvider);
 
       widget.onRecordAdded();
+
+      _isSuccess = true;
+      await AnalyticsService.instance.logDrinkRecordComplete(type: 'drink');
 
       if (mounted) {
         Navigator.pop(localContext);

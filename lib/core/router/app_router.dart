@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/auth/splash_screen.dart';
@@ -135,6 +136,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
     },
     refreshListenable: notifier,
+    observers: [
+      FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+    ],
     routes: [
       GoRoute(
         path: Routes.splash,

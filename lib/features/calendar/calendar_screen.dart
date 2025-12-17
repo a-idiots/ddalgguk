@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -648,6 +649,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           DateTime.now();
       // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
       ref.invalidate(friendsProvider);
+
+      // Log sober record completion
+      await AnalyticsService.instance.logDrinkRecordComplete(type: 'sober');
 
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();

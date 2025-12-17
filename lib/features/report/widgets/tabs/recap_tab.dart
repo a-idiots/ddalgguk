@@ -5,6 +5,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/report/data/providers/report_providers.dart'; // Import analytics provider
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -62,6 +63,8 @@ class _RecapTabState extends ConsumerState<RecapTab> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('이미지가 갤러리에 저장되었습니다')));
+
+          await AnalyticsService.instance.logDownloadReport();
         }
       } catch (e) {
         if (mounted) {
@@ -95,6 +98,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
       if (mounted && result != null) {
         debugPrint('Instagram Share Result: $result');
+        await AnalyticsService.instance.logShareReport('instagram');
       }
     } catch (e) {
       if (mounted) {
@@ -120,6 +124,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
           subject: '딸꾹 리캡',
         ),
       );
+      await AnalyticsService.instance.logShareReport('system');
     } catch (e) {
       debugPrint('System Share Error: $e');
     }

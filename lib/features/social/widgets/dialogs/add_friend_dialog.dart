@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// 친구 추가 다이얼로그
 class AddFriendDialog extends ConsumerStatefulWidget {
@@ -278,6 +279,9 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
           context,
         ).showSnackBar(const SnackBar(content: Text('친구 요청을 보냈습니다')));
       }
+
+      // Log analytics
+      await AnalyticsService.instance.logSendFriendRequest();
     } catch (e) {
       if (mounted) {
         // Exception 메시지만 추출
