@@ -125,8 +125,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Apple 로그인 실패: $e'),
+          const SnackBar(
+            content: Text('Apple 로그인에 실패했습니다.\n네트워크 연결을 확인해주세요.'),
             backgroundColor: Colors.red,
           ),
         );
