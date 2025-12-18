@@ -72,6 +72,7 @@ class _DrinkingGoalPageState extends State<DrinkingGoalPage>
 
   void _handleNext() {
     if (_selectedGoal == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('목표를 선택해주세요'),
@@ -82,6 +83,7 @@ class _DrinkingGoalPageState extends State<DrinkingGoalPage>
     }
 
     if (_weeklyDrinkingFrequency == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('일주일 음주 빈도를 입력해주세요'),

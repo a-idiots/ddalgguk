@@ -3,6 +3,7 @@ import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// 일일 상태 추가/수정 다이얼로그
 class DailyStatusDialog extends ConsumerStatefulWidget {
@@ -26,6 +27,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
     final message = _controller.text.trim();
 
     if (message.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('상태 메시지를 입력해주세요')));
@@ -33,6 +35,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
     }
 
     if (message.length > DailyStatus.maxLength) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('상태 메시지는 최대 ${DailyStatus.maxLength}자까지 입력 가능합니다'),
@@ -43,6 +46,10 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
 
     setState(() => _isLoading = true);
 
+    // Capture Navigator and ScaffoldMessenger before async gap
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       final friendService = ref.read(friendServiceProvider);
       await friendService.updateMyDailyStatus(message);
@@ -51,16 +58,18 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
         // 친구 목록 새로고침
         ref.invalidate(friendsProvider);
 
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('상태가 업데이트되었습니다')));
+        await AnalyticsService.instance.logUpdateStatusMessage();
+
+        navigator.pop();
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('상태가 업데이트되었습니다')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('오류: $e')));
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text('오류: $e')));
       }
     } finally {
       if (mounted) {

@@ -407,12 +407,14 @@ class _SentFriendRequestCardState extends State<_SentFriendRequestCard> {
       widget.ref.invalidate(sentFriendRequestsProvider);
       widget.ref.invalidate(friendRequestsProvider);
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('친구 신청을 취소했습니다')));
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('취소 실패: $e')));
@@ -606,6 +608,7 @@ class _FriendRequestCardState extends State<_FriendRequestCard> {
       widget.ref.invalidate(sentFriendRequestsProvider);
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('친구 요청을 수락했습니다')));
@@ -635,6 +638,7 @@ class _FriendRequestCardState extends State<_FriendRequestCard> {
       widget.ref.invalidate(sentFriendRequestsProvider);
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('친구 요청을 거절했습니다')));

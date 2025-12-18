@@ -9,6 +9,7 @@ import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
 import 'package:ddalgguk/features/settings/notification_settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -26,6 +27,7 @@ class SettingsScreen extends ConsumerWidget {
         ref.invalidate(authStateProvider);
       } catch (e) {
         if (context.mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('로그아웃 실패: $e'), backgroundColor: Colors.red),
           );
@@ -45,11 +47,13 @@ class SettingsScreen extends ConsumerWidget {
       try {
         final authRepository = ref.read(authRepositoryProvider);
         await authRepository.deleteAccount();
+        await AnalyticsService.instance.logDeleteAccount();
 
         // Force provider update to trigger router redirect
         ref.invalidate(authStateProvider);
       } catch (e) {
         if (context.mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('회원 탈퇴 실패: $e'),

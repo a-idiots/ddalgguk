@@ -6,6 +6,7 @@ import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/features/onboarding/widgets/info_input_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_goal_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_habits_page.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
@@ -152,6 +153,9 @@ class _OnboardingProfileScreenState
         weight: _weight,
       );
 
+      // Log profile setup complete
+      await AnalyticsService.instance.logProfileSetupComplete();
+
       // Clear saved state
       await _clearSavedState();
 
@@ -162,6 +166,7 @@ class _OnboardingProfileScreenState
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('프로필 저장 실패: $e'), backgroundColor: Colors.red),
         );
@@ -363,6 +368,7 @@ class _OnboardingProfileScreenState
                             weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
                           );
                         } else {
+                          ScaffoldMessenger.of(context).clearSnackBars();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('모든 정보를 입력해주세요.')),
                           );

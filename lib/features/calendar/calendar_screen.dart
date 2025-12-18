@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -75,6 +76,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     // Listen for new badges
     ref.listen(badgeEarnedStreamProvider, (previous, next) {
       next.whenData((badge) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('🎉 새로운 뱃지를 획득했어요! 프로필에서 확인해보세요.'),
@@ -614,6 +616,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     if (normalizedDate.isAfter(normalizedToday)) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('미래의 기록은 미리 추가할 수 없습니다'),
@@ -647,7 +650,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
       ref.invalidate(friendsProvider);
 
+      // Log sober record completion
+      await AnalyticsService.instance.logDrinkRecordComplete(type: 'sober');
+
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('금주 기록이 추가되었습니다!'),
@@ -658,6 +665,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('기록 추가 실패: $e'),
@@ -684,6 +692,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     if (normalizedSelectedDate.isAfter(normalizedToday)) {
       // 미래 날짜인 경우 스낵바 표시
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('미래의 기록은 미리 추가할 수 없습니다'),

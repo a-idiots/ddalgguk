@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// 친구 추가 다이얼로그
 class AddFriendDialog extends ConsumerStatefulWidget {
@@ -180,6 +181,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
     }
 
     if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('사용자 ID를 입력해주세요')));
@@ -202,6 +204,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
         });
       } else {
         if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('사용자를 찾을 수 없습니다')));
@@ -217,6 +220,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
       if (mounted) {
         // Exception 메시지만 추출
         final errorMessage = e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(errorMessage)));
@@ -230,6 +234,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
   Future<void> _sendRequest() async {
     if (_foundUserId == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('사용자를 먼저 검색해주세요')));
@@ -238,6 +243,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
     final message = _messageController.text.trim();
     if (message.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('요청 메시지를 입력해주세요')));
@@ -245,6 +251,7 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
     }
 
     if (message.length > FriendRequest.maxMessageLength) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -267,14 +274,19 @@ class _AddFriendDialogState extends ConsumerState<AddFriendDialog> {
 
       if (mounted) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('친구 요청을 보냈습니다')));
       }
+
+      // Log analytics
+      await AnalyticsService.instance.logSendFriendRequest();
     } catch (e) {
       if (mounted) {
         // Exception 메시지만 추출
         final errorMessage = e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(errorMessage)));

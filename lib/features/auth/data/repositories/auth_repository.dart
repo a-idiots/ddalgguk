@@ -9,6 +9,7 @@ import 'package:ddalgguk/features/auth/data/services/kakao_auth_service.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart'; // Added import for Badge
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// Authentication Repository
 /// Central hub for all authentication operations
@@ -66,6 +67,9 @@ class AuthRepository {
         );
         debugPrint('  - name: ${appUser.name}');
         debugPrint('  - id: ${appUser.id}');
+
+        // Log login success
+        await AnalyticsService.instance.logLoginSuccess('google');
       } else {
         // New user - create with basic info
         appUser = AppUser.fromFirebaseUser(
@@ -78,6 +82,9 @@ class AuthRepository {
 
         // Save new user to Firestore
         await _saveUserToFirestore(appUser);
+
+        // Log sign up success
+        await AnalyticsService.instance.logSignUpSuccess('google');
       }
       debugPrint('===============================================');
 
@@ -120,6 +127,9 @@ class AuthRepository {
         );
         debugPrint('  - name: ${appUser.name}');
         debugPrint('  - id: ${appUser.id}');
+
+        // Log login success
+        await AnalyticsService.instance.logLoginSuccess('apple');
       } else {
         // New user - create with basic info
         appUser = AppUser.fromFirebaseUser(
@@ -132,6 +142,9 @@ class AuthRepository {
 
         // Save new user to Firestore
         await _saveUserToFirestore(appUser);
+
+        // Log sign up success
+        await AnalyticsService.instance.logSignUpSuccess('apple');
       }
       debugPrint('===============================================');
 
@@ -175,6 +188,9 @@ class AuthRepository {
         );
         debugPrint('  - name: ${appUser.name}');
         debugPrint('  - id: ${appUser.id}');
+
+        // Log login success
+        await AnalyticsService.instance.logLoginSuccess('kakao');
       } else {
         // New user - create with basic info from Kakao
         appUser = AppUser.fromFirebaseUser(
@@ -187,6 +203,9 @@ class AuthRepository {
 
         // Save new user to Firestore
         await _saveUserToFirestore(appUser);
+
+        // Log sign up success
+        await AnalyticsService.instance.logSignUpSuccess('kakao');
       }
       debugPrint('===============================================');
 

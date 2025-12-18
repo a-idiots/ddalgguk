@@ -99,6 +99,7 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
 
   void _handleComplete() {
     if (_selectedDrink == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('선호하는 주류를 선택해주세요'),
@@ -109,6 +110,7 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
     }
 
     if (_sliderIndex == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('주량을 입력해주세요'),
