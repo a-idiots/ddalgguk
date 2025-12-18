@@ -69,9 +69,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
     } catch (e) {
       if (mounted) {
         scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('오류: $e')),
-        );
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text('오류: $e')));
       }
     } finally {
       if (mounted) {
