@@ -94,8 +94,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google 로그인 실패: $e'),
+          const SnackBar(
+            content: Text('구글 로그인에 실패했습니다.\n네트워크 연결을 확인해주세요.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -156,14 +156,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.toString().contains('UnimplementedError')
-                  ? '카카오 로그인은 백엔드 서버 구축 후 사용할 수 있습니다'
-                  : '카카오 로그인 실패: $e',
-            ),
+          const SnackBar(
+            content: Text('카카오 로그인에 실패했습니다.\n네트워크 연결을 확인해주세요.'),
             backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 3),
+            duration: Duration(seconds: 3),
           ),
         );
       }
