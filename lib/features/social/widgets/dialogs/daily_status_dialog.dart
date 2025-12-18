@@ -46,6 +46,10 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
 
     setState(() => _isLoading = true);
 
+    // Capture Navigator and ScaffoldMessenger before async gap
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       final friendService = ref.read(friendServiceProvider);
       await friendService.updateMyDailyStatus(message);
@@ -56,18 +60,18 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
 
         await AnalyticsService.instance.logUpdateStatusMessage();
 
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('상태가 업데이트되었습니다')));
+        navigator.pop();
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('상태가 업데이트되었습니다')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('오류: $e')));
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('오류: $e')),
+        );
       }
     } finally {
       if (mounted) {

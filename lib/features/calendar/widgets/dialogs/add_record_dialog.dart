@@ -177,6 +177,10 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       );
     }
 
+    // Capture Navigator and ScaffoldMessenger before async gap
+    final navigator = Navigator.of(localContext);
+    final scaffoldMessenger = ScaffoldMessenger.of(localContext);
+
     try {
       final record = DrinkingRecord(
         id: '', // Firestore에서 자동 생성
@@ -210,9 +214,9 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       await AnalyticsService.instance.logDrinkRecordComplete(type: 'drink');
 
       if (mounted) {
-        Navigator.pop(localContext);
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
+        navigator.pop();
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('기록이 추가되었습니다'),
             duration: Duration(seconds: 2),
@@ -223,8 +227,8 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       debugPrint('기록 추가 실패: $e');
 
       if (mounted) {
-        ScaffoldMessenger.of(localContext).clearSnackBars();
-        ScaffoldMessenger.of(localContext).showSnackBar(
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('추가 실패: $e'),
             duration: const Duration(seconds: 5),
