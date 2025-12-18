@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:flutter/gestures.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/app_state_provider.dart';
@@ -294,13 +296,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     const SizedBox(height: 48),
 
                     // Terms and Privacy Policy
-                    Text(
-                      '로그인하면 서비스 이용약관 및\n개인정보 처리방침에 동의하게 됩니다',
+                    RichText(
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade400,
-                        height: 1.5,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade400,
+                          height: 1.5,
+                          fontFamily: 'Inter',
+                        ),
+                        children: [
+                          const TextSpan(text: '로그인하면 '),
+                          TextSpan(
+                            text: '서비스 이용약관',
+                            style: const TextStyle(
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => _launchURL(
+                                'https://melodic-music-7c1.notion.site/2cd5a6752e1b80889671e04b2283c00d',
+                              ),
+                          ),
+                          const TextSpan(text: ' 및\n'),
+                          TextSpan(
+                            text: '개인정보 처리방침',
+                            style: const TextStyle(
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => _launchURL(
+                                'https://melodic-music-7c1.notion.site/2cb5a6752e1b80eeb44dc1763020d324',
+                              ),
+                          ),
+                          const TextSpan(text: '에 동의하게 됩니다'),
+                        ],
                       ),
                     ),
                   ],
@@ -330,5 +361,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       },
       child: child,
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
   }
 }
