@@ -1,11 +1,6 @@
 name: Lint Check
 
 on:
-  push:
-    paths:
-      - 'lib/**/*.dart'
-      - 'analysis_options.yaml'
-      - 'pubspec.yaml'
   pull_request:
     paths:
       - 'lib/**/*.dart'
@@ -24,9 +19,12 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.35.4'
           channel: 'stable'
           cache: true
+
+      - name: Setup environment file
+        run: cp .env.example .env
 
       - name: Get dependencies
         run: flutter pub get

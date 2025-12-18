@@ -1,23 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:ddalgguk/core/navigation/main_navigation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
-  runApp(const DdalggukApp());
+import 'package:firebase_core/firebase_core.dart';
+import 'package:ddalgguk/firebase_options.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+
+import 'package:ddalgguk/core/router/app_router.dart';
+import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+import 'package:ddalgguk/core/services/notification_manager.dart';
+
+void main() async {
+  // Ensure Flutter bindings are initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock orientation to portrait mode only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Hide Android bottom navigation bar (auto-hides after appearing)
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  // Load environment variables
+  await dotenv.load(fileName: '.env');
+
+  // Initialize Kakao SDK
+  KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!);
+
+  // Initialize Firebase
+  // Note: You need to add google-services.json (Android) and GoogleService-Info.plist (iOS)
+  // and run `flutterfire configure` to generate firebase_options.dart
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization error: $e');
+    // Continue without Firebase for now (will be needed later)
+  }
+
+  // Initialize Secure Storage Service
+  await SecureStorageService.instance.init();
+
+  // Initialize Notification Service
+  try {
+    final notificationManager = NotificationManager();
+    await notificationManager.initialize();
+  } catch (e) {
+    debugPrint('Notification initialization error: $e');
+    // Continue without notifications if initialization fails
+  }
+
+  // Run the app with Riverpod
+  runApp(const ProviderScope(child: DdalggukApp()));
 }
 
-class DdalggukApp extends StatelessWidget {
+class DdalggukApp extends ConsumerWidget {
   const DdalggukApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
       title: 'Ddalgguk',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('ko', 'KR'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('ko', ''), Locale('en', '')],
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'GmarketSans',
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 0,
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.black87,
+          unselectedItemColor: Colors.black45,
+        ),
+
         useMaterial3: true,
       ),
-      home: const MainNavigation(),
+      routerConfig: router,
     );
   }
 }

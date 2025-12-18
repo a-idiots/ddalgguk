@@ -1,0 +1,37 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
+import 'package:ddalgguk/features/auth/data/repositories/auth_repository.dart';
+
+/// Provider for Firebase Auth instance
+final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
+  return FirebaseAuth.instance;
+});
+
+/// Provider for Auth Repository
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
+
+/// StreamProvider for auth state changes
+/// Returns the AppUser when authenticated, null when not authenticated
+final authStateProvider = StreamProvider<AppUser?>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return authRepository.appUserChanges;
+});
+
+/// Provider for current AppUser
+/// Returns AppUser when authenticated, null when not authenticated
+final currentUserProvider = authStateProvider;
+
+/// Provider to check if user is authenticated
+final isAuthenticatedProvider = Provider<bool>((ref) {
+  final authState = ref.watch(authStateProvider);
+  return authState.maybeWhen(data: (user) => user != null, orElse: () => false);
+});
+
+/// Provider to check if user has completed profile setup
+final hasCompletedProfileSetupProvider = FutureProvider<bool>((ref) async {
+  final currentUser = await ref.watch(currentUserProvider.future);
+  return currentUser?.hasCompletedProfileSetup ?? false;
+});

@@ -1,0 +1,77 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isFriend(userId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId));
+    }
+
+    function isUpdatingOnlyDrinkingFields() {
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return affectedKeys.hasOnly(['weeklyDrunkLevels', 'currentDrunkLevel']) ||
+             affectedKeys.hasOnly(['weeklyDrunkLevels']) ||
+             affectedKeys.hasOnly(['currentDrunkLevel']);
+    }
+
+    match /users/{userId} {
+      // 모든 인증된 사용자는 다른 사용자 프로필 읽기 가능 (친구 검색, 프로필 보기)
+      allow read: if isAuthenticated();
+
+      // 본인만 자신의 문서 생성/삭제 가능
+      allow create: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // 본인은 모든 필드 수정 가능
+      // 친구는 weeklyDrunkLevels와 currentDrunkLevel만 수정 가능
+      allow update: if isOwner(userId) ||
+                       (isFriend(userId) && isUpdatingOnlyDrinkingFields());
+
+      match /friends/{friendId} {
+        // 본인의 친구 목록 읽기
+        allow get, list: if isOwner(userId);
+
+        // 친구 추가/삭제: 본인이 자신의 컬렉션에 추가하거나, 상대방이 나를 그의 컬렉션에 추가
+        allow create, delete: if isAuthenticated() &&
+          (request.auth.uid == userId || request.auth.uid == friendId);
+      }
+
+      match /friendRequests/{requestId} {
+        // 내가 가진 요청만 읽기
+        allow get, list: if isOwner(userId);
+
+        // 생성: fromUserId == 본인, 그리고 내 컬렉션/상대 컬렉션 둘 다 허용
+        allow create: if isAuthenticated() &&
+          request.resource.data.fromUserId == request.auth.uid &&
+          (userId == request.auth.uid || userId == request.resource.data.toUserId);
+
+        // 삭제: 보내는 사람(취소) 또는 받는 사람(수락/거절)이 양쪽 컬렉션에서 삭제 가능
+        allow delete: if isAuthenticated() &&
+          (request.auth.uid == resource.data.fromUserId ||
+           request.auth.uid == resource.data.toUserId) &&
+          (userId == resource.data.fromUserId || userId == resource.data.toUserId);
+      }
+
+      match /drinkingRecords/{recordId} {
+        // 본인은 읽기/쓰기 모두 가능, 친구는 읽기만 가능
+        allow read: if isOwner(userId) || isFriend(userId);
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // 기본적으로 모든 접근 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

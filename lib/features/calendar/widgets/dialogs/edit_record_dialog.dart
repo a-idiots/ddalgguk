@@ -1,0 +1,541 @@
+import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/features/calendar/widgets/new_drink_input_card.dart';
+import 'package:ddalgguk/features/calendar/widgets/completed_drink_card.dart';
+import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/circular_slider.dart';
+import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// 기록 수정 다이얼로그
+class EditRecordDialog extends ConsumerStatefulWidget {
+  const EditRecordDialog({
+    required this.record,
+    required this.onRecordUpdated,
+    super.key,
+  });
+
+  final DrinkingRecord record;
+  final VoidCallback onRecordUpdated;
+
+  @override
+  ConsumerState<EditRecordDialog> createState() => _EditRecordDialogState();
+}
+
+class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
+  late final TextEditingController _meetingNameController;
+  late final TextEditingController _costController;
+  late final TextEditingController _memoController;
+  late double _drunkLevel;
+
+  // 현재 입력 중인 데이터
+  late DrinkInputData _currentInput;
+
+  // 완료된 기록들
+  final List<CompletedDrinkRecord> _completedRecords = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 기존 데이터로 초기화
+    _meetingNameController = TextEditingController(
+      text: widget.record.meetingName,
+    );
+    _costController = TextEditingController(
+      text: widget.record.cost > 0 ? widget.record.cost.toString() : '',
+    );
+    _memoController = TextEditingController(
+      text: widget.record.memo['text'] as String? ?? '',
+    );
+    _drunkLevel = widget.record.drunkLevel.toDouble();
+
+    // 기존 음주량 데이터를 CompletedDrinkRecord 리스트로 변환
+    for (var drink in widget.record.drinkAmount) {
+      // ml을 단위에 맞게 변환
+      String unit;
+      double amount;
+
+      // 주종별 병 용량 기준으로 1병 이상인지 확인
+      final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
+      final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
+
+      if (drink.amount >= bottleMultiplier) {
+        unit = '병';
+        amount = drink.amount / bottleMultiplier;
+      } else if (drink.amount >= glassMultiplier) {
+        unit = '잔';
+        amount = drink.amount / glassMultiplier;
+      } else {
+        unit = 'ml';
+        amount = drink.amount;
+      }
+
+      _completedRecords.add(
+        CompletedDrinkRecord(
+          drinkType: drink.drinkType,
+          alcoholContent: drink.alcoholContent,
+          amount: amount,
+          unit: unit,
+        ),
+      );
+    }
+
+    // 새로운 입력창 초기화
+    _currentInput = _createNewInput();
+  }
+
+  @override
+  void dispose() {
+    _meetingNameController.dispose();
+    _costController.dispose();
+    _memoController.dispose();
+    _currentInput.dispose();
+    super.dispose();
+  }
+
+  DrinkInputData _createNewInput() {
+    return DrinkInputData(
+      drinkType: 0, // 미정
+      alcoholController: TextEditingController(),
+      amountController: TextEditingController(),
+      selectedUnit: 'ml',
+    );
+  }
+
+  void _handleAdd() {
+    final alcoholText = _currentInput.alcoholController.text.trim();
+    final amountText = _currentInput.amountController.text.trim();
+
+    // 술 종류 확인
+    if (_currentInput.drinkType == 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('술 종류를 선택해주세요')));
+      return;
+    }
+
+    // 입력값 확인
+    if (alcoholText.isEmpty || amountText.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('도수와 양을 모두 입력해주세요')));
+      return;
+    }
+
+    final alcohol = double.tryParse(alcoholText);
+    final amount = double.tryParse(amountText);
+
+    if (alcohol == null || amount == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('도수와 양은 숫자여야 합니다')));
+      return;
+    }
+
+    if (alcohol < 0 || alcohol > 100) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('도수는 0~100 사이여야 합니다')));
+      return;
+    }
+
+    if (amount <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('양은 0보다 커야 합니다')));
+      return;
+    }
+
+    // 완료된 기록에 추가
+    setState(() {
+      _completedRecords.add(
+        CompletedDrinkRecord(
+          drinkType: _currentInput.drinkType,
+          alcoholContent: alcohol,
+          amount: amount,
+          unit: _currentInput.selectedUnit,
+        ),
+      );
+
+      // 현재 입력 초기화
+      _currentInput.dispose();
+      _currentInput = _createNewInput();
+    });
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_meetingNameController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('모임명을 입력해주세요')));
+      return;
+    }
+
+    // 완료된 기록이 없으면 에러
+    if (_completedRecords.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('최소 한 개의 음주량을 추가해주세요')));
+      return;
+    }
+
+    // 완료된 기록들을 DrinkAmount로 변환
+    final drinkAmounts = <DrinkAmount>[];
+    for (var record in _completedRecords) {
+      // ml로 변환
+      final amountInMl =
+          record.amount * getUnitMultiplier(record.drinkType, record.unit);
+
+      drinkAmounts.add(
+        DrinkAmount(
+          drinkType: record.drinkType,
+          alcoholContent: record.alcoholContent,
+          amount: amountInMl,
+        ),
+      );
+    }
+
+    try {
+      final updatedRecord = DrinkingRecord(
+        id: widget.record.id, // 기존 ID 유지
+        date: widget.record.date, // 날짜는 변경하지 않음
+        sessionNumber: widget.record.sessionNumber, // 회차 유지
+        meetingName: _meetingNameController.text,
+        drunkLevel: _drunkLevel.toInt(),
+        yearMonth: widget.record.yearMonth, // 기존 yearMonth 유지
+        drinkAmount: drinkAmounts,
+        memo: {'text': _memoController.text},
+        cost: _costController.text.isEmpty
+            ? 0
+            : int.parse(_costController.text),
+      );
+
+      final service = DrinkingRecordService();
+      await service.updateRecord(updatedRecord);
+
+      // 데이터 변경 알림
+      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+          DateTime.now();
+
+      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
+      ref.invalidate(friendsProvider);
+
+      widget.onRecordUpdated();
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('기록이 수정되었습니다'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('수정 실패: $e'),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Column(
+        children: [
+          // 스크롤 가능한 폼 영역
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 모임명
+                  Row(
+                    children: [
+                      const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '모임명',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '*',
+                            style: TextStyle(fontSize: 18, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${widget.record.sessionNumber}차',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _meetingNameController,
+                    decoration: InputDecoration(
+                      hintText: '모임명을 입력해주세요.',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[400]!),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 알딸딸 지수
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '알딸딸 지수',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '*',
+                        style: TextStyle(fontSize: 18, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // 둥근 슬라이더와 캐릭터를 겹쳐서 표시
+                  Center(
+                    child: SizedBox(
+                      width: 240,
+                      height: 240,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // 둥근 슬라이더
+                          CircularSlider(
+                            value: _drunkLevel * 10,
+                            min: 0,
+                            max: 100,
+                            divisions: 20,
+                            size: 240,
+                            trackWidth: 16,
+                            inactiveColor: Colors.grey[300]!,
+                            activeColor: const Color(0xFFFA75A5),
+                            thumbColor: const Color(0xFFFA75A5),
+                            thumbRadius: 14,
+                            onChanged: (value) {
+                              setState(() {
+                                _drunkLevel = value / 10;
+                              });
+                            },
+                          ),
+                          // 가운데 컨텐츠
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 사쿠 캐릭터
+                              SakuCharacter(
+                                size: 80,
+                                drunkLevel: (_drunkLevel * 10).toInt(),
+                              ),
+                              const SizedBox(height: 8),
+                              // 퍼센트 표시
+                              Text(
+                                '${(_drunkLevel * 10).toInt()}%',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 음주량
+                  const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '음주량',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '*',
+                        style: TextStyle(fontSize: 18, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // 완료된 기록 리스트
+                  ..._completedRecords.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final record = entry.value;
+                    return CompletedDrinkCard(
+                      record: record,
+                      onDelete: () {
+                        setState(() {
+                          _completedRecords.removeAt(index);
+                        });
+                      },
+                    );
+                  }),
+
+                  // 현재 입력창
+                  NewDrinkInputCard(
+                    key: ValueKey(_currentInput.hashCode),
+                    inputData: _currentInput,
+                    onAdd: _handleAdd,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 술값 (필수 아님)
+                  const Text(
+                    '술값(지출 금액)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _costController,
+                    decoration: InputDecoration(
+                      hintText: '지출 금액 (선택)',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      suffixText: '원',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[400]!),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 메모 (필수 아님)
+                  const Text(
+                    '메모',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _memoController,
+                    decoration: InputDecoration(
+                      hintText: '오늘 모임의 기록을 남겨보세요. (선택)',
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey[400]!),
+                      ),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 32),
+                  // 하단 버튼
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: Colors.grey[200],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            '취소',
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _handleSubmit,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: AppColors.primaryPink,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('수정'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

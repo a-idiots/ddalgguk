@@ -1,0 +1,673 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:ddalgguk/core/constants/storage_keys.dart';
+import 'package:ddalgguk/features/auth/data/services/firebase_auth_service.dart';
+import 'package:ddalgguk/features/auth/data/services/google_auth_service.dart';
+import 'package:ddalgguk/features/auth/data/services/apple_auth_service.dart';
+import 'package:ddalgguk/features/auth/data/services/kakao_auth_service.dart';
+import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
+import 'package:ddalgguk/features/auth/domain/models/badge.dart'; // Added import for Badge
+import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
+
+/// Authentication Repository
+/// Central hub for all authentication operations
+class AuthRepository {
+  AuthRepository({
+    FirebaseAuthService? firebaseAuthService,
+    GoogleAuthService? googleAuthService,
+    AppleAuthService? appleAuthService,
+    KakaoAuthService? kakaoAuthService,
+    FirebaseFirestore? firestore,
+    SecureStorageService? storageService,
+  }) : _firebaseAuthService = firebaseAuthService ?? FirebaseAuthService(),
+       _googleAuthService = googleAuthService ?? GoogleAuthService(),
+       _appleAuthService = appleAuthService ?? AppleAuthService(),
+       _kakaoAuthService = kakaoAuthService ?? KakaoAuthService(),
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _storageService = storageService ?? SecureStorageService.instance;
+
+  final FirebaseAuthService _firebaseAuthService;
+  final GoogleAuthService _googleAuthService;
+  final AppleAuthService _appleAuthService;
+  final KakaoAuthService _kakaoAuthService;
+  final FirebaseFirestore _firestore;
+  final SecureStorageService _storageService;
+
+  // Collection reference for users
+  CollectionReference get _usersCollection => _firestore.collection('users');
+
+  /// Sign in with Google
+  Future<AppUser> signInWithGoogle() async {
+    try {
+      // Get Google credential
+      final credential = await _googleAuthService.signInWithGoogle();
+
+      // Sign in to Firebase
+      final userCredential = await _firebaseAuthService.signInWithCredential(
+        credential,
+      );
+
+      final uid = userCredential.user!.uid;
+
+      // Check if user already exists in Firestore
+      debugPrint('=== Sign in with Google - checking Firestore ===');
+      final doc = await _usersCollection.doc(uid).get();
+      final AppUser appUser;
+
+      if (doc.exists) {
+        // Existing user - load from Firestore
+        final data = doc.data() as Map<String, dynamic>;
+        debugPrint('Firestore data: $data');
+        appUser = AppUser.fromJson(data);
+        debugPrint('Existing user:');
+        debugPrint(
+          '  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+        debugPrint('  - name: ${appUser.name}');
+        debugPrint('  - id: ${appUser.id}');
+
+        // Log login success
+        await AnalyticsService.instance.logLoginSuccess('google');
+      } else {
+        // New user - create with basic info
+        appUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          provider: LoginProvider.google,
+        );
+        debugPrint(
+          'New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+
+        // Save new user to Firestore
+        await _saveUserToFirestore(appUser);
+
+        // Log sign up success
+        await AnalyticsService.instance.logSignUpSuccess('google');
+      }
+      debugPrint('===============================================');
+
+      // Save token and provider to secure storage
+      await _saveAuthData(appUser, LoginProvider.google);
+
+      return appUser;
+    } catch (e) {
+      debugPrint('Sign in with Google error: $e');
+      rethrow;
+    }
+  }
+
+  /// Sign in with Apple
+  Future<AppUser> signInWithApple() async {
+    try {
+      // Get Apple credential
+      final credential = await _appleAuthService.signInWithApple();
+
+      // Sign in to Firebase
+      final userCredential = await _firebaseAuthService.signInWithCredential(
+        credential,
+      );
+
+      final uid = userCredential.user!.uid;
+
+      // Check if user already exists in Firestore
+      debugPrint('=== Sign in with Apple - checking Firestore ===');
+      final doc = await _usersCollection.doc(uid).get();
+      final AppUser appUser;
+
+      if (doc.exists) {
+        // Existing user - load from Firestore
+        final data = doc.data() as Map<String, dynamic>;
+        debugPrint('Firestore data: $data');
+        appUser = AppUser.fromJson(data);
+        debugPrint('Existing user:');
+        debugPrint(
+          '  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+        debugPrint('  - name: ${appUser.name}');
+        debugPrint('  - id: ${appUser.id}');
+
+        // Log login success
+        await AnalyticsService.instance.logLoginSuccess('apple');
+      } else {
+        // New user - create with basic info
+        appUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          provider: LoginProvider.apple,
+        );
+        debugPrint(
+          'New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+
+        // Save new user to Firestore
+        await _saveUserToFirestore(appUser);
+
+        // Log sign up success
+        await AnalyticsService.instance.logSignUpSuccess('apple');
+      }
+      debugPrint('===============================================');
+
+      // Save token and provider to secure storage
+      await _saveAuthData(appUser, LoginProvider.apple);
+
+      return appUser;
+    } catch (e) {
+      debugPrint('Sign in with Apple error: $e');
+      rethrow;
+    }
+  }
+
+  /// Sign in with Kakao
+  /// Exchanges Kakao token for Firebase custom token via Cloud Functions
+  Future<AppUser> signInWithKakao() async {
+    try {
+      // Get Firebase custom token (Kakao token is exchanged internally)
+      final firebaseCustomToken = await _kakaoAuthService.signInWithKakao();
+
+      // Sign in to Firebase with custom token
+      final userCredential = await _firebaseAuthService.signInWithCustomToken(
+        firebaseCustomToken,
+      );
+
+      final uid = userCredential.user!.uid;
+
+      // Check if user already exists in Firestore
+      debugPrint('=== Sign in with Kakao - checking Firestore ===');
+      final doc = await _usersCollection.doc(uid).get();
+      final AppUser appUser;
+
+      if (doc.exists) {
+        // Existing user - load from Firestore
+        final data = doc.data() as Map<String, dynamic>;
+        debugPrint('Firestore data: $data');
+        appUser = AppUser.fromJson(data);
+        debugPrint('Existing user:');
+        debugPrint(
+          '  - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+        debugPrint('  - name: ${appUser.name}');
+        debugPrint('  - id: ${appUser.id}');
+
+        // Log login success
+        await AnalyticsService.instance.logLoginSuccess('kakao');
+      } else {
+        // New user - create with basic info from Kakao
+        appUser = AppUser.fromFirebaseUser(
+          uid: uid,
+          provider: LoginProvider.kakao,
+        );
+        debugPrint(
+          'New user created - hasCompletedProfileSetup: ${appUser.hasCompletedProfileSetup}',
+        );
+
+        // Save new user to Firestore
+        await _saveUserToFirestore(appUser);
+
+        // Log sign up success
+        await AnalyticsService.instance.logSignUpSuccess('kakao');
+      }
+      debugPrint('===============================================');
+
+      // Save token and provider to secure storage
+      await _saveAuthData(appUser, LoginProvider.kakao);
+
+      return appUser;
+    } catch (e) {
+      debugPrint('Sign in with Kakao error: $e');
+      rethrow;
+    }
+  }
+
+  /// Sign out
+  Future<void> signOut() async {
+    try {
+      // Get the last login provider
+      final lastProvider = await _storageService.getLastLoginProvider();
+
+      // Sign out from the provider
+      switch (lastProvider) {
+        case LoginProvider.google:
+          await _googleAuthService.signOut();
+        case LoginProvider.apple:
+          // Apple doesn't have a separate sign out
+          break;
+        case LoginProvider.kakao:
+          await _kakaoAuthService.signOut();
+        case null:
+          break;
+      }
+
+      // Sign out from Firebase
+      await _firebaseAuthService.signOut();
+
+      // Clear secure storage
+      await _storageService.deleteAllSecureData();
+    } catch (e) {
+      debugPrint('Sign out error: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if ID already exists
+  Future<bool> checkIdExists(String id) async {
+    try {
+      final snapshot = await _usersCollection
+          .where('id', isEqualTo: id)
+          .limit(1)
+          .get();
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      debugPrint('Check ID exists error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get current user (checks cache first, then Firestore)
+  Future<AppUser?> getCurrentUser() async {
+    try {
+      final firebaseUser = _firebaseAuthService.currentUser;
+      if (firebaseUser == null) {
+        debugPrint('getCurrentUser: No Firebase user');
+        return null;
+      }
+
+      debugPrint('getCurrentUser: Firebase user exists - ${firebaseUser.uid}');
+
+      // Try to get from cache first
+      final cachedUser = await _storageService.getUserCache();
+      if (cachedUser != null && cachedUser.uid == firebaseUser.uid) {
+        debugPrint(
+          'getCurrentUser: Using cached user - hasCompletedProfileSetup: ${cachedUser.hasCompletedProfileSetup}',
+        );
+        return cachedUser;
+      }
+
+      debugPrint('getCurrentUser: No valid cache, fetching from Firestore');
+
+      // If not in cache or cache is stale, get from Firestore
+      final doc = await _usersCollection.doc(firebaseUser.uid).get();
+      if (!doc.exists) {
+        debugPrint('getCurrentUser: Document does not exist in Firestore');
+        return null;
+      }
+
+      final data = doc.data() as Map<String, dynamic>;
+      debugPrint('getCurrentUser: Firestore data - $data');
+
+      final user = AppUser.fromJson(data);
+      debugPrint(
+        'getCurrentUser: Parsed user - hasCompletedProfileSetup: ${user.hasCompletedProfileSetup}',
+      );
+
+      // Update cache
+      await _storageService.saveUserCache(user);
+      debugPrint('getCurrentUser: Cache updated');
+
+      return user;
+    } catch (e) {
+      debugPrint('Get current user error: $e');
+      return null;
+    }
+  }
+
+  /// Add a badge to the current user
+  Future<void> addBadge(Badge badge) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        throw Exception('User not found');
+      }
+
+      // Check for duplicates (same group and idx)
+      final existingBadges = currentUser.badges;
+      final isDuplicate = existingBadges.any(
+        (b) => b.group == badge.group && b.idx == badge.idx,
+      );
+
+      if (isDuplicate) {
+        debugPrint(
+          'Badge already exists: ${badge.group}_${badge.idx}. Skipping.',
+        );
+        return;
+      }
+
+      final newBadges = List<Badge>.from(existingBadges)..add(badge);
+
+      // Save to Firestore
+      final updatedUser = currentUser.copyWith(badges: newBadges);
+      await _usersCollection
+          .doc(uid)
+          .set(updatedUser.toFirestore(), SetOptions(merge: true));
+
+      // Update cache
+      await _storageService.saveUserCache(updatedUser);
+      debugPrint('Badge added: ${badge.group}_${badge.idx}');
+    } catch (e) {
+      debugPrint('Add badge error: $e');
+      rethrow;
+    }
+  }
+
+  /// Save user to Firestore
+  Future<void> _saveUserToFirestore(AppUser user) async {
+    try {
+      await _usersCollection
+          .doc(user.uid)
+          .set(user.toFirestore(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Save user to Firestore error: $e');
+      rethrow;
+    }
+  }
+
+  /// Save authentication data to secure storage
+  Future<void> _saveAuthData(AppUser user, LoginProvider provider) async {
+    try {
+      // Get Firebase ID token
+      final idToken = await _firebaseAuthService.getIdToken();
+      if (idToken != null) {
+        await _storageService.saveFirebaseIdToken(idToken);
+      }
+
+      // Save user ID
+      await _storageService.saveUserId(user.uid);
+
+      // Save last login provider
+      await _storageService.saveLastLoginProvider(provider);
+
+      // Save user to cache
+      await _storageService.saveUserCache(user);
+    } catch (e) {
+      debugPrint('Save auth data error: $e');
+      rethrow;
+    }
+  }
+
+  /// Toggle badge pin status
+  Future<void> toggleBadgePin(String badgeId) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        throw Exception('User not found');
+      }
+
+      final currentPinned = List<String>.from(currentUser.pinnedBadges);
+      if (currentPinned.contains(badgeId)) {
+        currentPinned.remove(badgeId);
+      } else {
+        if (currentPinned.length >= 4) {
+          // Max 4 pinned badges
+          return;
+        }
+        currentPinned.add(badgeId);
+      }
+
+      // Optimistic update
+      final updatedUser = currentUser.copyWith(pinnedBadges: currentPinned);
+      await _storageService.saveUserCache(updatedUser);
+
+      // Fire and forget Firestore update (or await if critical, but for UI responsiveness we can await)
+      await _usersCollection.doc(uid).update({'pinnedBadges': currentPinned});
+    } catch (e) {
+      debugPrint('Toggle badge pin error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update user profile in Firestore
+  Future<void> updateUserProfile({String? name, int? profilePhoto}) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final updates = <String, dynamic>{};
+      if (name != null) {
+        updates['name'] = name;
+      }
+      if (profilePhoto != null) {
+        updates['profilePhoto'] = profilePhoto;
+      }
+
+      if (updates.isNotEmpty) {
+        await _usersCollection.doc(uid).update(updates);
+
+        // Update cache
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            name: name ?? currentUser.name,
+            profilePhoto: profilePhoto ?? currentUser.profilePhoto,
+          );
+          await _storageService.saveUserCache(updatedUser);
+        }
+      }
+    } catch (e) {
+      debugPrint('Update user profile error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update user information in Firestore
+  Future<void> updateUserInfo({
+    String? gender,
+    DateTime? birthDate,
+    double? height,
+    double? weight,
+  }) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final updates = <String, dynamic>{};
+      if (gender != null) {
+        updates['gender'] = gender;
+      }
+      if (birthDate != null) {
+        updates['birthDate'] = Timestamp.fromDate(birthDate);
+      }
+      if (height != null) {
+        updates['height'] = height;
+      }
+      if (weight != null) {
+        updates['weight'] = weight;
+      }
+
+      if (updates.isNotEmpty) {
+        await _usersCollection.doc(uid).update(updates);
+
+        // Update cache
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            gender: gender ?? currentUser.gender,
+            birthDate: birthDate ?? currentUser.birthDate,
+            height: height ?? currentUser.height,
+            weight: weight ?? currentUser.weight,
+          );
+          await _storageService.saveUserCache(updatedUser);
+        }
+      }
+    } catch (e) {
+      debugPrint('Update user info error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update current drunk level in Firestore
+  /// This is used to show friend's drunk level in social tab
+  Future<void> updateCurrentDrunkLevel(int drunkLevel) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        return; // Silently fail if not authenticated
+      }
+
+      await _usersCollection.doc(uid).update({'currentDrunkLevel': drunkLevel});
+
+      // Update cache
+      final currentUser = await getCurrentUser();
+      if (currentUser != null) {
+        final updatedUser = currentUser.copyWith(currentDrunkLevel: drunkLevel);
+        await _storageService.saveUserCache(updatedUser);
+      }
+    } catch (e) {
+      debugPrint('Update current drunk level error: $e');
+      // Don't rethrow, this is a background operation
+    }
+  }
+
+  /// Save profile data (onboarding completion)
+  Future<void> saveProfileData({
+    required String id,
+    required String name,
+    required bool goal,
+    required int favoriteDrink,
+    required double maxAlcohol,
+    required int weeklyDrinkingFrequency,
+    String? gender,
+    DateTime? birthDate,
+    double? height,
+    double? weight,
+  }) async {
+    try {
+      final firebaseUser = _firebaseAuthService.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('User not found');
+      }
+
+      final uid = firebaseUser.uid;
+
+      // Try to get current user data
+      AppUser updatedUser;
+      final currentUser = await getCurrentUser();
+
+      if (currentUser != null) {
+        // User exists, update with profile data
+        updatedUser = currentUser.copyWith(
+          id: id,
+          name: name,
+          goal: goal,
+          favoriteDrink: favoriteDrink,
+          maxAlcohol: maxAlcohol,
+          weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+          hasCompletedProfileSetup: true,
+          gender: gender,
+          birthDate: birthDate,
+          height: height,
+          weight: weight,
+        );
+      } else {
+        // User doesn't exist in Firestore, create new AppUser
+        // Try to get last login provider from storage
+        final lastProvider = await _storageService.getLastLoginProvider();
+
+        updatedUser =
+            AppUser.fromFirebaseUser(
+              uid: uid,
+              provider: lastProvider ?? LoginProvider.google,
+            ).copyWith(
+              id: id,
+              name: name,
+              goal: goal,
+              favoriteDrink: favoriteDrink,
+              maxAlcohol: maxAlcohol,
+              weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+              hasCompletedProfileSetup: true,
+              gender: gender,
+              birthDate: birthDate,
+              height: height,
+              weight: weight,
+            );
+      }
+
+      // Save to Firestore
+      final firestoreData = updatedUser.toFirestore();
+      debugPrint('=== Saving profile data to Firestore ===');
+      debugPrint(
+        'hasCompletedProfileSetup: ${firestoreData['hasCompletedProfileSetup']}',
+      );
+
+      await _usersCollection
+          .doc(uid)
+          .set(firestoreData, SetOptions(merge: true));
+
+      // Save to cache
+      await _storageService.saveUserCache(updatedUser);
+
+      debugPrint('Profile data saved successfully');
+      debugPrint('======================================');
+    } catch (e) {
+      debugPrint('Save profile data error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete user account
+  Future<void> deleteAccount() async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Delete from Firestore
+      await _usersCollection.doc(uid).delete();
+
+      // Delete Firebase Auth account
+      await _firebaseAuthService.deleteAccount();
+
+      // Clear secure storage
+      await _storageService.deleteAllSecureData();
+    } catch (e) {
+      debugPrint('Delete account error: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if user is signed in
+  bool get isSignedIn => _firebaseAuthService.isSignedIn;
+
+  /// Get auth state changes stream
+  Stream<User?> get authStateChanges => _firebaseAuthService.authStateChanges;
+
+  /// Get AppUser stream
+  Stream<AppUser?> get appUserChanges {
+    return _firebaseAuthService.authStateChanges.asyncExpand((firebaseUser) {
+      if (firebaseUser == null) {
+        return Stream.value(null);
+      }
+
+      // Return a stream of AppUser from Firestore snapshots
+      return _usersCollection.doc(firebaseUser.uid).snapshots().asyncMap((
+        snapshot,
+      ) async {
+        if (!snapshot.exists) {
+          return null;
+        }
+
+        final data = snapshot.data() as Map<String, dynamic>;
+        final user = AppUser.fromJson(data);
+
+        // Update cache
+        await _storageService.saveUserCache(user);
+
+        return user;
+      });
+    });
+  }
+}
