@@ -57,7 +57,6 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                         style: TextStyle(
                           color: Color(0xFFF27B7B),
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -68,7 +67,6 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
                           : '',
                       style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
                     ),
@@ -493,12 +491,12 @@ class _WeeklyChartPage extends ConsumerWidget {
 
   Color _getBarColor(int level) {
     if (level <= 30) {
-      return const Color(0xFF52E370); // Green
+      return const Color(0xFFFF0000); // Red
     }
     if (level <= 60) {
       return const Color(0xFFFFD54F); // Yellow
     }
-    return const Color(0xFFFF0000); // Red
+    return const Color(0xFF52E370); // Green
   }
 }
 
@@ -597,7 +595,6 @@ class _DrinkTypeRow extends StatelessWidget {
             '$rank',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
               color: rank == 1 ? Colors.amber : Colors.black,
             ),
           ),
@@ -621,10 +618,7 @@ class _DrinkTypeRow extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  Text(name),
                   Text(
                     '${amount}ml',
                     style: const TextStyle(fontSize: 12, color: Colors.grey),

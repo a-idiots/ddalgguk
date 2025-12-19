@@ -63,8 +63,8 @@ class _CircularSliderState extends State<CircularSlider> {
     final dx = localPosition.dx - center.dx;
     final dy = localPosition.dy - center.dy;
 
-    // 각도 계산 (0도 = 위쪽, 시계 반대방향)
-    var angle = atan2(-dx, -dy);
+    // 각도 계산 (0도 = 위쪽, 시계방향)
+    var angle = atan2(dx, -dy);
 
     // 0 ~ 2π 범위로 정규화
     if (angle < 0) {
@@ -181,7 +181,7 @@ class _CircularSliderPainter extends CustomPainter {
             Color(0xFFFA75A5), // 핸들 위치 색상
             Color(0xFFFEE5DA), // 다시 12시로 돌아오는 색상
           ],
-          stops: [0.0, 1.0 - value, 1.0], // 12시->핸들->12시
+          stops: [0.0, value, 1.0], // 12시->핸들->12시
           // 12시 방향에서 시작
           transform: const GradientRotation(-pi / 2),
         ).createShader(rect)
@@ -192,15 +192,15 @@ class _CircularSliderPainter extends CustomPainter {
       canvas.drawArc(
         rect,
         -pi / 2, // 시작 각도 (위쪽 = -90도)
-        -sweepAngle, // 시계 반대방향
+        sweepAngle, // 시계방향
         false,
         gradientPaint,
       );
     }
 
-    // 핸들(썸) 그리기 (시계 반대방향)
+    // 핸들(썸) 그리기 (시계방향)
     final sweepAngle = value * 2 * pi;
-    final thumbAngle = -pi / 2 - sweepAngle;
+    final thumbAngle = -pi / 2 + sweepAngle;
     final thumbX = center.dx + radius * cos(thumbAngle);
     final thumbY = center.dy + radius * sin(thumbAngle);
     final thumbCenter = Offset(thumbX, thumbY);

@@ -43,7 +43,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                     height: 1.4,
                   ),
@@ -85,7 +84,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
               // App name: "딸꾹"
               const Text(
-                '딸꾹',
+                'DDALGGUK',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,

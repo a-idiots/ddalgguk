@@ -34,12 +34,12 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildDrinkTypeButton(context, 1, '소주'),
-              _buildDrinkTypeButton(context, 2, '맥주'),
-              _buildDrinkTypeButton(context, 4, '와인'),
-              _buildDrinkTypeButton(context, 5, '막걸리'),
-              _buildDrinkTypeButton(context, 3, '칵테일'),
-              _buildDrinkTypeButton(context, 6, '기타'),
+              _buildDrinkTypeButton(1),
+              _buildDrinkTypeButton(2),
+              _buildDrinkTypeButton(4),
+              _buildDrinkTypeButton(5),
+              _buildDrinkTypeButton(3),
+              _buildDrinkTypeButton(-1),
             ],
           ),
           const SizedBox(height: 16),
@@ -167,8 +167,9 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
     );
   }
 
-  Widget _buildDrinkTypeButton(BuildContext context, int type, String label) {
+  Widget _buildDrinkTypeButton(int type) {
     final isSelected = widget.inputData.drinkType == type;
+    final label = getDrinkTypeName(type);
 
     return GestureDetector(
       onTap: () {
