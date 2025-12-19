@@ -99,11 +99,7 @@ class _SpendingSummaryCard extends StatelessWidget {
                     ),
                     const Text(
                       '똑같은 금액을 쓰고 있어요',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.black),
                     ),
                   ],
                 );
@@ -156,20 +152,12 @@ class _SpendingSummaryCard extends StatelessWidget {
             children: [
               Text(
                 '$month월 지출 금액',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[800]),
               ),
               spendingAsync.when(
                 data: (total) => Text(
                   '${NumberFormat('#,###').format(total)}원',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
                 ),
                 loading: () => const SizedBox(
                   width: 20,
@@ -322,10 +310,7 @@ class _DrinkingRecordItem extends StatelessWidget {
             children: [
               Text(
                 record.meetingName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 16),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -412,7 +397,7 @@ class _MaxSpendingCard extends StatelessWidget {
           children: [
             Text(
               '${DateTime.now().month}월 통장 털린 술자리',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18),
             ),
             Text(
               '최대 지출액 (한달 기준)',
@@ -420,58 +405,50 @@ class _MaxSpendingCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFFE55D5D), Color(0xFFE37B7B)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFFE55D5D).withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Row(
                 children: [
                   SakuCharacter(
-                    size: 60,
+                    size: 48,
                     drunkLevel: maxRecord.drunkLevel * 10,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       maxRecord.meetingName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: const TextStyle(fontSize: 18, color: Colors.white),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     '${NumberFormat('#,###').format(maxRecord.cost)}원',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: const TextStyle(fontSize: 20, color: Colors.white),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            /* const SizedBox(height: 16),
             // Drink Icons
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(children: _buildDrinkIcons(maxRecord.drinkAmount)),
-            ),
+            ), */
           ],
         );
       },
@@ -480,6 +457,7 @@ class _MaxSpendingCard extends StatelessWidget {
     );
   }
 
+  /*
   List<Widget> _buildDrinkIcons(List<DrinkAmount> amounts) {
     final icons = <Widget>[];
     const iconSize = 40.0; // Fixed height for icons
@@ -539,5 +517,5 @@ class _MaxSpendingCard extends StatelessWidget {
       }
     }
     return icons;
-  }
+  } */
 }
