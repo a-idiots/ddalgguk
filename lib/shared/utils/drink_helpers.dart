@@ -22,6 +22,15 @@ class Drink {
 
 const List<Drink> drinks = [
   Drink(
+    id: -1,
+    name: '기타',
+    imagePath: 'assets/imgs/alcohol_icons/undecided.png',
+    defaultAlcoholContent: 0.0,
+    defaultUnit: '잔',
+    glassVolume: 50.0,
+    bottleVolume: 360.0,
+  ),
+  Drink(
     id: 0,
     name: '알 수 없음',
     imagePath: 'assets/imgs/alcohol_icons/undecided.png',

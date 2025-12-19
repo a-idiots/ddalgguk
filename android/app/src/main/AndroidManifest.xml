@@ -4,8 +4,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <application
-        android:label="ddalgguk"
-        android:name="${applicationName}"
+        android:label="딸꾹"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
