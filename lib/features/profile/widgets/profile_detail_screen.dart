@@ -13,15 +13,15 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 class ProfileDetailScreen extends ConsumerStatefulWidget {
   const ProfileDetailScreen({
     super.key,
-    this.onBack,
     this.onNavigateToAnalytics,
     this.showCharacter = true,
+    this.onBackToMain,
     required this.theme,
     required this.drunkLevel,
   });
 
-  final VoidCallback? onBack;
   final VoidCallback? onNavigateToAnalytics;
+  final VoidCallback? onBackToMain;
   final bool showCharacter;
   final AppTheme theme;
   final int drunkLevel;
@@ -61,22 +61,20 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                 theme: widget.theme,
                 reversed: true,
                 child: SafeArea(
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      // Header (scrollable, not sticky)
-                      SliverToBoxAdapter(
-                        child: ProfileHeader(
-                          user: user,
-                          theme: widget.theme,
-                          showCharacter: widget.showCharacter,
-                          drunkLevel: widget.drunkLevel,
-                        ),
-                      ),
-                      // Content
-                      SliverList(
-                        delegate: SliverChildListDelegate([
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      return false;
+                    },
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          ProfileHeader(
+                            user: user,
+                            theme: widget.theme,
+                            showCharacter: widget.showCharacter,
+                            drunkLevel: widget.drunkLevel,
+                          ),
                           // Section 2-1: Weekly Saku
                           weeklyStatsAsync.when(
                             skipLoadingOnReload: true,
@@ -103,9 +101,9 @@ class _ProfileDetailScreenState extends ConsumerState<ProfileDetailScreen> {
                             extraComment: true,
                           ),
                           const SizedBox(height: 32),
-                        ]),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
