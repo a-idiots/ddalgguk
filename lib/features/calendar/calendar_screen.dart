@@ -493,9 +493,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // 혈중 알콜 농도
+                    // 알딸딸지수
                     Text(
-                      '혈중알콜농도 ${record.drunkLevel * 10}%',
+                      '알딸딸지수 ${record.drunkLevel * 10}%',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.red[400],
