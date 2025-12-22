@@ -26,8 +26,8 @@ class SpendingTab extends ConsumerWidget {
       monthlySpendingComparisonProvider(normalizedDate),
     );
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -37,14 +37,12 @@ class SpendingTab extends ConsumerWidget {
             spendingAsync: monthlySpendingAsync,
             comparisonAsync: comparisonAsync,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // 2. Record List Section
-          _DrinkingRecordList(recordsAsync: monthRecordsAsync),
-          const SizedBox(height: 24),
+          Expanded(child: _DrinkingRecordList(recordsAsync: monthRecordsAsync)),
 
-          // 3. Max Spending Section
-          _MaxSpendingCard(recordsAsync: monthRecordsAsync),
+          const SizedBox(height: 12),
         ],
       ),
     );
@@ -144,7 +142,7 @@ class _SpendingSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+          const Divider(height: 0.4, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 16),
           // Monthly Total
           Row(
@@ -236,17 +234,13 @@ class _DrinkingRecordList extends StatelessWidget {
               return b.date.compareTo(a.date);
             });
 
-          return SizedBox(
-            height: 250, // Approx height for 3 items
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(24),
-              itemCount: sortedRecords.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 24),
-              itemBuilder: (context, index) {
-                return _DrinkingRecordItem(record: sortedRecords[index]);
-              },
-            ),
+          return ListView.separated(
+            padding: const EdgeInsets.all(24),
+            itemCount: sortedRecords.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 24),
+            itemBuilder: (context, index) {
+              return _DrinkingRecordItem(record: sortedRecords[index]);
+            },
           );
         },
         loading: () => const Padding(
@@ -301,8 +295,8 @@ class _DrinkingRecordItem extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         // Character
-        SakuCharacter(size: 48, drunkLevel: (record.drunkLevel * 10).toInt()),
-        const SizedBox(width: 16),
+        SakuCharacter(size: 42, drunkLevel: (record.drunkLevel * 10).toInt()),
+        const SizedBox(width: 12),
         // Details
         Expanded(
           child: Column(
@@ -310,24 +304,24 @@ class _DrinkingRecordItem extends StatelessWidget {
             children: [
               Text(
                 record.meetingName,
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 14),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
-                '혈중알콜농도 ${record.drunkLevel * 10}%',
+                '알딸딸지수 ${record.drunkLevel * 10}%',
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Color(0xFFF27B7B),
                   fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 _formatDrinkAmounts(record.drinkAmount),
-                style: const TextStyle(fontSize: 12, color: Colors.black87),
+                style: const TextStyle(fontSize: 10, color: Colors.black87),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -338,7 +332,7 @@ class _DrinkingRecordItem extends StatelessWidget {
         // Cost
         Text(
           '${NumberFormat('#,###').format(record.cost)}원',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -367,155 +361,4 @@ class _DrinkingRecordItem extends StatelessWidget {
     }
     return '${amount.toInt()}ml';
   }
-}
-
-class _MaxSpendingCard extends StatelessWidget {
-  const _MaxSpendingCard({required this.recordsAsync});
-
-  final AsyncValue<List<DrinkingRecord>> recordsAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return recordsAsync.when(
-      data: (records) {
-        if (records.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        // Find the max spending record
-        final maxRecord = records.reduce(
-          (curr, next) => curr.cost > next.cost ? curr : next,
-        );
-
-        // If max cost is 0, don't show this section
-        if (maxRecord.cost == 0) {
-          return const SizedBox.shrink();
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${DateTime.now().month}월 통장 털린 술자리',
-              style: const TextStyle(fontSize: 18),
-            ),
-            Text(
-              '최대 지출액 (한달 기준)',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE55D5D), Color(0xFFE37B7B)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFE55D5D).withValues(alpha: 0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  SakuCharacter(
-                    size: 48,
-                    drunkLevel: (maxRecord.drunkLevel * 10).toInt(),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      maxRecord.meetingName,
-                      style: const TextStyle(fontSize: 18, color: Colors.white),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${NumberFormat('#,###').format(maxRecord.cost)}원',
-                    style: const TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-            /* const SizedBox(height: 16),
-            // Drink Icons
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: _buildDrinkIcons(maxRecord.drinkAmount)),
-            ), */
-          ],
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  /*
-  List<Widget> _buildDrinkIcons(List<DrinkAmount> amounts) {
-    final icons = <Widget>[];
-    const iconSize = 40.0; // Fixed height for icons
-    const trimmedWidth = 30.0; // Width to crop to (removing side transparency)
-
-    Widget buildTrimmedIcon(String path) {
-      return ClipRect(
-        child: SizedBox(
-          width: trimmedWidth,
-          height: iconSize,
-          child: OverflowBox(
-            maxWidth: iconSize * 2,
-            maxHeight: iconSize,
-            alignment: Alignment.center,
-            child: Image.asset(path, height: iconSize, fit: BoxFit.fitHeight),
-          ),
-        ),
-      );
-    }
-
-    for (final amount in amounts) {
-      final unit = getDefaultUnit(amount.drinkType);
-      final multiplier = getUnitMultiplier(amount.drinkType, unit);
-
-      // Calculate total units (e.g., bottles)
-      final totalUnits = amount.amount / multiplier;
-      final fullCount = totalUnits.floor();
-      final remainder = totalUnits - fullCount;
-
-      final iconPath = getDrinkIconPath(amount.drinkType);
-
-      // Add full icons
-      for (int i = 0; i < fullCount; i++) {
-        icons.add(
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: buildTrimmedIcon(iconPath),
-          ),
-        );
-      }
-
-      // Add partial icon if remainder exists
-      if (remainder > 0.1) {
-        // Threshold to avoid tiny slivers
-        icons.add(
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: ClipRect(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                widthFactor: remainder,
-                child: buildTrimmedIcon(iconPath),
-              ),
-            ),
-          ),
-        );
-      }
-    }
-    return icons;
-  } */
 }
