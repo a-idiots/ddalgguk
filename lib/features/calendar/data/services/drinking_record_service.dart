@@ -90,11 +90,11 @@ class DrinkingRecordService {
         final records = allRecordsForDate.docs
             .map((doc) => DrinkingRecord.fromFirestore(doc))
             .toList();
-        final totalDrunkLevel = records.fold<int>(
-          0,
+        final totalDrunkLevel = records.fold<double>(
+          0.0,
           (total, r) => total + r.drunkLevel,
         );
-        final avgDrunkLevel = (totalDrunkLevel / records.length).round();
+        final avgDrunkLevel = totalDrunkLevel / records.length;
 
         debugPrint(
           'Records for date: ${records.length}, Average drunk level: $avgDrunkLevel',
@@ -264,13 +264,13 @@ class DrinkingRecordService {
         final records = allRecordsForDate.docs
             .map((doc) => DrinkingRecord.fromFirestore(doc))
             .toList();
-        final totalDrunkLevel = records.fold<int>(
-          0,
+        final totalDrunkLevel = records.fold<double>(
+          0.0,
           (total, r) => total + r.drunkLevel,
         );
         final avgDrunkLevel = records.isNotEmpty
-            ? (totalDrunkLevel / records.length).round()
-            : 0;
+            ? (totalDrunkLevel / records.length)
+            : 0.0;
 
         // 금주 기록이 아닌 경우에만 lastDrinkDate 업데이트
         final isDrinkingRecord = records.any((r) {
@@ -391,11 +391,11 @@ class DrinkingRecordService {
           final records = remainingRecords.docs
               .map((doc) => DrinkingRecord.fromFirestore(doc))
               .toList();
-          final totalDrunkLevel = records.fold<int>(
-            0,
+          final totalDrunkLevel = records.fold<double>(
+            0.0,
             (total, r) => total + r.drunkLevel,
           );
-          final avgDrunkLevel = (totalDrunkLevel / records.length).round();
+          final avgDrunkLevel = totalDrunkLevel / records.length;
 
           // 금주 기록이 아닌 경우에만 lastDrinkDate 업데이트
           final isDrinkingRecord = records.any((r) {

@@ -187,7 +187,7 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
         date: widget.selectedDate,
         sessionNumber: 0, // 서비스에서 자동 계산
         meetingName: _meetingNameController.text,
-        drunkLevel: _drunkLevel.toInt(),
+        drunkLevel: _drunkLevel,
         yearMonth: DateFormat(
           'yyyy-MM',
         ).format(widget.selectedDate), // Added yearMonth

@@ -301,7 +301,7 @@ class _DrinkingRecordItem extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         // Character
-        SakuCharacter(size: 48, drunkLevel: record.drunkLevel * 10),
+        SakuCharacter(size: 48, drunkLevel: (record.drunkLevel * 10).toInt()),
         const SizedBox(width: 16),
         // Details
         Expanded(
@@ -425,7 +425,7 @@ class _MaxSpendingCard extends StatelessWidget {
                 children: [
                   SakuCharacter(
                     size: 48,
-                    drunkLevel: maxRecord.drunkLevel * 10,
+                    drunkLevel: (maxRecord.drunkLevel * 10).toInt(),
                   ),
                   const SizedBox(width: 16),
                   Expanded(

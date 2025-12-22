@@ -218,7 +218,7 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
         date: widget.record.date, // 날짜는 변경하지 않음
         sessionNumber: widget.record.sessionNumber, // 회차 유지
         meetingName: _meetingNameController.text,
-        drunkLevel: _drunkLevel.toInt(),
+        drunkLevel: _drunkLevel,
         yearMonth: widget.record.yearMonth, // 기존 yearMonth 유지
         drinkAmount: drinkAmounts,
         memo: {'text': _memoController.text},

@@ -477,7 +477,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 왼쪽: 사쿠 캐릭터
-              SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
+              SakuCharacter(
+                size: sakuSize,
+                drunkLevel: (record.drunkLevel * 10).toInt(),
+              ),
               const SizedBox(width: 16),
               // 중앙: 정보
               Expanded(
@@ -495,7 +498,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     const SizedBox(height: 4),
                     // 알딸딸지수
                     Text(
-                      '알딸딸지수 ${record.drunkLevel * 10}%',
+                      '알딸딸지수 ${(record.drunkLevel * 10).toInt()}%',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.red[400],

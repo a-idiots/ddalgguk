@@ -393,7 +393,7 @@ class FriendService {
   /// 나의 음주 데이터 업데이트
   /// 내 프로필에만 저장 (친구들은 users 컬렉션에서 직접 조회)
   Future<void> updateMyDrinkingData({
-    required int drunkLevel,
+    required double drunkLevel,
     required DateTime lastDrinkDate,
   }) async {
     debugPrint('=== updateMyDrinkingData START ===');
@@ -458,12 +458,12 @@ class FriendService {
           .get();
 
       // 날짜별로 그룹화
-      final Map<String, List<int>> recordsByDate = {};
+      final Map<String, List<double>> recordsByDate = {};
       for (final doc in recordsSnapshot.docs) {
         final data = doc.data();
         final date = (data['date'] as Timestamp).toDate();
         final dateKey = '${date.year}-${date.month}-${date.day}';
-        final drunkLevel = data['drunkLevel'] as int;
+        final drunkLevel = (data['drunkLevel'] as num).toDouble();
         recordsByDate.putIfAbsent(dateKey, () => []).add(drunkLevel);
       }
 
@@ -479,13 +479,13 @@ class FriendService {
           weeklyLevels.add(-1);
         } else {
           // 평균 음주 레벨 계산
-          final totalLevel = dayRecords.fold<int>(
-            0,
+          final totalLevel = dayRecords.fold<double>(
+            0.0,
             (total, level) => total + level,
           );
-          final avgLevel = (totalLevel / dayRecords.length).round();
+          final avgLevel = totalLevel / dayRecords.length;
           // 0-10 범위를 0-100으로 변환
-          weeklyLevels.add(avgLevel * 10);
+          weeklyLevels.add((avgLevel * 10).round());
         }
       }
 
@@ -524,12 +524,12 @@ class FriendService {
           .get();
 
       // 날짜별로 그룹화
-      final Map<String, List<int>> recordsByDate = {};
+      final Map<String, List<double>> recordsByDate = {};
       for (final doc in recordsSnapshot.docs) {
         final data = doc.data();
         final date = (data['date'] as Timestamp).toDate();
         final dateKey = '${date.year}-${date.month}-${date.day}';
-        final drunkLevel = data['drunkLevel'] as int;
+        final drunkLevel = (data['drunkLevel'] as num).toDouble();
         recordsByDate.putIfAbsent(dateKey, () => []).add(drunkLevel);
       }
 
@@ -545,13 +545,13 @@ class FriendService {
           weeklyLevels.add(-1);
         } else {
           // 평균 음주 레벨 계산
-          final totalLevel = dayRecords.fold<int>(
-            0,
+          final totalLevel = dayRecords.fold<double>(
+            0.0,
             (total, level) => total + level,
           );
-          final avgLevel = (totalLevel / dayRecords.length).round();
+          final avgLevel = totalLevel / dayRecords.length;
           // 0-10 범위를 0-100으로 변환
-          weeklyLevels.add(avgLevel * 10);
+          weeklyLevels.add((avgLevel * 10).round());
         }
       }
 

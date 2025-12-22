@@ -70,7 +70,7 @@ class DrinkingRecord {
       yearMonth: data['yearMonth'] as String,
       sessionNumber: data['sessionNumber'] as int,
       meetingName: data['meetingName'] as String,
-      drunkLevel: data['drunkLevel'] as int,
+      drunkLevel: (data['drunkLevel'] as num).toDouble(),
       drinkAmount: (data['drinkAmount'] as List<dynamic>)
           .map((drink) => DrinkAmount.fromMap(drink as Map<String, dynamic>))
           .toList(),
@@ -83,7 +83,7 @@ class DrinkingRecord {
   final String yearMonth; // YYYY-MM
   final int sessionNumber; // 기록 회차 (날짜별로)
   final String meetingName; // 모임명
-  final int drunkLevel; // 취함 정도
+  final double drunkLevel; // 취함 정도
   final List<DrinkAmount> drinkAmount; // 음주량 리스트
   final Map<String, dynamic> memo; // 메모
   final int cost;
@@ -109,7 +109,7 @@ class DrinkingRecord {
     String? yearMonth,
     int? sessionNumber,
     String? meetingName,
-    int? drunkLevel,
+    double? drunkLevel,
     List<DrinkAmount>? drinkAmount,
     Map<String, dynamic>? memo,
     int? cost,
