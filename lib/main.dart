@@ -11,6 +11,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
+import 'package:ddalgguk/core/constants/app_colors.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -92,6 +93,10 @@ class DdalggukApp extends ConsumerWidget {
         ),
 
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primaryPink,
+          primary: AppColors.primaryPink,
+        ),
       ),
       routerConfig: router,
     );

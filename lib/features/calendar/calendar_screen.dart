@@ -130,6 +130,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         headerStyle: const HeaderStyle(
                           formatButtonVisible: false,
                           titleCentered: true,
+                          leftChevronIcon: Icon(
+                            Icons.chevron_left,
+                            color: Colors.black,
+                          ),
+                          rightChevronIcon: Icon(
+                            Icons.chevron_right,
+                            color: Colors.black,
+                          ),
                         ),
                         calendarStyle: CalendarStyle(
                           markersMaxCount: 1,
