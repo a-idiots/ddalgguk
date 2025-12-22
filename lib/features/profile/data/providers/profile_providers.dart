@@ -7,6 +7,8 @@ import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
+import 'package:equatable/equatable.dart';
+import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 
 /// Profile stats service provider
 final profileStatsServiceProvider = Provider<ProfileStatsService>((ref) {
@@ -187,20 +189,66 @@ final monthlySpendingComparisonProvider =
     });
 
 /// Provider for user physical info
+/// Uses [UserPhysicalInfo] with [Equatable] and [selectAsync] to ensure
+/// this provider ONLY updates when relevant physical data changes
 final userPhysicalInfoProvider = FutureProvider<Map<String, dynamic>>((
   ref,
 ) async {
-  final user = await ref.watch(currentUserProvider.future);
-  if (user == null) {
-    return {};
+  final info = await ref.watch(
+    currentUserProvider.selectAsync((user) {
+      if (user == null) {
+        return const UserPhysicalInfo.empty();
+      }
+      return UserPhysicalInfo.fromAppUser(user);
+    }),
+  );
+
+  return info.toMap();
+});
+
+/// Helper class to track only physical info changes
+class UserPhysicalInfo extends Equatable {
+  const UserPhysicalInfo({
+    this.gender,
+    this.birthDate,
+    this.height,
+    this.weight,
+    this.coefficient,
+  });
+
+  const UserPhysicalInfo.empty()
+    : gender = null,
+      birthDate = null,
+      height = null,
+      weight = null,
+      coefficient = null;
+
+  factory UserPhysicalInfo.fromAppUser(AppUser user) {
+    return UserPhysicalInfo(
+      gender: user.gender,
+      birthDate: user.birthDate,
+      height: user.height,
+      weight: user.weight,
+      coefficient: user.coefficient,
+    );
   }
 
-  // Ensure all values are properly serializable (no Timestamp objects)
-  return {
-    'gender': user.gender,
-    'birthDate': user.birthDate, // Already DateTime? from AppUser model
-    'height': user.height,
-    'weight': user.weight,
-    'coefficient': user.coefficient,
-  };
-});
+  final String? gender;
+  final DateTime? birthDate;
+  final double? height;
+  final double? weight;
+  final double? coefficient;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'gender': gender,
+      'birthDate': birthDate,
+      'height': height,
+      'weight': weight,
+      'coefficient': coefficient,
+    };
+  }
+
+  @override
+  List<Object?> get props => [gender, birthDate, height, weight, coefficient];
+}

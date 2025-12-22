@@ -231,7 +231,12 @@ class FriendProfileDialog extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 // 주간 통계
-                WeeklySakuSection(weeklyStats: weeklyStats, theme: theme),
+                // 주간 통계
+                WeeklySakuSection(
+                  weeklyStats: weeklyStats,
+                  theme: theme,
+                  isScrollable: false,
+                ),
                 const SizedBox(height: 16),
                 // 업적
                 AchievementsSection(

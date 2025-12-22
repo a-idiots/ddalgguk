@@ -59,7 +59,7 @@ class AppUser {
       coefficient: json['coefficient'] != null
           ? (json['coefficient'] as num).toDouble()
           : null,
-      currentDrunkLevel: json['currentDrunkLevel'] as int?,
+      currentDrunkLevel: (json['currentDrunkLevel'] as num?)?.toInt(),
       weeklyDrunkLevels: json['weeklyDrunkLevels'] != null
           ? List<int>.from(json['weeklyDrunkLevels'] as List)
           : null,

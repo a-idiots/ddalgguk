@@ -64,8 +64,8 @@ class ProfileHeader extends StatelessWidget {
                 Text(
                   '@$userId',
                   style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
+                    fontSize: 12,
+                    color: Color.fromARGB(255, 171, 171, 171),
                     height: 1.0,
                   ),
                   maxLines: 1,
