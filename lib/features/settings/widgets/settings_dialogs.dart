@@ -158,7 +158,7 @@ void showContactDialog(BuildContext context) {
     context: context,
     builder: (context) => const SakuInfoDialog(
       content: Text(
-        '@ddalgguk으로\n인스타그램 DM',
+        '@ddal_gguk_으로\n인스타그램 DM',
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: 'Inter',
