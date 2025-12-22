@@ -604,7 +604,7 @@ class _RecordHighlightSection extends StatelessWidget {
                 recordName,
                 style: const TextStyle(
                   fontFamily: 'GriunSimsimche',
-                  fontSize: 30,
+                  fontSize: 26,
                   fontWeight: FontWeight.w400,
                 ),
                 maxLines: 1,
@@ -616,7 +616,7 @@ class _RecordHighlightSection extends StatelessWidget {
               valueText,
               style: const TextStyle(
                 fontFamily: 'GriunSimsimche',
-                fontSize: 30,
+                fontSize: 26,
                 fontWeight: FontWeight.w400,
               ),
             ),
