@@ -12,10 +12,12 @@ class WeeklySakuSection extends ConsumerStatefulWidget {
     super.key,
     required this.weeklyStats, // Initial stats (offset 0)
     required this.theme,
+    this.isScrollable = true,
   });
 
   final WeeklyStats weeklyStats;
   final AppTheme theme;
+  final bool isScrollable;
 
   @override
   ConsumerState<WeeklySakuSection> createState() => _WeeklySakuSectionState();
@@ -83,6 +85,9 @@ class _WeeklySakuSectionState extends ConsumerState<WeeklySakuSection> {
         height: 30, // Adjust height for SakuCharacter
         child: PageView.builder(
           controller: _pageController,
+          physics: widget.isScrollable
+              ? null
+              : const NeverScrollableScrollPhysics(),
           itemCount: _totalWeeks,
           onPageChanged: (index) {
             setState(() {
