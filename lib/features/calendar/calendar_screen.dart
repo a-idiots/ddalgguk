@@ -91,17 +91,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(14, 0), // 오른쪽 20% 가리기
+        offset: const Offset(0, -20), // 오른쪽 20% 가리기
         child: SizedBox(
-          width: 70,
-          height: 70,
+          width: 55,
+          height: 55,
           child: FloatingActionButton(
             onPressed: () => _showAddRecordDialog(context),
             backgroundColor: AppColors.primaryPink,
             foregroundColor: Colors.white,
             elevation: 0,
             shape: const CircleBorder(),
-            child: const Icon(Icons.add, size: 32),
+            child: const Icon(Icons.add, size: 24),
           ),
         ),
       ),
