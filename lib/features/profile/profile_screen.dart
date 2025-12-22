@@ -154,29 +154,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               PageView(
                 controller: _pageController,
                 scrollDirection: Axis.vertical,
-                physics: const ClampingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 children: [
                   // Page 0: Main View
                   ProfileMainView(
                     showCharacter: showMainStatic,
                     characterKey: _mainCharacterKey,
-                    opacity: (1.0 - progress).clamp(0.0, 1.0),
+                    opacity: (1.0 - progress * 2).clamp(0.0, 1.0),
                     theme: theme,
                     drunkLevel: drunkLevel,
                   ),
                   // Page 1: Detail View
                   ProfileDetailScreen(
-                    onBack: () {
-                      _pageController.animateToPage(
-                        0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
                     onNavigateToAnalytics: _handleNavigateToAnalytics,
                     showCharacter: showDetailStatic,
                     theme: theme,
                     drunkLevel: drunkLevel,
+                    onBackToMain: () {
+                      _pageController.animateToPage(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    },
                   ),
                 ],
               ),

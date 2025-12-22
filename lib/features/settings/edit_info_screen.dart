@@ -757,7 +757,8 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
     final currentUser = await ref.read(currentUserProvider.future);
     if (mounted) {
       setState(() {
-        _selectedDate = currentUser?.birthDate ?? DateTime(2007, 1, 1);
+        _selectedDate =
+            currentUser?.birthDate ?? DateTime(DateTime.now().year - 19, 1, 1);
         _isLoading = false;
       });
     }
@@ -846,7 +847,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedDate ?? DateTime(2007, 1, 1),
                 minimumDate: DateTime(1900),
-                maximumDate: DateTime.now(),
+                maximumDate: DateTime(DateTime.now().year - 19, 12, 31),
                 dateOrder: DatePickerDateOrder.ymd,
                 onDateTimeChanged: (DateTime newDate) {
                   setState(() {
@@ -1334,8 +1335,8 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
   }
 
   Widget _buildDrinkSelectionCards() {
-    Widget buildDrinkCard(Drink drink) {
-      final drinkId = drink.id;
+    Widget buildDrinkCard(int drinkId) {
+      final drink = drinks.firstWhere((drink) => drink.id == drinkId);
       final isSelected = _selectedDrink == drinkId;
 
       return Expanded(
@@ -1383,20 +1384,20 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
           // First row: 3 items
           Row(
             children: [
-              buildDrinkCard(drinks[0]),
+              buildDrinkCard(1),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[1]),
+              buildDrinkCard(2),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[2]),
+              buildDrinkCard(3),
             ],
           ),
           const SizedBox(height: 12),
           // Second row: 2 items
           Row(
             children: [
-              buildDrinkCard(drinks[3]),
+              buildDrinkCard(4),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[4]),
+              buildDrinkCard(5),
               const SizedBox(width: 12),
               const Expanded(child: SizedBox()), // Empty space for alignment
             ],

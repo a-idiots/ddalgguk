@@ -133,7 +133,7 @@ class _UnifiedProfileSetupPageState extends State<UnifiedProfileSetupPage> {
             initialDateTime:
                 widget.selectedDate ?? DateTime(DateTime.now().year - 19),
             minimumDate: DateTime(1900),
-            maximumDate: DateTime(DateTime.now().year - 19),
+            maximumDate: DateTime(DateTime.now().year - 19, 12, 31),
             dateOrder: DatePickerDateOrder.ymd,
             onDateTimeChanged: widget.onDateSelected,
           ),

@@ -71,7 +71,7 @@ class ProfileStatsService {
       int avgDrunkLevel = 0;
       double totalAlcoholMl = 0;
       if (dayRecords.isNotEmpty) {
-        final total = dayRecords.fold(0, (sum, r) => sum + r.drunkLevel);
+        final total = dayRecords.fold(0.0, (sum, r) => sum + r.drunkLevel);
         avgDrunkLevel = (total / dayRecords.length).round();
 
         for (final record in dayRecords) {
@@ -214,10 +214,10 @@ class ProfileStatsService {
     );
 
     // Calculate today's drunk level (max of today's records)
-    int todayDrunkLevel = 0;
+    double todayDrunkLevel = 0;
     if (todayRecords.isNotEmpty) {
       todayDrunkLevel = todayRecords.fold(
-        0,
+        0.0,
         (max, r) => r.drunkLevel > max ? r.drunkLevel : max,
       );
     }
@@ -238,7 +238,7 @@ class ProfileStatsService {
     );
 
     return ProfileStats(
-      thisMonthDrunkDays: (todayDrunkLevel * 10).clamp(
+      thisMonthDrunkDays: (todayDrunkLevel * 10).toInt().clamp(
         0,
         100,
       ), // Convert 0-10 to 0-100

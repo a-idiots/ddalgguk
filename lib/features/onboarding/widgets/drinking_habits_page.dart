@@ -198,8 +198,8 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
   }
 
   Widget _buildDrinkSelectionCards() {
-    Widget buildDrinkCard(Drink drink) {
-      final drinkId = drink.id;
+    Widget buildDrinkCard(int drinkId) {
+      final drink = drinks.firstWhere((drink) => drink.id == drinkId);
       final isSelected = _selectedDrink == drinkId;
 
       return Expanded(
@@ -252,22 +252,22 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
           // First row: 3 items
           Row(
             children: [
-              buildDrinkCard(drinks[1]),
+              buildDrinkCard(1),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[2]),
+              buildDrinkCard(2),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[3]),
+              buildDrinkCard(3),
             ],
           ),
           const SizedBox(height: 12),
           // Second row: 2 items
           Row(
             children: [
-              buildDrinkCard(drinks[4]),
+              buildDrinkCard(4),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[5]),
+              buildDrinkCard(5),
               const SizedBox(width: 12),
-              buildDrinkCard(drinks[6]),
+              buildDrinkCard(6),
             ],
           ),
         ],

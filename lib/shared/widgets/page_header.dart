@@ -6,7 +6,7 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.onBack,
-    this.height = 56,
+    this.height = 40,
   });
 
   final String title;
@@ -60,7 +60,7 @@ class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.actions,
-    this.height = 68,
+    this.height = 40,
     this.fontSize = 20,
     this.centerTitle = true,
     this.bottom,

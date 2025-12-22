@@ -89,139 +89,165 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     });
 
     return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 40,
+        title: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left, color: Colors.black),
+              onPressed: () {
+                setState(() {
+                  _focusedDay = DateTime(
+                    _focusedDay.year,
+                    _focusedDay.month - 1,
+                    _focusedDay.day,
+                  );
+                });
+              },
+            ),
+            Text(
+              DateFormat('MMMM yyyy', 'en_US').format(_focusedDay),
+              style: const TextStyle(color: Colors.black, fontSize: 20),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right, color: Colors.black),
+              onPressed: () {
+                setState(() {
+                  _focusedDay = DateTime(
+                    _focusedDay.year,
+                    _focusedDay.month + 1,
+                    _focusedDay.day,
+                  );
+                });
+              },
+            ),
+          ],
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(14, 0), // 오른쪽 20% 가리기
+        offset: const Offset(0, -20), // 오른쪽 20% 가리기
         child: SizedBox(
-          width: 70,
-          height: 70,
+          width: 55,
+          height: 55,
           child: FloatingActionButton(
             onPressed: () => _showAddRecordDialog(context),
             backgroundColor: AppColors.primaryPink,
             foregroundColor: Colors.white,
             elevation: 0,
             shape: const CircleBorder(),
-            child: const Icon(Icons.add, size: 32),
+            child: const Icon(Icons.add, size: 24),
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // 캘린더 영역 - 고정 높이로 표시
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-                child: Center(
-                  child: Transform.scale(
-                    scale: 0.9,
-                    child: FractionallySizedBox(
-                      widthFactor: 1.05,
-                      child: TableCalendar<DrinkingRecord>(
-                        firstDay: DateTime.utc(2020, 1, 1),
-                        lastDay: DateTime.utc(2030, 12, 31),
-                        focusedDay: _focusedDay,
-                        selectedDayPredicate: (day) =>
-                            isSameDay(_selectedDay, day),
-                        // enabledDayPredicate를 제거하여 모든 날짜 선택 가능하도록 변경
-                        calendarFormat: CalendarFormat.month,
-                        rowHeight: 72,
-                        startingDayOfWeek: StartingDayOfWeek.monday,
-                        headerStyle: const HeaderStyle(
-                          formatButtonVisible: false,
-                          titleCentered: true,
-                        ),
-                        calendarStyle: CalendarStyle(
-                          markersMaxCount: 1,
-                          outsideDaysVisible: false,
-                          markerDecoration: const BoxDecoration(
-                            color: Colors.transparent,
-                          ),
-                          todayDecoration: const BoxDecoration(
-                            color: Colors.transparent,
-                          ),
-                          selectedDecoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.5),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        eventLoader: _getRecordsForDay,
-                        onDaySelected: (selectedDay, focusedDay) {
-                          setState(() {
-                            _selectedDay = selectedDay;
-                            _focusedDay = focusedDay;
-                          });
-                        },
-                        onPageChanged: (focusedDay) {
-                          setState(() {
-                            _focusedDay = focusedDay;
-                          });
-                        },
-                        calendarBuilders: CalendarBuilders(
-                          defaultBuilder: (context, date, focusedDay) {
-                            final isOutsideMonth =
-                                date.month != focusedDay.month;
-                            final isToday = isSameDay(DateTime.now(), date);
-                            return _buildDayCell(
-                              date,
-                              isOutsideMonth: isOutsideMonth,
-                              isToday: isToday,
-                            );
-                          },
-                          todayBuilder: (context, date, focusedDay) {
-                            final isOutsideMonth =
-                                date.month != focusedDay.month;
-                            return _buildDayCell(
-                              date,
-                              isOutsideMonth: isOutsideMonth,
-                              isToday: true,
-                            );
-                          },
-                          selectedBuilder: (context, date, focusedDay) {
-                            final isOutsideMonth =
-                                date.month != focusedDay.month;
-                            final isToday = isSameDay(DateTime.now(), date);
-                            return _buildDayCell(
-                              date,
-                              isOutsideMonth: isOutsideMonth,
-                              isToday: isToday,
-                              isSelected: true,
-                            );
-                          },
-                          disabledBuilder: (context, date, focusedDay) {
-                            // 미래 날짜도 동일하게 표시 (단, 선택 불가)
-                            final isOutsideMonth =
-                                date.month != focusedDay.month;
-                            return _buildDayCell(
-                              date,
-                              isOutsideMonth: isOutsideMonth,
-                              isToday: false,
-                            );
-                          },
-                          outsideBuilder: (context, date, focusedDay) =>
-                              const SizedBox.shrink(),
-                          markerBuilder: (context, date, records) {
-                            // markerBuilder는 사용하지 않음 (이미 _buildDayCell에서 처리)
-                            return null;
-                          },
-                        ),
-                      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 캘린더 영역 - 고정 높이로 표시
+            Transform.scale(
+              scale: 0.9,
+              child: FractionallySizedBox(
+                widthFactor: 1.05,
+                child: TableCalendar<DrinkingRecord>(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: _focusedDay,
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  // enabledDayPredicate를 제거하여 모든 날짜 선택 가능하도록 변경
+                  calendarFormat: CalendarFormat.month,
+                  rowHeight: 72,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  headerVisible: false,
+                  calendarStyle: CalendarStyle(
+                    markersMaxCount: 1,
+                    outsideDaysVisible: false,
+                    markerDecoration: const BoxDecoration(
+                      color: Colors.transparent,
                     ),
+                    todayDecoration: const BoxDecoration(
+                      color: Colors.transparent,
+                    ),
+                    selectedDecoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  eventLoader: _getRecordsForDay,
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  onPageChanged: (focusedDay) {
+                    setState(() {
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, date, focusedDay) {
+                      final isOutsideMonth = date.month != focusedDay.month;
+                      final isToday = isSameDay(DateTime.now(), date);
+                      return _buildDayCell(
+                        date,
+                        isOutsideMonth: isOutsideMonth,
+                        isToday: isToday,
+                      );
+                    },
+                    todayBuilder: (context, date, focusedDay) {
+                      final isOutsideMonth = date.month != focusedDay.month;
+                      return _buildDayCell(
+                        date,
+                        isOutsideMonth: isOutsideMonth,
+                        isToday: true,
+                      );
+                    },
+                    selectedBuilder: (context, date, focusedDay) {
+                      final isOutsideMonth = date.month != focusedDay.month;
+                      final isToday = isSameDay(DateTime.now(), date);
+                      return _buildDayCell(
+                        date,
+                        isOutsideMonth: isOutsideMonth,
+                        isToday: isToday,
+                        isSelected: true,
+                      );
+                    },
+                    disabledBuilder: (context, date, focusedDay) {
+                      // 미래 날짜도 동일하게 표시 (단, 선택 불가)
+                      final isOutsideMonth = date.month != focusedDay.month;
+                      return _buildDayCell(
+                        date,
+                        isOutsideMonth: isOutsideMonth,
+                        isToday: false,
+                      );
+                    },
+                    outsideBuilder: (context, date, focusedDay) =>
+                        const SizedBox.shrink(),
+                    markerBuilder: (context, date, records) {
+                      // markerBuilder는 사용하지 않음 (이미 _buildDayCell에서 처리)
+                      return null;
+                    },
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: Colors.grey[300],
-                indent: 0,
-                endIndent: 0,
-              ),
-              // 음주 기록 리스트 - 스크롤 가능
-              _buildRecordsList(),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: Colors.grey[300],
+              indent: 0,
+              endIndent: 0,
+            ),
+            // 음주 기록 리스트 - 스크롤 가능
+            _buildRecordsList(),
+          ],
         ),
       ),
     );
@@ -477,7 +503,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 왼쪽: 사쿠 캐릭터
-              SakuCharacter(size: sakuSize, drunkLevel: record.drunkLevel * 10),
+              SakuCharacter(
+                size: sakuSize,
+                drunkLevel: (record.drunkLevel * 10).toInt(),
+              ),
               const SizedBox(width: 16),
               // 중앙: 정보
               Expanded(
@@ -493,9 +522,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // 혈중 알콜 농도
+                    // 알딸딸지수
                     Text(
-                      '혈중알콜농도 ${record.drunkLevel * 10}%',
+                      '알딸딸지수 ${(record.drunkLevel * 10).toInt()}%',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.red[400],

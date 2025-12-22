@@ -130,7 +130,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                                 // 사쿠 캐릭터
                                 SakuCharacter(
                                   size: 80,
-                                  drunkLevel: record.drunkLevel * 10,
+                                  drunkLevel: (record.drunkLevel * 10).toInt(),
                                 ),
                                 const SizedBox(height: 8),
                                 // 퍼센트 표시
