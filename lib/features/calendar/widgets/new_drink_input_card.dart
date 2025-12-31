@@ -1,10 +1,12 @@
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
 /// 새로운 음주량 입력 카드
-class NewDrinkInputCard extends StatefulWidget {
+class NewDrinkInputCard extends ConsumerStatefulWidget {
   const NewDrinkInputCard({
     required this.inputData,
     required this.onAdd,
@@ -15,10 +17,47 @@ class NewDrinkInputCard extends StatefulWidget {
   final VoidCallback onAdd;
 
   @override
-  State<NewDrinkInputCard> createState() => _NewDrinkInputCardState();
+  ConsumerState<NewDrinkInputCard> createState() => _NewDrinkInputCardState();
 }
 
-class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
+class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
+  List<int> _mainDrinkIds = [
+    1,
+    2,
+    4,
+    5,
+    3,
+  ]; // Default order: Soju, Beer, Wine, Makgeolli, Cocktail
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMainDrinkSettings();
+  }
+
+  Future<void> _loadMainDrinkSettings() async {
+    try {
+      final service = ref.read(drinkSettingsServiceProvider);
+      final savedIds = await service.loadMainDrinkIds();
+      final customDrinks = await service
+          .loadCustomDrinks(); // Load custom drinks
+
+      if (savedIds.isNotEmpty) {
+        // Ensure we only take up to 5, though settings limits to 5
+        setState(() {
+          _mainDrinkIds = savedIds.take(5).toList();
+          _customDrinks = customDrinks;
+        });
+      } else {
+        setState(() {
+          _customDrinks = customDrinks;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load main drink settings: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -31,15 +70,17 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 주류 아이콘 6개
+          // 주류 아이콘 6개 (Up to 5 Main Drinks + 1 Other)
+          // If less than 5 main drinks, we just show them.
+          // But UI design usually has fixed grid or row. The design shows 2 rows of 3 icons (total 6 spots)? Or 1 row scrollable?
+          // The current code has a Row with spaceEvenly for 6 items.
+          // Let's keep 6 slots. 5 Main + 1 Other.
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildDrinkTypeButton(1),
-              _buildDrinkTypeButton(2),
-              _buildDrinkTypeButton(4),
-              _buildDrinkTypeButton(5),
-              _buildDrinkTypeButton(3),
+              ..._mainDrinkIds.map((id) => _buildDrinkTypeButton(id)),
+              // If user has less than 5 favorites, we might want to fill or just show what they have.
+              // For now, assuming user selects 5. If not, filtered list will show fewer.
               _buildDrinkTypeButton(-1),
             ],
           ),
@@ -168,21 +209,18 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
     );
   }
 
+  List<Drink> _customDrinks = [];
+
   Widget _buildDrinkTypeButton(int type) {
     final bool isOtherButton = type == -1;
-    // '기타' 버튼이 선택된 상태인지: 현재 선택된 drinkType이 주어졌던 type(-1)이 아니라,
-    // [1, 2, 3, 4, 5] 범위를 벗어난 경우 (즉 6, 7, 8...)도 '기타' 영역이 활성화된 것으로 간주
-    // 단, 여기서 type 인자는 버튼의 고유 ID이므로:
-    // 1. 일반 버튼(1~5)은 자신의 번호와 현재 drinkType이 같으면 선택됨.
-    // 2. 기타 버튼(-1)은 현재 drinkType이 1,2,3,4,5가 아닌 다른 양수(6,7,8...)일 때 선택된 것으로 표시 + 아이콘 변경.
-
-    // 표준 버튼 목록에 없는 ID인지 확인 (6 이상)
-    final bool isCustomDrinkSelected = widget.inputData.drinkType > 5;
+    // '기타' 버튼이 선택된 상태인지
+    final bool isCustomDrinkSelected =
+        widget.inputData.drinkType > 5 &&
+        !_mainDrinkIds.contains(widget.inputData.drinkType);
 
     // 이 버튼이 선택되었는지 판별
     bool isSelected;
     if (isOtherButton) {
-      // 기타 버튼은 현재 선택된 술이 1~5가 아니고 0(미선택)도 아닐 때 선택 상태
       isSelected = isCustomDrinkSelected;
     } else {
       isSelected = widget.inputData.drinkType == type;
@@ -192,14 +230,42 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
     String label;
     Widget icon;
 
+    // Helper to find drink by ID from standard + custom
+    Drink? findDrink(int id) {
+      Drink? d = drinks.where((d) => d.id == id).firstOrNull;
+      if (d == null && _customDrinks.isNotEmpty) {
+        d = _customDrinks.where((d) => d.id == id).firstOrNull;
+      }
+      return d;
+    }
+
     if (isOtherButton && isCustomDrinkSelected) {
-      // 기타 버튼인데 커스텀 술이 선택된 경우 -> 해당 술의 정보 표시
-      label = getDrinkTypeName(widget.inputData.drinkType);
-      icon = getDrinkIcon(widget.inputData.drinkType);
+      // 기타 버튼인데 메인 리스트에 없는 커스텀/기타 술이 선택된 경우
+      final drink = findDrink(widget.inputData.drinkType);
+      label = drink?.name ?? getDrinkTypeName(widget.inputData.drinkType);
+      icon = drink != null
+          ? Image.asset(
+              drink.imagePath,
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
+            )
+          : getDrinkIcon(widget.inputData.drinkType);
     } else {
-      // 그 외 (일반 버튼 or 기타 버튼 미선택/기본 상태)
-      label = getDrinkTypeName(type);
-      icon = getDrinkIcon(type);
+      // 일반 버튼 (메인 리스트에 있는 버튼)
+      final drink = findDrink(type);
+      if (drink != null) {
+        label = drink.name;
+        icon = Image.asset(
+          drink.imagePath,
+          width: 28,
+          height: 28,
+          fit: BoxFit.contain,
+        );
+      } else {
+        label = getDrinkTypeName(type);
+        icon = getDrinkIcon(type);
+      }
     }
 
     return GestureDetector(
