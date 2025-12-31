@@ -88,6 +88,8 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
   }
 
   void _handleAdd(BuildContext context) {
+    FocusScope.of(context).unfocus();
+
     final alcoholText = _currentInput.alcoholController.text.trim();
     final amountText = _currentInput.amountController.text.trim();
 
