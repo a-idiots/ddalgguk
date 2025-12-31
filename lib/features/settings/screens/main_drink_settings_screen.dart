@@ -111,6 +111,24 @@ class _MainDrinkSettingsScreenState
     });
   }
 
+  void _showAddCustomDrinkDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: SizedBox(
+          height: 250,
+          child: AddCustomDrinkCard(
+            onAdd: (newDrink) {
+              _handleAddCustomDrink(newDrink);
+              Navigator.pop(context);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   void _handleAddCustomDrink(Drink newDrink) async {
     // Check limit (Max 7 custom drinks)
     final customDrinkCount = _allDrinks.where((d) => d.id >= 1000).length;
@@ -202,8 +220,41 @@ class _MainDrinkSettingsScreenState
                           crossAxisSpacing: 16,
                           childAspectRatio: 0.75, // Adjust for icon + text
                         ),
-                    itemCount: _allDrinks.length,
+                    itemCount:
+                        _allDrinks.length +
+                        (_allDrinks.where((d) => d.id >= 1000).length < 7
+                            ? 1
+                            : 0),
                     itemBuilder: (context, index) {
+                      if (index == _allDrinks.length) {
+                        return GestureDetector(
+                          onTap: _showAddCustomDrinkDialog,
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.add, color: Colors.grey),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                '직접 추가',
+                                style: TextStyle(fontSize: 12),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
                       final drink = _allDrinks[index];
                       final isSelected = _selectedIds.contains(drink.id);
 
@@ -272,10 +323,6 @@ class _MainDrinkSettingsScreenState
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
-                  const SizedBox(height: 24),
-                  // Always show AddCustomDrinkCard
-                  AddCustomDrinkCard(onAdd: _handleAddCustomDrink),
                   const SizedBox(height: 40), // Spacing for fab/bottom button
                 ],
               ),

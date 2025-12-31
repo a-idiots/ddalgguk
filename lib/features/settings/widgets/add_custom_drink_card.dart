@@ -70,7 +70,7 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -82,94 +82,132 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
       padding: const EdgeInsets.all(16),
       child: Form(
         key: _formKey,
-        child: Row(
+        child: Column(
           children: [
-            // Icon
-            GestureDetector(
-              onTap: _handleIconTap,
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Image.asset(_selectedImagePath, fit: BoxFit.contain),
-              ),
-            ),
-            const SizedBox(width: 16),
-
-            // Inputs
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      hintText: '술 이름',
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    style: const TextStyle(fontSize: 14),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '이름을 입력해주세요';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _alcoholContentController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      hintText: '도수',
-                      hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
-                      suffixText: '%',
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    style: const TextStyle(fontSize: 14),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '도수를 입력해주세요';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Action Buttons
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const SizedBox(width: 24), // Centering spacer
+                const Text(
+                  '커스텀 주종 추가',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.close, color: Colors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Body
+            Row(
+              children: [
+                // Icon
+                GestureDetector(
+                  onTap: _handleIconTap,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset(_selectedImagePath, fit: BoxFit.contain),
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Inputs
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          hintText: '술 이름',
+                          hintStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                        ),
+                        style: const TextStyle(fontSize: 14),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '이름을 입력해주세요';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _alcoholContentController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: '도수',
+                          hintStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
+                          ),
+                          suffixText: '%',
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                        ),
+                        style: const TextStyle(fontSize: 14),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '도수를 입력해주세요';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Footer (Actions)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 TextButton(
                   onPressed: _handleAdd,
                   child: const Text(
@@ -177,6 +215,7 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -225,7 +264,7 @@ class _IconSelectionDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 250,
+              height: 220,
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
