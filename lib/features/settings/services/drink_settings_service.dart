@@ -67,6 +67,13 @@ class DrinkSettingsService {
     await _saveCustomDrinksInternal(prefs, customDrinks);
   }
 
+  Future<void> deleteCustomDrink(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final customDrinks = await loadCustomDrinks();
+    customDrinks.removeWhere((d) => d.id == id);
+    await _saveCustomDrinksInternal(prefs, customDrinks);
+  }
+
   Future<void> removeCustomDrink(int id) async {
     final prefs = await SharedPreferences.getInstance();
     final customDrinks = await loadCustomDrinks();

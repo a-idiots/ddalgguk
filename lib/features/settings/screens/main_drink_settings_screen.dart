@@ -101,6 +101,16 @@ class _MainDrinkSettingsScreenState
     }
   }
 
+  Future<void> _handleDeleteCustomDrink(Drink drink) async {
+    final service = ref.read(drinkSettingsServiceProvider);
+    await service.deleteCustomDrink(drink.id);
+
+    setState(() {
+      _allDrinks.removeWhere((d) => d.id == drink.id);
+      _selectedIds.remove(drink.id);
+    });
+  }
+
   void _handleAddCustomDrink(Drink newDrink) async {
     // Check limit (Max 7 custom drinks)
     final customDrinkCount = _allDrinks.where((d) => d.id >= 1000).length;
@@ -199,41 +209,64 @@ class _MainDrinkSettingsScreenState
 
                       return GestureDetector(
                         onTap: () => _handleDrinkTap(drink.id),
-                        child: Column(
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          alignment: Alignment.center,
                           children: [
-                            Stack(
+                            Column(
                               children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? const Color(
-                                            0xFFF0A9A9,
-                                          ) // Selected color (light red/pink)
-                                        : Colors.grey[100],
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Image.asset(
-                                      drink.imagePath,
-                                      width: 30,
-                                      height: 30,
-                                      fit: BoxFit.contain,
+                                Stack(
+                                  children: [
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? const Color(0xFFF0A9A9)
+                                            : Colors.grey[100],
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Image.asset(
+                                          drink.imagePath,
+                                          width: 30,
+                                          height: 30,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  drink.name,
+                                  style: const TextStyle(fontSize: 12),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                            if (drink.id >= 1000)
+                              Positioned(
+                                top: -8,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () => _handleDeleteCustomDrink(drink),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: const Icon(
+                                      Icons.remove,
+                                      color: Colors.white,
+                                      size: 14,
                                     ),
                                   ),
                                 ),
-                                // We could add a checkmark overlay if needed, but background color change is usually enough
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              drink.name,
-                              style: const TextStyle(fontSize: 12),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                              ),
                           ],
                         ),
                       );
