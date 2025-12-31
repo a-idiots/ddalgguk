@@ -40,7 +40,11 @@ class _MainDrinkSettingsScreenState
       setState(() {
         _allDrinks = [...standardDrinks, ...customDrinks];
         _selectedIds.clear();
-        _selectedIds.addAll(savedIds);
+        if (savedIds.isEmpty) {
+          _selectedIds.addAll([1, 2, 4, 5, 3]);
+        } else {
+          _selectedIds.addAll(savedIds);
+        }
         _isLoading = false;
       });
     } catch (e) {
