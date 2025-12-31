@@ -1,5 +1,6 @@
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
 import 'package:flutter/material.dart';
 
 /// 새로운 음주량 입력 카드
@@ -168,18 +169,59 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
   }
 
   Widget _buildDrinkTypeButton(int type) {
-    final isSelected = widget.inputData.drinkType == type;
-    final label = getDrinkTypeName(type);
+    final bool isOtherButton = type == -1;
+    // '기타' 버튼이 선택된 상태인지: 현재 선택된 drinkType이 주어졌던 type(-1)이 아니라,
+    // [1, 2, 3, 4, 5] 범위를 벗어난 경우 (즉 6, 7, 8...)도 '기타' 영역이 활성화된 것으로 간주
+    // 단, 여기서 type 인자는 버튼의 고유 ID이므로:
+    // 1. 일반 버튼(1~5)은 자신의 번호와 현재 drinkType이 같으면 선택됨.
+    // 2. 기타 버튼(-1)은 현재 drinkType이 1,2,3,4,5가 아닌 다른 양수(6,7,8...)일 때 선택된 것으로 표시 + 아이콘 변경.
+
+    // 표준 버튼 목록에 없는 ID인지 확인 (6 이상)
+    final bool isCustomDrinkSelected = widget.inputData.drinkType > 5;
+
+    // 이 버튼이 선택되었는지 판별
+    bool isSelected;
+    if (isOtherButton) {
+      // 기타 버튼은 현재 선택된 술이 1~5가 아니고 0(미선택)도 아닐 때 선택 상태
+      isSelected = isCustomDrinkSelected;
+    } else {
+      isSelected = widget.inputData.drinkType == type;
+    }
+
+    // 표시할 라벨과 아이콘
+    String label;
+    Widget icon;
+
+    if (isOtherButton && isCustomDrinkSelected) {
+      // 기타 버튼인데 커스텀 술이 선택된 경우 -> 해당 술의 정보 표시
+      label = getDrinkTypeName(widget.inputData.drinkType);
+      icon = getDrinkIcon(widget.inputData.drinkType);
+    } else {
+      // 그 외 (일반 버튼 or 기타 버튼 미선택/기본 상태)
+      label = getDrinkTypeName(type);
+      icon = getDrinkIcon(type);
+    }
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          widget.inputData.drinkType = type;
-          widget.inputData.alcoholController.text = getDefaultAlcoholContent(
-            type,
-          ).toString();
-          widget.inputData.selectedUnit = getDefaultUnit(type);
-        });
+      onTap: () async {
+        if (isOtherButton) {
+          // 기타 버튼 클릭 시 다이얼로그 표시
+          final selectedId = await showDialog<int>(
+            context: context,
+            builder: (context) => const OtherDrinkSelectionDialog(),
+          );
+
+          if (selectedId != null) {
+            setState(() {
+              _updateDrinkData(selectedId);
+            });
+          }
+        } else {
+          // 일반 버튼 클릭
+          setState(() {
+            _updateDrinkData(type);
+          });
+        }
       },
       child: Column(
         children: [
@@ -192,7 +234,7 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
                   : Colors.grey[300],
               shape: BoxShape.circle,
             ),
-            child: Center(child: getDrinkIcon(type)),
+            child: Center(child: icon),
           ),
           const SizedBox(height: 4),
           Text(
@@ -206,5 +248,13 @@ class _NewDrinkInputCardState extends State<NewDrinkInputCard> {
         ],
       ),
     );
+  }
+
+  void _updateDrinkData(int type) {
+    widget.inputData.drinkType = type;
+    widget.inputData.alcoholController.text = getDefaultAlcoholContent(
+      type,
+    ).toString();
+    widget.inputData.selectedUnit = getDefaultUnit(type);
   }
 }

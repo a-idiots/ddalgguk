@@ -93,6 +93,33 @@ const List<Drink> drinks = [
     glassVolume: 30.0,
     bottleVolume: 750.0,
   ),
+  Drink(
+    id: 7,
+    name: '하이볼',
+    imagePath: 'assets/imgs/alcohol_icons/highball.png',
+    defaultAlcoholContent: 7.0,
+    defaultUnit: '잔',
+    glassVolume: 350.0,
+    bottleVolume: 0.0, // 보통 잔으로 마심
+  ),
+  Drink(
+    id: 8,
+    name: '사케',
+    imagePath: 'assets/imgs/alcohol_icons/sake.png',
+    defaultAlcoholContent: 15.0,
+    defaultUnit: '잔',
+    glassVolume: 50.0,
+    bottleVolume: 720.0,
+  ),
+  Drink(
+    id: 9,
+    name: '보드카',
+    imagePath: 'assets/imgs/alcohol_icons/vodka.png',
+    defaultAlcoholContent: 40.0,
+    defaultUnit: '잔',
+    glassVolume: 30.0,
+    bottleVolume: 750.0,
+  ),
 ];
 
 /// 술 종류에 따른 아이콘 반환
