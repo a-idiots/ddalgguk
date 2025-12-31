@@ -10,6 +10,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 
@@ -46,6 +47,9 @@ void main() async {
 
   // Initialize Secure Storage Service
   await SecureStorageService.instance.init();
+
+  // Initialize Custom Drinks Cache
+  await initializeDrinkHelper();
 
   // Initialize Notification Service
   try {

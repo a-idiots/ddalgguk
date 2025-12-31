@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Drink {
   const Drink({
@@ -122,6 +125,51 @@ const List<Drink> drinks = [
   ),
 ];
 
+// Custom drinks cache
+List<Drink> _customDrinksCache = [];
+
+/// Initialize custom drinks cache from SharedPreferences
+Future<void> initializeDrinkHelper() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? jsonList = prefs.getStringList(
+      StorageKeys.customDrinks,
+    );
+
+    if (jsonList != null) {
+      _customDrinksCache = jsonList.map((jsonStr) {
+        final Map<String, dynamic> json =
+            jsonDecode(jsonStr) as Map<String, dynamic>;
+        return Drink(
+          id: json['id'] as int,
+          name: json['name'] as String,
+          imagePath:
+              json['imagePath'] as String? ??
+              'assets/imgs/alcohol_icons/soju.png',
+          defaultAlcoholContent: (json['defaultAlcoholContent'] as num)
+              .toDouble(),
+          defaultUnit: json['defaultUnit'] as String? ?? '잔',
+          glassVolume: (json['glassVolume'] as num?)?.toDouble() ?? 50.0,
+          bottleVolume: (json['bottleVolume'] as num?)?.toDouble() ?? 360.0,
+        );
+      }).toList();
+    }
+  } catch (e) {
+    debugPrint('Failed to initialize drink helper: $e');
+  }
+}
+
+/// Update custom drinks cache manually
+void updateCustomDrinksCache(List<Drink> newCache) {
+  _customDrinksCache = newCache;
+}
+
+/// Find a drink by ID (checks standard then custom)
+Drink? _findDrink(int id) {
+  return drinks.where((d) => d.id == id).firstOrNull ??
+      _customDrinksCache.where((d) => d.id == id).firstOrNull;
+}
+
 /// 술 종류에 따른 아이콘 반환
 Widget getDrinkIcon(int drinkType) {
   final iconPath = getDrinkIconPath(drinkType);
@@ -130,26 +178,26 @@ Widget getDrinkIcon(int drinkType) {
 
 /// 술 종류에 따른 아이콘 경로 반환
 String getDrinkIconPath(int drinkType) {
-  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  final drink = _findDrink(drinkType);
   return drink?.imagePath ?? 'assets/imgs/alcohol_icons/undecided.png';
 }
 
 /// 주종별 기본 도수
 double getDefaultAlcoholContent(int drinkType) {
-  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  final drink = _findDrink(drinkType);
   return drink?.defaultAlcoholContent ?? 0.0;
 }
 
 /// 주종별 기본 단위
 String getDefaultUnit(int drinkType) {
-  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  final drink = _findDrink(drinkType);
   return drink?.defaultUnit ?? '잔';
 }
 
 /// 주종별 단위를 ml로 변환
 /// drinkType: 주종 ID, unit: 단위 (잔/병/ml)
 double getUnitMultiplier(int drinkType, String unit) {
-  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  final drink = _findDrink(drinkType);
 
   if (drink == null) {
     // 주종을 찾을 수 없는 경우 기본값 반환
@@ -179,7 +227,7 @@ double getUnitMultiplier(int drinkType, String unit) {
 
 /// 주종 이름
 String getDrinkTypeName(int drinkType) {
-  final drink = drinks.where((d) => d.id == drinkType).firstOrNull;
+  final drink = _findDrink(drinkType);
   return drink?.name ?? '기타';
 }
 

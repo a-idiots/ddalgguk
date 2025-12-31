@@ -33,10 +33,11 @@ class DrinkSettingsService {
     );
 
     if (jsonList == null) {
+      updateCustomDrinksCache([]);
       return [];
     }
 
-    return jsonList.map((jsonStr) {
+    final drinks = jsonList.map((jsonStr) {
       final Map<String, dynamic> json =
           jsonDecode(jsonStr) as Map<String, dynamic>;
       return Drink(
@@ -52,6 +53,9 @@ class DrinkSettingsService {
         bottleVolume: (json['bottleVolume'] as num?)?.toDouble() ?? 360.0,
       );
     }).toList();
+
+    updateCustomDrinksCache(drinks);
+    return drinks;
   }
 
   Future<void> addCustomDrink(Drink drink) async {
@@ -99,5 +103,6 @@ class DrinkSettingsService {
     }).toList();
 
     await prefs.setStringList(StorageKeys.customDrinks, jsonList);
+    updateCustomDrinksCache(drinks);
   }
 }
