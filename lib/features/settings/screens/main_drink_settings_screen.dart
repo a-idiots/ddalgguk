@@ -18,7 +18,6 @@ class _MainDrinkSettingsScreenState
   final Set<int> _selectedIds = {};
   List<Drink> _allDrinks = [];
   bool _isLoading = true;
-  bool _showAddCard = false;
 
   @override
   void initState() {
@@ -99,6 +98,21 @@ class _MainDrinkSettingsScreenState
   }
 
   void _handleAddCustomDrink(Drink newDrink) async {
+    // Check limit (Max 7 custom drinks)
+    final customDrinkCount = _allDrinks.where((d) => d.id >= 1000).length;
+    if (customDrinkCount >= 7) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('커스텀 주종은 최대 7개까지만 등록할 수 있습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
     // Add to local storage
     final service = ref.read(drinkSettingsServiceProvider);
     await service.addCustomDrink(newDrink);
@@ -106,7 +120,6 @@ class _MainDrinkSettingsScreenState
     // Update UI
     setState(() {
       _allDrinks.add(newDrink);
-      _showAddCard = false;
     });
   }
 
@@ -223,29 +236,9 @@ class _MainDrinkSettingsScreenState
                     },
                   ),
                   const SizedBox(height: 24),
-                  if (!_showAddCard)
-                    ElevatedButton.icon(
-                      onPressed: () => setState(() => _showAddCard = true),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('추가 등록'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        foregroundColor: Colors.black87,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                      ),
-                    ),
-                  if (_showAddCard)
-                    AddCustomDrinkCard(
-                      onCancel: () => setState(() => _showAddCard = false),
-                      onAdd: _handleAddCustomDrink,
-                    ),
+                  const SizedBox(height: 24),
+                  // Always show AddCustomDrinkCard
+                  AddCustomDrinkCard(onAdd: _handleAddCustomDrink),
                   const SizedBox(height: 40), // Spacing for fab/bottom button
                 ],
               ),

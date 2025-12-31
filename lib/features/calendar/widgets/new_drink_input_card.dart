@@ -75,14 +75,21 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
           // But UI design usually has fixed grid or row. The design shows 2 rows of 3 icons (total 6 spots)? Or 1 row scrollable?
           // The current code has a Row with spaceEvenly for 6 items.
           // Let's keep 6 slots. 5 Main + 1 Other.
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ..._mainDrinkIds.map((id) => _buildDrinkTypeButton(id)),
-              // If user has less than 5 favorites, we might want to fill or just show what they have.
-              // For now, assuming user selects 5. If not, filtered list will show fewer.
-              _buildDrinkTypeButton(-1),
-            ],
+          // Custom layout for left alignment
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ..._mainDrinkIds.map((id) => _buildDrinkTypeButton(id)),
+                  _buildDrinkTypeButton(-1),
+                  ...List.generate(
+                    5 - _mainDrinkIds.length,
+                    (index) => const SizedBox(width: 44),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -318,9 +325,25 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
 
   void _updateDrinkData(int type) {
     widget.inputData.drinkType = type;
-    widget.inputData.alcoholController.text = getDefaultAlcoholContent(
-      type,
-    ).toString();
-    widget.inputData.selectedUnit = getDefaultUnit(type);
+
+    // Find drink to get default alcohol content
+    double defaultAlcohol = 0.0;
+    String defaultUnit = 'ml';
+
+    Drink? d = drinks.where((d) => d.id == type).firstOrNull;
+    if (d == null && _customDrinks.isNotEmpty) {
+      d = _customDrinks.where((d) => d.id == type).firstOrNull;
+    }
+
+    if (d != null) {
+      defaultAlcohol = d.defaultAlcoholContent;
+      defaultUnit = d.defaultUnit;
+    } else {
+      defaultAlcohol = getDefaultAlcoholContent(type);
+      defaultUnit = getDefaultUnit(type);
+    }
+
+    widget.inputData.alcoholController.text = defaultAlcohol.toString();
+    widget.inputData.selectedUnit = defaultUnit;
   }
 }
