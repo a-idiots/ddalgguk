@@ -109,7 +109,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
             Text(
               DateFormat('MMMM yyyy', 'en_US').format(_focusedDay),
-              style: const TextStyle(color: Colors.black, fontSize: 20),
+              style: const TextStyle(color: Colors.black, fontSize: 16),
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right, color: Colors.black),
@@ -153,7 +153,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Transform.scale(
               scale: 0.9,
               child: FractionallySizedBox(
-                widthFactor: 1.05,
+                widthFactor: 1,
                 child: TableCalendar<DrinkingRecord>(
                   firstDay: DateTime.utc(2020, 1, 1),
                   lastDay: DateTime.utc(2030, 12, 31),
