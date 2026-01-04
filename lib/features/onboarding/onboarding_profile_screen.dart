@@ -41,6 +41,15 @@ class _OnboardingProfileScreenState
   static const String _pageIndexKey = 'onboarding_profile_page_index';
   static const String _nameKey = 'onboarding_profile_name';
   static const String _idKey = 'onboarding_profile_id';
+  static const String _goalKey = 'onboarding_profile_goal';
+  static const String _favoriteDrinkKey = 'onboarding_profile_favorite_drink';
+  static const String _maxAlcoholKey = 'onboarding_profile_max_alcohol';
+  static const String _weeklyFrequencyKey =
+      'onboarding_profile_weekly_frequency';
+  static const String _genderKey = 'onboarding_profile_gender';
+  static const String _birthDateKey = 'onboarding_profile_birth_date';
+  static const String _heightKey = 'onboarding_profile_height';
+  static const String _weightKey = 'onboarding_profile_weight';
 
   @override
   void initState() {
@@ -54,14 +63,38 @@ class _OnboardingProfileScreenState
   Future<void> _loadSavedState() async {
     final prefs = await SharedPreferences.getInstance();
     final savedPage = prefs.getInt(_pageIndexKey) ?? 0;
-    final savedName = prefs.getString(_nameKey);
-    final savedId = prefs.getString(_idKey);
 
     if (mounted) {
       setState(() {
         _currentPage = savedPage;
-        _name = savedName;
-        _id = savedId;
+        _name = prefs.getString(_nameKey);
+        _id = prefs.getString(_idKey);
+
+        if (prefs.containsKey(_goalKey)) {
+          _goal = prefs.getBool(_goalKey);
+        }
+        if (prefs.containsKey(_favoriteDrinkKey)) {
+          _favoriteDrink = prefs.getInt(_favoriteDrinkKey);
+        }
+        if (prefs.containsKey(_maxAlcoholKey)) {
+          _maxAlcohol = prefs.getDouble(_maxAlcoholKey);
+        }
+        if (prefs.containsKey(_weeklyFrequencyKey)) {
+          _weeklyDrinkingFrequency = prefs.getInt(_weeklyFrequencyKey);
+        }
+        _gender = prefs.getString(_genderKey);
+
+        final birthDateStr = prefs.getString(_birthDateKey);
+        if (birthDateStr != null) {
+          _birthDate = DateTime.tryParse(birthDateStr);
+        }
+
+        if (prefs.containsKey(_heightKey)) {
+          _height = prefs.getDouble(_heightKey);
+        }
+        if (prefs.containsKey(_weightKey)) {
+          _weight = prefs.getDouble(_weightKey);
+        }
       });
 
       // Jump to saved page if not on first page
@@ -75,11 +108,36 @@ class _OnboardingProfileScreenState
   Future<void> _saveState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_pageIndexKey, _currentPage);
+
     if (_name != null) {
       await prefs.setString(_nameKey, _name!);
     }
     if (_id != null) {
       await prefs.setString(_idKey, _id!);
+    }
+    if (_goal != null) {
+      await prefs.setBool(_goalKey, _goal!);
+    }
+    if (_favoriteDrink != null) {
+      await prefs.setInt(_favoriteDrinkKey, _favoriteDrink!);
+    }
+    if (_maxAlcohol != null) {
+      await prefs.setDouble(_maxAlcoholKey, _maxAlcohol!);
+    }
+    if (_weeklyDrinkingFrequency != null) {
+      await prefs.setInt(_weeklyFrequencyKey, _weeklyDrinkingFrequency!);
+    }
+    if (_gender != null) {
+      await prefs.setString(_genderKey, _gender!);
+    }
+    if (_birthDate != null) {
+      await prefs.setString(_birthDateKey, _birthDate!.toIso8601String());
+    }
+    if (_height != null) {
+      await prefs.setDouble(_heightKey, _height!);
+    }
+    if (_weight != null) {
+      await prefs.setDouble(_weightKey, _weight!);
     }
   }
 
@@ -89,6 +147,14 @@ class _OnboardingProfileScreenState
     await prefs.remove(_pageIndexKey);
     await prefs.remove(_nameKey);
     await prefs.remove(_idKey);
+    await prefs.remove(_goalKey);
+    await prefs.remove(_favoriteDrinkKey);
+    await prefs.remove(_maxAlcoholKey);
+    await prefs.remove(_weeklyFrequencyKey);
+    await prefs.remove(_genderKey);
+    await prefs.remove(_birthDateKey);
+    await prefs.remove(_heightKey);
+    await prefs.remove(_weightKey);
   }
 
   void _handleNameSubmit(String name) {
