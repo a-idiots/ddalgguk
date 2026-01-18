@@ -51,6 +51,16 @@ void main() async {
   try {
     final notificationManager = NotificationManager();
     await notificationManager.initialize();
+
+    // Request notification permissions
+    final granted = await notificationManager.requestPermissions();
+    debugPrint('Notification permissions granted: $granted');
+
+    // Schedule notifications if permission is granted
+    if (granted) {
+      await notificationManager.scheduleAllNotifications();
+      debugPrint('Notifications scheduled successfully');
+    }
   } catch (e) {
     debugPrint('Notification initialization error: $e');
     // Continue without notifications if initialization fails

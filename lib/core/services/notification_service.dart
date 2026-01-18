@@ -103,6 +103,7 @@ class NotificationService {
     required int minute,
     bool repeatDaily = true,
     bool isMonthlyLastDay = false,
+    List<int>? daysOfWeek,
   }) async {
     if (!_isInitialized) {
       await initialize();
@@ -120,6 +121,26 @@ class NotificationService {
         final nextMonth = now.month == 12 ? 1 : now.month + 1;
         final nextYear = now.month == 12 ? now.year + 1 : now.year;
         scheduledDate = _getLastDayOfMonth(nextYear, nextMonth, hour, minute);
+      }
+    } else if (daysOfWeek != null && daysOfWeek.isNotEmpty) {
+      // Schedule for specific days of the week
+      scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+
+      // If the scheduled time has passed today, start from tomorrow
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      // Find the next occurrence of a target day
+      while (!daysOfWeek.contains(scheduledDate.weekday)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
     } else {
       scheduledDate = tz.TZDateTime(
@@ -168,6 +189,50 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
+    } else if (daysOfWeek != null && daysOfWeek.isNotEmpty) {
+      // For weekly notifications on specific days
+      // Schedule multiple notifications, one for each day of the week
+      for (var i = 0; i < daysOfWeek.length; i++) {
+        final targetDay = daysOfWeek[i];
+        var dayScheduledDate = tz.TZDateTime(
+          tz.local,
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
+
+        // If the scheduled time has passed today, start from tomorrow
+        if (dayScheduledDate.isBefore(now)) {
+          dayScheduledDate = dayScheduledDate.add(const Duration(days: 1));
+        }
+
+        // Find the next occurrence of this specific day
+        while (dayScheduledDate.weekday != targetDay) {
+          dayScheduledDate = dayScheduledDate.add(const Duration(days: 1));
+        }
+
+        // Use unique ID for each day (id + day offset)
+        final dayNotificationId = id + i;
+
+        await _notificationsPlugin.zonedSchedule(
+          dayNotificationId,
+          title,
+          body,
+          dayScheduledDate,
+          notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        );
+
+        debugPrint(
+          '📅 Scheduled weekly notification for ${_getDayName(targetDay)}: $dayScheduledDate',
+        );
+      }
+      return; // Exit early since we scheduled all notifications
     } else if (isMonthlyLastDay) {
       // For monthly notifications, we need to reschedule after each trigger
       // This is a one-time notification that should be rescheduled monthly
@@ -215,6 +280,28 @@ class NotificationService {
       hour,
       minute,
     );
+  }
+
+  /// Get day name for debugging
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      case 6:
+        return 'Saturday';
+      case 7:
+        return 'Sunday';
+      default:
+        return 'Unknown';
+    }
   }
 
   /// Cancel a specific notification

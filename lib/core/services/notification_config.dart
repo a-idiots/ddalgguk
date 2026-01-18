@@ -16,12 +16,14 @@ class NotificationSchedule {
     required this.hour,
     required this.minute,
     this.repeatDaily = true,
+    this.daysOfWeek,
   });
 
   final NotificationType type;
   final int hour;
   final int minute;
   final bool repeatDaily;
+  final List<int>? daysOfWeek; // 1=Monday, 7=Sunday (null means daily)
 }
 
 /// Central notification configuration
@@ -30,8 +32,44 @@ class NotificationConfig {
   static const Map<NotificationType, List<NotificationMessage>> messages = {
     NotificationType.recordAlarm: [
       NotificationMessage(
-        title: '한잔하기 딱 좋은 날이에요, {userName}님!',
-        body: '지금바로 딸꾹에 접속해서 음주 기록을 업데이트 해주세요!',
+        title: '오늘 하루도 수고했어요, {userName}님!',
+        body: '딸꾹과 함께 오늘의 음주 기록을 남겨볼까요?',
+      ),
+      NotificationMessage(
+        title: '{userName}님, 오늘은 어땠나요?',
+        body: '오늘의 음주 기록을 업데이트하고 건강을 챙겨봐요!',
+      ),
+      NotificationMessage(
+        title: '기록할 시간이에요, {userName}님!',
+        body: '딸꾹이 기다리고 있어요! 오늘의 음주 기록을 남겨주세요.',
+      ),
+      NotificationMessage(
+        title: '{userName}님을 위한 알림이 도착했어요!',
+        body: '오늘 하루 어떠셨나요? 음주 기록으로 건강을 체크해봐요!',
+      ),
+      NotificationMessage(
+        title: '딸꾹이 궁금해해요, {userName}님!',
+        body: '오늘은 어떤 하루였나요? 기록으로 남겨보세요!',
+      ),
+      NotificationMessage(
+        title: '{userName}님, 잠깐만요!',
+        body: '오늘의 음주 기록을 업데이트하고 건강한 습관을 만들어봐요!',
+      ),
+      NotificationMessage(
+        title: '건강한 음주 습관, {userName}님과 함께!',
+        body: '딸꾹에 오늘의 기록을 남기고 나만의 패턴을 확인해봐요!',
+      ),
+      NotificationMessage(
+        title: '{userName}님, 오늘도 화이팅!',
+        body: '음주 기록으로 나의 건강을 체크하는 시간이에요!',
+      ),
+      NotificationMessage(
+        title: '하루의 마무리, {userName}님!',
+        body: '딸꾹과 함께 오늘의 음주 기록을 정리해볼까요?',
+      ),
+      NotificationMessage(
+        title: '{userName}님, 기록이 쌓이고 있어요!',
+        body: '꾸준한 기록이 건강한 습관을 만들어요. 오늘도 함께해요!',
       ),
     ],
     NotificationType.socialAlarm: [
@@ -45,16 +83,37 @@ class NotificationConfig {
     ],
   };
 
-  // Notification schedules for each type
-  static const Map<NotificationType, List<NotificationSchedule>> schedules = {
+  // Notification schedules for low frequency drinkers (주 2회 이하)
+  static const Map<NotificationType, List<NotificationSchedule>>
+      schedulesLowFrequency = {
     NotificationType.recordAlarm: [
       NotificationSchedule(
         type: NotificationType.recordAlarm,
         hour: 21, // 9 PM
         minute: 0,
-        repeatDaily: true,
+        repeatDaily: false,
+        daysOfWeek: [7], // Sunday only
       ),
     ],
+  };
+
+  // Notification schedules for high frequency drinkers (주 3회 이상)
+  static const Map<NotificationType, List<NotificationSchedule>>
+      schedulesHighFrequency = {
+    NotificationType.recordAlarm: [
+      NotificationSchedule(
+        type: NotificationType.recordAlarm,
+        hour: 21, // 9 PM
+        minute: 0,
+        repeatDaily: false,
+        daysOfWeek: [5, 7], // Friday and Sunday
+      ),
+    ],
+  };
+
+  // Common schedules for all users
+  static const Map<NotificationType, List<NotificationSchedule>>
+      schedulesCommon = {
     NotificationType.socialAlarm: [
       // 나중에 추가될 소셜 알림 스케줄
     ],
@@ -69,18 +128,22 @@ class NotificationConfig {
   };
 
   /// Get notification message for a specific type
-  /// Returns the first message if multiple are defined
+  /// Randomly selects from available messages
   static NotificationMessage getMessage(
     NotificationType type, {
     String userName = '사용자',
     int? month,
+    int? seed,
   }) {
     final messageList = messages[type];
     if (messageList == null || messageList.isEmpty) {
       return const NotificationMessage(title: '딸꾹', body: '새로운 알림이 도착했습니다.');
     }
 
-    final message = messageList.first;
+    // Use seed (or current day) to deterministically pick a message
+    final index = (seed ?? DateTime.now().day) % messageList.length;
+    final message = messageList[index];
+
     var title = message.title.replaceAll('{userName}', userName);
     var body = message.body.replaceAll('{userName}', userName);
 
@@ -93,9 +156,24 @@ class NotificationConfig {
     return NotificationMessage(title: title, body: body);
   }
 
-  /// Get all schedules for a specific type
-  static List<NotificationSchedule> getSchedules(NotificationType type) {
-    return schedules[type] ?? [];
+  /// Get all schedules for a specific type based on drinking frequency
+  /// weeklyDrinkingFrequency: null or <=2 means low frequency (Sunday only)
+  /// weeklyDrinkingFrequency: >=3 means high frequency (Friday and Sunday)
+  static List<NotificationSchedule> getSchedules(
+    NotificationType type, {
+    int? weeklyDrinkingFrequency,
+  }) {
+    // For recordAlarm, return frequency-based schedules
+    if (type == NotificationType.recordAlarm) {
+      final isHighFrequency =
+          weeklyDrinkingFrequency != null && weeklyDrinkingFrequency >= 3;
+      final scheduleMap =
+          isHighFrequency ? schedulesHighFrequency : schedulesLowFrequency;
+      return scheduleMap[type] ?? [];
+    }
+
+    // For other types, return common schedules
+    return schedulesCommon[type] ?? [];
   }
 
   /// Get all enabled notification types

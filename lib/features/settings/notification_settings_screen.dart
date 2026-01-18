@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/services/notification_config.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 
 /// Notification settings screen
@@ -19,10 +20,16 @@ class NotificationSettingsScreen extends ConsumerWidget {
     }
   }
 
-  String _getNotificationTypeDescription(NotificationType type) {
+  String _getNotificationTypeDescription(NotificationType type, WidgetRef ref) {
     switch (type) {
       case NotificationType.recordAlarm:
-        return '매일 밤 9시에 음주 기록 업데이트를 알려드려요.';
+        final currentUserAsync = ref.watch(currentUserProvider);
+        final frequency = currentUserAsync.value?.weeklyDrinkingFrequency ?? 0;
+        if (frequency >= 3) {
+          return '음주 기록 업데이트를 까먹지 않도록 가끔 알려드려요.';
+        } else {
+          return '매주 일요일 밤 9시에 음주 기록 업데이트를 알려드려요.';
+        }
       case NotificationType.socialAlarm:
         return '친구들의 소식을 알려드립니다';
       case NotificationType.recapAlarm:
@@ -68,7 +75,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 return _NotificationToggleTile(
                   type: type,
                   title: _getNotificationTypeName(type),
-                  description: _getNotificationTypeDescription(type),
+                  description: _getNotificationTypeDescription(type, ref),
                 );
               }),
           const SettingsSectionDivider(),
