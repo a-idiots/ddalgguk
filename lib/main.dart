@@ -11,6 +11,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
+import 'package:ddalgguk/core/services/friend_notification_service.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 
 void main() async {
@@ -39,6 +40,11 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    // Initialize Friend Notification Service (client-side only, no Cloud Functions)
+    final friendNotificationService = FriendNotificationService();
+    await friendNotificationService.startListening();
+    debugPrint('Friend Notification Service initialized successfully');
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
     // Continue without Firebase for now (will be needed later)

@@ -7,11 +7,13 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.onBack,
     this.height = 56,
+    this.actions,
   });
 
   final String title;
   final VoidCallback? onBack;
   final double height;
+  final List<Widget>? actions;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -50,6 +52,7 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
           color: Colors.black,
         ),
       ),
+      actions: actions,
     );
   }
 }

@@ -73,7 +73,18 @@ class NotificationConfig {
       ),
     ],
     NotificationType.socialAlarm: [
-      // 나중에 추가될 소셜 알림 메시지
+      NotificationMessage(
+        title: '새로운 친구 신청이 도착했어요!',
+        body: '{friendName}님이 친구 신청을 보냈습니다.',
+      ),
+      NotificationMessage(
+        title: '친구 신청이 수락되었어요!',
+        body: '{friendName}님과 친구가 되었습니다.',
+      ),
+      NotificationMessage(
+        title: '친구 신청을 확인해보세요!',
+        body: '3일이 지난 친구 신청이 있습니다. 우체통을 확인해보세요!',
+      ),
     ],
     NotificationType.recapAlarm: [
       NotificationMessage(
@@ -132,6 +143,7 @@ class NotificationConfig {
   static NotificationMessage getMessage(
     NotificationType type, {
     String userName = '사용자',
+    String? friendName,
     int? month,
     int? seed,
   }) {
@@ -146,6 +158,12 @@ class NotificationConfig {
 
     var title = message.title.replaceAll('{userName}', userName);
     var body = message.body.replaceAll('{userName}', userName);
+
+    // For social alarm, replace friendName placeholder
+    if (type == NotificationType.socialAlarm && friendName != null) {
+      title = title.replaceAll('{friendName}', friendName);
+      body = body.replaceAll('{friendName}', friendName);
+    }
 
     // For recap alarm, replace month placeholder
     if (type == NotificationType.recapAlarm && month != null) {
