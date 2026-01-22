@@ -90,8 +90,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 40,
-        title: Row(
+        toolbarHeight: 55,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 15),
+          child: Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -124,6 +126,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               },
             ),
           ],
+        ),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
