@@ -11,6 +11,8 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
+import 'package:ddalgguk/core/services/notification_service.dart';
+import 'package:ddalgguk/core/services/notification_config.dart';
 import 'package:ddalgguk/core/services/friend_notification_service.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 
@@ -40,11 +42,6 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-
-    // Initialize Friend Notification Service (client-side only, no Cloud Functions)
-    final friendNotificationService = FriendNotificationService();
-    await friendNotificationService.startListening();
-    debugPrint('Friend Notification Service initialized successfully');
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
     // Continue without Firebase for now (will be needed later)
@@ -53,7 +50,7 @@ void main() async {
   // Initialize Secure Storage Service
   await SecureStorageService.instance.init();
 
-  // Initialize Notification Service
+  // Initialize Notification Service FIRST (before FriendNotificationService)
   try {
     final notificationManager = NotificationManager();
     await notificationManager.initialize();
@@ -66,10 +63,29 @@ void main() async {
     if (granted) {
       await notificationManager.scheduleAllNotifications();
       debugPrint('Notifications scheduled successfully');
+
+      // TODO: 테스트 후 삭제 - 10초 후 테스트 알림 (앱을 백그라운드로 보내세요!)
+      debugPrint('🔔 10초 후 테스트 알림이 표시됩니다. 앱을 백그라운드로 보내세요!');
+      await NotificationService().showDelayedNotification(
+        id: 9999,
+        title: '테스트 알림',
+        body: '푸시 알림이 정상적으로 작동합니다!',
+        type: NotificationType.recordAlarm,
+        delaySeconds: 10,
+      );
     }
   } catch (e) {
     debugPrint('Notification initialization error: $e');
     // Continue without notifications if initialization fails
+  }
+
+  // Initialize Friend Notification Service AFTER notification permissions
+  try {
+    final friendNotificationService = FriendNotificationService();
+    await friendNotificationService.startListening();
+    debugPrint('Friend Notification Service initialized successfully');
+  } catch (e) {
+    debugPrint('Friend Notification Service error: $e');
   }
 
   // Run the app with Riverpod
