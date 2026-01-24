@@ -21,6 +21,10 @@ class FriendNotificationService {
   Stream<QuerySnapshot>? _friendRequestListener;
   Stream<QuerySnapshot>? _friendsListener;
 
+  // Track initial load to avoid notifications for existing data
+  bool _isInitialFriendRequestLoad = true;
+  bool _isInitialFriendsLoad = true;
+
   /// Start listening for friend requests and friends
   Future<void> startListening() async {
     final userId = _auth.currentUser?.uid;
@@ -41,6 +45,13 @@ class FriendNotificationService {
         .snapshots();
 
     _friendRequestListener!.listen((snapshot) {
+      // Skip initial load - only notify for real-time changes
+      if (_isInitialFriendRequestLoad) {
+        _isInitialFriendRequestLoad = false;
+        debugPrint('📬 Initial friend requests loaded: ${snapshot.docs.length}');
+        return;
+      }
+
       for (final change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
           // New friend request received
@@ -60,6 +71,13 @@ class FriendNotificationService {
         .snapshots();
 
     _friendsListener!.listen((snapshot) {
+      // Skip initial load - only notify for real-time changes
+      if (_isInitialFriendsLoad) {
+        _isInitialFriendsLoad = false;
+        debugPrint('👥 Initial friends loaded: ${snapshot.docs.length}');
+        return;
+      }
+
       for (final change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
           // New friend added
@@ -81,6 +99,9 @@ class FriendNotificationService {
   void stopListening() {
     _friendRequestListener = null;
     _friendsListener = null;
+    // Reset flags for next session
+    _isInitialFriendRequestLoad = true;
+    _isInitialFriendsLoad = true;
     debugPrint('🔕 Friend notification listeners stopped');
   }
 
