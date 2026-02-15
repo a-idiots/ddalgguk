@@ -156,7 +156,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Transform.scale(
               scale: 0.9,
               child: FractionallySizedBox(
-                widthFactor: 1.05,
+                widthFactor: 1,
                 child: TableCalendar<DrinkingRecord>(
                   firstDay: DateTime.utc(2020, 1, 1),
                   lastDay: DateTime.utc(2030, 12, 31),
