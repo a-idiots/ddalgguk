@@ -49,6 +49,28 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
+    // Create notification channels for Android
+    final androidPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin != null) {
+      // Create channels for all notification types
+      for (final type in NotificationType.values) {
+        await androidPlugin.createNotificationChannel(
+          AndroidNotificationChannel(
+            NotificationConfig.getChannelId(type),
+            NotificationConfig.getChannelName(type),
+            description: NotificationConfig.getChannelDescription(type),
+            importance: Importance.high,
+          ),
+        );
+        debugPrint(
+          '📢 Created notification channel: ${NotificationConfig.getChannelId(type)}',
+        );
+      }
+    }
+
     _isInitialized = true;
   }
 
@@ -67,9 +89,24 @@ class NotificationService {
         >();
     if (androidPlugin != null) {
       final granted = await androidPlugin.requestNotificationsPermission();
-      debugPrint('📱 Android permission granted: $granted');
+      debugPrint('📱 Android notification permission granted: $granted');
       if (granted != true) {
         return false;
+      }
+
+      // Check exact alarm permission (Android 12+)
+      final canScheduleExact = await androidPlugin
+          .canScheduleExactNotifications();
+      debugPrint('📱 Android exact alarm permission: $canScheduleExact');
+      if (canScheduleExact != true) {
+        debugPrint('⚠️ Exact alarm permission not granted. Requesting...');
+        await androidPlugin.requestExactAlarmsPermission();
+        // Re-check after request
+        final recheckExact = await androidPlugin
+            .canScheduleExactNotifications();
+        debugPrint(
+          '📱 Android exact alarm permission after request: $recheckExact',
+        );
       }
     }
 
@@ -103,9 +140,27 @@ class NotificationService {
     required int minute,
     bool repeatDaily = true,
     bool isMonthlyLastDay = false,
+    List<int>? daysOfWeek,
   }) async {
     if (!_isInitialized) {
       await initialize();
+    }
+
+    // Determine schedule mode based on exact alarm permission
+    var scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+    final androidPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin != null) {
+      final canScheduleExact = await androidPlugin
+          .canScheduleExactNotifications();
+      if (canScheduleExact != true) {
+        debugPrint(
+          '⚠️ Exact alarm permission not granted, using inexact mode for scheduled notifications',
+        );
+        scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+      }
     }
 
     final now = tz.TZDateTime.now(tz.local);
@@ -120,6 +175,26 @@ class NotificationService {
         final nextMonth = now.month == 12 ? 1 : now.month + 1;
         final nextYear = now.month == 12 ? now.year + 1 : now.year;
         scheduledDate = _getLastDayOfMonth(nextYear, nextMonth, hour, minute);
+      }
+    } else if (daysOfWeek != null && daysOfWeek.isNotEmpty) {
+      // Schedule for specific days of the week
+      scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        hour,
+        minute,
+      );
+
+      // If the scheduled time has passed today, start from tomorrow
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
+
+      // Find the next occurrence of a target day
+      while (!daysOfWeek.contains(scheduledDate.weekday)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
     } else {
       scheduledDate = tz.TZDateTime(
@@ -163,11 +238,55 @@ class NotificationService {
         body,
         scheduledDate,
         notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
+    } else if (daysOfWeek != null && daysOfWeek.isNotEmpty) {
+      // For weekly notifications on specific days
+      // Schedule multiple notifications, one for each day of the week
+      for (var i = 0; i < daysOfWeek.length; i++) {
+        final targetDay = daysOfWeek[i];
+        var dayScheduledDate = tz.TZDateTime(
+          tz.local,
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
+
+        // If the scheduled time has passed today, start from tomorrow
+        if (dayScheduledDate.isBefore(now)) {
+          dayScheduledDate = dayScheduledDate.add(const Duration(days: 1));
+        }
+
+        // Find the next occurrence of this specific day
+        while (dayScheduledDate.weekday != targetDay) {
+          dayScheduledDate = dayScheduledDate.add(const Duration(days: 1));
+        }
+
+        // Use unique ID for each day (id + day offset)
+        final dayNotificationId = id + i;
+
+        await _notificationsPlugin.zonedSchedule(
+          dayNotificationId,
+          title,
+          body,
+          dayScheduledDate,
+          notificationDetails,
+          androidScheduleMode: scheduleMode,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        );
+
+        debugPrint(
+          '📅 Scheduled weekly notification for ${_getDayName(targetDay)}: $dayScheduledDate',
+        );
+      }
+      return; // Exit early since we scheduled all notifications
     } else if (isMonthlyLastDay) {
       // For monthly notifications, we need to reschedule after each trigger
       // This is a one-time notification that should be rescheduled monthly
@@ -177,7 +296,7 @@ class NotificationService {
         body,
         scheduledDate,
         notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -189,7 +308,7 @@ class NotificationService {
         body,
         scheduledDate,
         notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
@@ -215,6 +334,28 @@ class NotificationService {
       hour,
       minute,
     );
+  }
+
+  /// Get day name for debugging
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      case 6:
+        return 'Saturday';
+      case 7:
+        return 'Sunday';
+      default:
+        return 'Unknown';
+    }
   }
 
   /// Cancel a specific notification
@@ -334,17 +475,36 @@ class NotificationService {
     );
 
     try {
+      // Check if exact alarm permission is granted
+      var scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+      final androidPlugin = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (androidPlugin != null) {
+        final canScheduleExact = await androidPlugin
+            .canScheduleExactNotifications();
+        if (canScheduleExact != true) {
+          debugPrint(
+            '⚠️ Exact alarm permission not granted, using inexact mode',
+          );
+          scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+        }
+      }
+
       await _notificationsPlugin.zonedSchedule(
         id,
         title,
         body,
         scheduledDate,
         notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      debugPrint('✅ Notification scheduled successfully for $scheduledDate');
+      debugPrint(
+        '✅ Notification scheduled successfully for $scheduledDate (mode: $scheduleMode)',
+      );
     } catch (e) {
       debugPrint('❌ Error scheduling notification: $e');
       rethrow;

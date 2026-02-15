@@ -23,22 +23,30 @@ final initializeNotificationsProvider = FutureProvider<void>((ref) async {
   final granted = await manager.requestPermissions();
 
   if (granted) {
-    // Schedule notifications with user name
+    // Schedule notifications with user name and drinking frequency
     final userName = currentUser?.name ?? '사용자';
-    await manager.scheduleAllNotifications(userName: userName);
+    final weeklyDrinkingFrequency = currentUser?.weeklyDrinkingFrequency;
+    await manager.scheduleAllNotifications(
+      userName: userName,
+      weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+    );
 
     // Mark as initialized
     ref.read(notificationInitializedProvider.notifier).state = true;
   }
 });
 
-/// Provider for rescheduling notifications when user name changes
-final rescheduleNotificationsProvider = FutureProvider.family<void, String>((
-  ref,
-  userName,
-) async {
+/// Provider for rescheduling notifications when user info changes
+final rescheduleNotificationsProvider = FutureProvider<void>((ref) async {
   final manager = ref.read(notificationManagerProvider);
-  await manager.rescheduleAllNotifications(userName: userName);
+  final currentUser = await ref.read(currentUserProvider.future);
+  final userName = currentUser?.name ?? '사용자';
+  final weeklyDrinkingFrequency = currentUser?.weeklyDrinkingFrequency;
+
+  await manager.rescheduleAllNotifications(
+    userName: userName,
+    weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+  );
 });
 
 /// Provider for showing test notification
@@ -107,11 +115,13 @@ final toggleNotificationProvider =
         final manager = ref.read(notificationManagerProvider);
         final currentUser = await ref.read(currentUserProvider.future);
         final userName = currentUser?.name ?? '사용자';
+        final weeklyDrinkingFrequency = currentUser?.weeklyDrinkingFrequency;
 
         await manager.toggleNotification(
           type,
           enabled: enabled,
           userName: userName,
+          weeklyDrinkingFrequency: weeklyDrinkingFrequency,
         );
 
         // Invalidate relevant providers

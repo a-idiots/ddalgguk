@@ -24,12 +24,19 @@ class NotificationManager {
   }
 
   /// Schedule all enabled notifications
-  Future<void> scheduleAllNotifications({String userName = '사용자'}) async {
+  Future<void> scheduleAllNotifications({
+    String userName = '사용자',
+    int? weeklyDrinkingFrequency,
+  }) async {
     // Get all enabled notification types
     final enabledTypes = NotificationConfig.getEnabledTypes();
 
     for (final type in enabledTypes) {
-      await scheduleNotificationsForType(type, userName: userName);
+      await scheduleNotificationsForType(
+        type,
+        userName: userName,
+        weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+      );
     }
   }
 
@@ -37,6 +44,7 @@ class NotificationManager {
   Future<void> scheduleNotificationsForType(
     NotificationType type, {
     String userName = '사용자',
+    int? weeklyDrinkingFrequency,
   }) async {
     // Check if this notification type is enabled
     final isEnabled = await _preferences.isNotificationEnabled(type);
@@ -46,8 +54,11 @@ class NotificationManager {
       return;
     }
 
-    // Get schedules for this type
-    final schedules = NotificationConfig.getSchedules(type);
+    // Get schedules for this type based on drinking frequency
+    final schedules = NotificationConfig.getSchedules(
+      type,
+      weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+    );
 
     // Schedule each notification
     for (var i = 0; i < schedules.length; i++) {
@@ -96,6 +107,7 @@ class NotificationManager {
         minute: schedule.minute,
         repeatDaily: schedule.repeatDaily,
         isMonthlyLastDay: isMonthlyLastDay,
+        daysOfWeek: schedule.daysOfWeek,
       );
     }
   }
@@ -105,13 +117,18 @@ class NotificationManager {
     NotificationType type, {
     required bool enabled,
     String userName = '사용자',
+    int? weeklyDrinkingFrequency,
   }) async {
     // Save preference
     await _preferences.setNotificationEnabled(type, enabled);
 
     if (enabled) {
       // Schedule notification
-      await scheduleNotificationsForType(type, userName: userName);
+      await scheduleNotificationsForType(
+        type,
+        userName: userName,
+        weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+      );
     } else {
       // Cancel notification
       await cancelNotificationsForType(type);
@@ -124,10 +141,27 @@ class NotificationManager {
   }
 
   /// Cancel notifications for a specific type
-  Future<void> cancelNotificationsForType(NotificationType type) async {
-    final schedules = NotificationConfig.getSchedules(type);
+  Future<void> cancelNotificationsForType(
+    NotificationType type, {
+    int? weeklyDrinkingFrequency,
+  }) async {
+    // Get all possible schedules (both low and high frequency) and cancel them
+    final schedulesLow = NotificationConfig.getSchedules(
+      type,
+      weeklyDrinkingFrequency: 1,
+    );
+    final schedulesHigh = NotificationConfig.getSchedules(
+      type,
+      weeklyDrinkingFrequency: 5,
+    );
 
-    for (var i = 0; i < schedules.length; i++) {
+    // Combine and deduplicate
+    final allSchedulesCount = {
+      schedulesLow.length,
+      schedulesHigh.length,
+    }.reduce((a, b) => a > b ? a : b);
+
+    for (var i = 0; i < allSchedulesCount; i++) {
       final notificationId = NotificationConfig.getNotificationId(type, i);
       await _service.cancelNotification(notificationId);
     }
@@ -178,10 +212,16 @@ class NotificationManager {
     );
   }
 
-  /// Reschedule all notifications (useful after updating user name)
-  Future<void> rescheduleAllNotifications({String userName = '사용자'}) async {
+  /// Reschedule all notifications (useful after updating user name or drinking frequency)
+  Future<void> rescheduleAllNotifications({
+    String userName = '사용자',
+    int? weeklyDrinkingFrequency,
+  }) async {
     await cancelAllNotifications();
-    await scheduleAllNotifications(userName: userName);
+    await scheduleAllNotifications(
+      userName: userName,
+      weeklyDrinkingFrequency: weeklyDrinkingFrequency,
+    );
   }
 
   /// Check if a specific notification type is scheduled

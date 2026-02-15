@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/notification_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/screens/main_drink_settings_screen.dart';
 
@@ -989,6 +990,13 @@ class _DrinkingFrequencyScreenState
         // Refresh user data
         ref.invalidate(authStateProvider);
         ref.invalidate(currentUserProvider);
+
+        // Reschedule notifications with updated drinking frequency
+        try {
+          await ref.read(rescheduleNotificationsProvider.future);
+        } catch (e) {
+          debugPrint('Failed to reschedule notifications: $e');
+        }
 
         if (mounted) {
           Navigator.of(context).pop();
