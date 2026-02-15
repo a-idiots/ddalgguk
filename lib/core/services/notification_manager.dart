@@ -146,15 +146,20 @@ class NotificationManager {
     int? weeklyDrinkingFrequency,
   }) async {
     // Get all possible schedules (both low and high frequency) and cancel them
-    final schedulesLow =
-        NotificationConfig.getSchedules(type, weeklyDrinkingFrequency: 1);
-    final schedulesHigh =
-        NotificationConfig.getSchedules(type, weeklyDrinkingFrequency: 5);
+    final schedulesLow = NotificationConfig.getSchedules(
+      type,
+      weeklyDrinkingFrequency: 1,
+    );
+    final schedulesHigh = NotificationConfig.getSchedules(
+      type,
+      weeklyDrinkingFrequency: 5,
+    );
 
     // Combine and deduplicate
-    final allSchedulesCount = {schedulesLow.length, schedulesHigh.length}.reduce(
-      (a, b) => a > b ? a : b,
-    );
+    final allSchedulesCount = {
+      schedulesLow.length,
+      schedulesHigh.length,
+    }.reduce((a, b) => a > b ? a : b);
 
     for (var i = 0; i < allSchedulesCount; i++) {
       final notificationId = NotificationConfig.getNotificationId(type, i);

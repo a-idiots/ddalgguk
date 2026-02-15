@@ -96,7 +96,7 @@ class NotificationConfig {
 
   // Notification schedules for low frequency drinkers (주 2회 이하)
   static const Map<NotificationType, List<NotificationSchedule>>
-      schedulesLowFrequency = {
+  schedulesLowFrequency = {
     NotificationType.recordAlarm: [
       NotificationSchedule(
         type: NotificationType.recordAlarm,
@@ -110,7 +110,7 @@ class NotificationConfig {
 
   // Notification schedules for high frequency drinkers (주 3회 이상)
   static const Map<NotificationType, List<NotificationSchedule>>
-      schedulesHighFrequency = {
+  schedulesHighFrequency = {
     NotificationType.recordAlarm: [
       NotificationSchedule(
         type: NotificationType.recordAlarm,
@@ -124,7 +124,7 @@ class NotificationConfig {
 
   // Common schedules for all users
   static const Map<NotificationType, List<NotificationSchedule>>
-      schedulesCommon = {
+  schedulesCommon = {
     NotificationType.socialAlarm: [
       // 나중에 추가될 소셜 알림 스케줄
     ],
@@ -185,8 +185,9 @@ class NotificationConfig {
     if (type == NotificationType.recordAlarm) {
       final isHighFrequency =
           weeklyDrinkingFrequency != null && weeklyDrinkingFrequency >= 3;
-      final scheduleMap =
-          isHighFrequency ? schedulesHighFrequency : schedulesLowFrequency;
+      final scheduleMap = isHighFrequency
+          ? schedulesHighFrequency
+          : schedulesLowFrequency;
       return scheduleMap[type] ?? [];
     }
 

@@ -48,7 +48,9 @@ class FriendNotificationService {
       // Skip initial load - only notify for real-time changes
       if (_isInitialFriendRequestLoad) {
         _isInitialFriendRequestLoad = false;
-        debugPrint('📬 Initial friend requests loaded: ${snapshot.docs.length}');
+        debugPrint(
+          '📬 Initial friend requests loaded: ${snapshot.docs.length}',
+        );
         return;
       }
 

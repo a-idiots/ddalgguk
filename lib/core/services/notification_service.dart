@@ -65,7 +65,9 @@ class NotificationService {
             importance: Importance.high,
           ),
         );
-        debugPrint('📢 Created notification channel: ${NotificationConfig.getChannelId(type)}');
+        debugPrint(
+          '📢 Created notification channel: ${NotificationConfig.getChannelId(type)}',
+        );
       }
     }
 
@@ -93,14 +95,18 @@ class NotificationService {
       }
 
       // Check exact alarm permission (Android 12+)
-      final canScheduleExact = await androidPlugin.canScheduleExactNotifications();
+      final canScheduleExact = await androidPlugin
+          .canScheduleExactNotifications();
       debugPrint('📱 Android exact alarm permission: $canScheduleExact');
       if (canScheduleExact != true) {
         debugPrint('⚠️ Exact alarm permission not granted. Requesting...');
         await androidPlugin.requestExactAlarmsPermission();
         // Re-check after request
-        final recheckExact = await androidPlugin.canScheduleExactNotifications();
-        debugPrint('📱 Android exact alarm permission after request: $recheckExact');
+        final recheckExact = await androidPlugin
+            .canScheduleExactNotifications();
+        debugPrint(
+          '📱 Android exact alarm permission after request: $recheckExact',
+        );
       }
     }
 
@@ -147,9 +153,12 @@ class NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
     if (androidPlugin != null) {
-      final canScheduleExact = await androidPlugin.canScheduleExactNotifications();
+      final canScheduleExact = await androidPlugin
+          .canScheduleExactNotifications();
       if (canScheduleExact != true) {
-        debugPrint('⚠️ Exact alarm permission not granted, using inexact mode for scheduled notifications');
+        debugPrint(
+          '⚠️ Exact alarm permission not granted, using inexact mode for scheduled notifications',
+        );
         scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
       }
     }
@@ -473,9 +482,12 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin
           >();
       if (androidPlugin != null) {
-        final canScheduleExact = await androidPlugin.canScheduleExactNotifications();
+        final canScheduleExact = await androidPlugin
+            .canScheduleExactNotifications();
         if (canScheduleExact != true) {
-          debugPrint('⚠️ Exact alarm permission not granted, using inexact mode');
+          debugPrint(
+            '⚠️ Exact alarm permission not granted, using inexact mode',
+          );
           scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
         }
       }
@@ -490,7 +502,9 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      debugPrint('✅ Notification scheduled successfully for $scheduledDate (mode: $scheduleMode)');
+      debugPrint(
+        '✅ Notification scheduled successfully for $scheduledDate (mode: $scheduleMode)',
+      );
     } catch (e) {
       debugPrint('❌ Error scheduling notification: $e');
       rethrow;

@@ -94,39 +94,39 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         title: Padding(
           padding: const EdgeInsets.only(top: 15),
           child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.chevron_left, color: Colors.black),
-              onPressed: () {
-                setState(() {
-                  _focusedDay = DateTime(
-                    _focusedDay.year,
-                    _focusedDay.month - 1,
-                    _focusedDay.day,
-                  );
-                });
-              },
-            ),
-            Text(
-              DateFormat('MMMM yyyy', 'en_US').format(_focusedDay),
-              style: const TextStyle(color: Colors.black, fontSize: 20),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right, color: Colors.black),
-              onPressed: () {
-                setState(() {
-                  _focusedDay = DateTime(
-                    _focusedDay.year,
-                    _focusedDay.month + 1,
-                    _focusedDay.day,
-                  );
-                });
-              },
-            ),
-          ],
-        ),
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left, color: Colors.black),
+                onPressed: () {
+                  setState(() {
+                    _focusedDay = DateTime(
+                      _focusedDay.year,
+                      _focusedDay.month - 1,
+                      _focusedDay.day,
+                    );
+                  });
+                },
+              ),
+              Text(
+                DateFormat('MMMM yyyy', 'en_US').format(_focusedDay),
+                style: const TextStyle(color: Colors.black, fontSize: 20),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right, color: Colors.black),
+                onPressed: () {
+                  setState(() {
+                    _focusedDay = DateTime(
+                      _focusedDay.year,
+                      _focusedDay.month + 1,
+                      _focusedDay.day,
+                    );
+                  });
+                },
+              ),
+            ],
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,

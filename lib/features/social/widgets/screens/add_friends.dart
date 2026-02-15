@@ -317,9 +317,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CommonPageHeader(
-        title: '친구 추가',
-      ),
+      appBar: const CommonPageHeader(title: '친구 추가'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
