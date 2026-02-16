@@ -10,6 +10,7 @@ import 'package:ddalgguk/core/services/analytics_service.dart';
 import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/notification_provider.dart';
 
 /// Main onboarding profile screen with PageView
 class OnboardingProfileScreen extends ConsumerStatefulWidget {
@@ -152,6 +153,10 @@ class _OnboardingProfileScreenState
         height: _height,
         weight: _weight,
       );
+
+      // Reschedule notifications with the actual user name
+      ref.invalidate(rescheduleNotificationsProvider);
+      await ref.read(rescheduleNotificationsProvider.future);
 
       // Log profile setup complete
       await AnalyticsService.instance.logProfileSetupComplete();

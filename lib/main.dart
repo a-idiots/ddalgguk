@@ -60,7 +60,12 @@ void main() async {
 
     // Schedule notifications if permission is granted
     if (granted) {
-      await notificationManager.scheduleAllNotifications();
+      // Try to get cached user info for personalized notifications
+      final cachedUser = await SecureStorageService.instance.getUserCache();
+      await notificationManager.scheduleAllNotifications(
+        userName: cachedUser?.name ?? '',
+        weeklyDrinkingFrequency: cachedUser?.weeklyDrinkingFrequency,
+      );
       debugPrint('Notifications scheduled successfully');
     }
   } catch (e) {
