@@ -6,7 +6,6 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 
-
 /// Edit information screen for user profile settings
 class EditInfoScreen extends ConsumerWidget {
   const EditInfoScreen({super.key});
