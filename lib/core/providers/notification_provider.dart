@@ -24,7 +24,7 @@ final initializeNotificationsProvider = FutureProvider<void>((ref) async {
 
   if (granted) {
     // Schedule notifications with user name and drinking frequency
-    final userName = currentUser?.name ?? '사용자';
+    final userName = currentUser?.name ?? '';
     final weeklyDrinkingFrequency = currentUser?.weeklyDrinkingFrequency;
     await manager.scheduleAllNotifications(
       userName: userName,
@@ -40,7 +40,7 @@ final initializeNotificationsProvider = FutureProvider<void>((ref) async {
 final rescheduleNotificationsProvider = FutureProvider<void>((ref) async {
   final manager = ref.read(notificationManagerProvider);
   final currentUser = await ref.read(currentUserProvider.future);
-  final userName = currentUser?.name ?? '사용자';
+  final userName = currentUser?.name ?? '';
   final weeklyDrinkingFrequency = currentUser?.weeklyDrinkingFrequency;
 
   await manager.rescheduleAllNotifications(
@@ -54,7 +54,7 @@ final showTestNotificationProvider = Provider<Future<void> Function()>((ref) {
   return () async {
     final manager = ref.read(notificationManagerProvider);
     final currentUser = await ref.read(currentUserProvider.future);
-    final userName = currentUser?.name ?? '사용자';
+    final userName = currentUser?.name ?? '';
 
     await manager.showTestNotification(
       type: NotificationType.recordAlarm,
@@ -69,7 +69,7 @@ final showDelayedTestNotificationProvider =
       return ({int delaySeconds = 5}) async {
         final manager = ref.read(notificationManagerProvider);
         final currentUser = await ref.read(currentUserProvider.future);
-        final userName = currentUser?.name ?? '사용자';
+        final userName = currentUser?.name ?? '';
 
         await manager.showDelayedTestNotification(
           type: NotificationType.recordAlarm,
@@ -114,7 +114,7 @@ final toggleNotificationProvider =
       return (NotificationType type, bool enabled) async {
         final manager = ref.read(notificationManagerProvider);
         final currentUser = await ref.read(currentUserProvider.future);
-        final userName = currentUser?.name ?? '사용자';
+        final userName = currentUser?.name ?? '';
         final weeklyDrinkingFrequency = currentUser?.weeklyDrinkingFrequency;
 
         await manager.toggleNotification(

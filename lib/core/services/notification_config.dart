@@ -32,43 +32,43 @@ class NotificationConfig {
   static const Map<NotificationType, List<NotificationMessage>> messages = {
     NotificationType.recordAlarm: [
       NotificationMessage(
-        title: '오늘 하루도 수고했어요, {userName}님!',
+        title: '오늘 하루도 수고했어요{userSuffix}',
         body: '딸꾹과 함께 오늘의 음주 기록을 남겨볼까요?',
       ),
       NotificationMessage(
-        title: '{userName}님, 오늘은 어땠나요?',
+        title: '{userPrefix}오늘은 어땠나요?',
         body: '오늘의 음주 기록을 업데이트하고 건강을 챙겨봐요!',
       ),
       NotificationMessage(
-        title: '기록할 시간이에요, {userName}님!',
+        title: '기록할 시간이에요{userSuffix}',
         body: '딸꾹이 기다리고 있어요! 오늘의 음주 기록을 남겨주세요.',
       ),
       NotificationMessage(
-        title: '{userName}님을 위한 알림이 도착했어요!',
+        title: '{userPrefix}알림이 도착했어요!',
         body: '오늘 하루 어떠셨나요? 음주 기록으로 건강을 체크해봐요!',
       ),
       NotificationMessage(
-        title: '딸꾹이 궁금해해요, {userName}님!',
+        title: '딸꾹이 궁금해해요{userSuffix}',
         body: '오늘은 어떤 하루였나요? 기록으로 남겨보세요!',
       ),
       NotificationMessage(
-        title: '{userName}님, 잠깐만요!',
+        title: '{userPrefix}잠깐만요!',
         body: '오늘의 음주 기록을 업데이트하고 건강한 습관을 만들어봐요!',
       ),
       NotificationMessage(
-        title: '건강한 음주 습관, {userName}님과 함께!',
+        title: '건강한 음주 습관{userSuffix}',
         body: '딸꾹에 오늘의 기록을 남기고 나만의 패턴을 확인해봐요!',
       ),
       NotificationMessage(
-        title: '{userName}님, 오늘도 화이팅!',
+        title: '{userPrefix}오늘도 화이팅!',
         body: '음주 기록으로 나의 건강을 체크하는 시간이에요!',
       ),
       NotificationMessage(
-        title: '하루의 마무리, {userName}님!',
+        title: '하루의 마무리{userSuffix}',
         body: '딸꾹과 함께 오늘의 음주 기록을 정리해볼까요?',
       ),
       NotificationMessage(
-        title: '{userName}님, 기록이 쌓이고 있어요!',
+        title: '{userPrefix}기록이 쌓이고 있어요!',
         body: '꾸준한 기록이 건강한 습관을 만들어요. 오늘도 함께해요!',
       ),
     ],
@@ -88,7 +88,7 @@ class NotificationConfig {
     ],
     NotificationType.recapAlarm: [
       NotificationMessage(
-        title: '{userName}님의 {month}월 음주 리포트 완성!',
+        title: '{userPrefix}{month}월 음주 리포트 완성!',
         body: '지금 바로 접속해서 이번 달 알코올 총 섭취량을 확인해보세요.',
       ),
     ],
@@ -142,7 +142,7 @@ class NotificationConfig {
   /// Randomly selects from available messages
   static NotificationMessage getMessage(
     NotificationType type, {
-    String userName = '사용자',
+    String userName = '',
     String? friendName,
     int? month,
     int? seed,
@@ -156,8 +156,17 @@ class NotificationConfig {
     final index = (seed ?? DateTime.now().day) % messageList.length;
     final message = messageList[index];
 
-    var title = message.title.replaceAll('{userName}', userName);
-    var body = message.body.replaceAll('{userName}', userName);
+    // Build user prefix/suffix based on whether userName is available
+    // e.g. "홍길동님, " / ", 홍길동님!" or "" / "!"
+    final userPrefix = userName.isNotEmpty ? '$userName님, ' : '';
+    final userSuffix = userName.isNotEmpty ? ', $userName님!' : '!';
+
+    var title = message.title
+        .replaceAll('{userPrefix}', userPrefix)
+        .replaceAll('{userSuffix}', userSuffix);
+    var body = message.body
+        .replaceAll('{userPrefix}', userPrefix)
+        .replaceAll('{userSuffix}', userSuffix);
 
     // For social alarm, replace friendName placeholder
     if (type == NotificationType.socialAlarm && friendName != null) {
