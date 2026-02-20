@@ -22,7 +22,6 @@ class SocialScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: TabPageHeader(
-        title: 'SAKU Village',
         actions: [
           Stack(
             clipBehavior: Clip.none,
@@ -35,7 +34,11 @@ class SocialScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                icon: const Icon(Icons.notifications_outlined, size: 28),
+                icon: Image.asset(
+                  'assets/icons/alarm_icon.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               if (hasFriendRequests)
                 Positioned(
