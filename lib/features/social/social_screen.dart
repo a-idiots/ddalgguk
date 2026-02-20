@@ -42,8 +42,8 @@ class SocialScreen extends ConsumerWidget {
               ),
               if (hasFriendRequests)
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 12,
+                  right: 12,
                   child: Container(
                     width: 10,
                     height: 10,
