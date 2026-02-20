@@ -61,7 +61,7 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
 class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
   const TabPageHeader({
     super.key,
-    required this.title,
+    this.title,
     this.actions,
     this.height = 56,
     this.fontSize = 20,
@@ -69,7 +69,7 @@ class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
     this.bottom,
   });
 
-  final String title;
+  final String? title;
   final List<Widget>? actions;
   final double height;
   final double fontSize;
@@ -89,17 +89,19 @@ class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       toolbarHeight: height,
       titleSpacing: 0,
-      title: Padding(
-        padding: EdgeInsets.only(top: bottom != null ? 0 : 0),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
-        ),
-      ),
+      title: title != null
+          ? Padding(
+              padding: EdgeInsets.only(top: bottom != null ? 0 : 0),
+              child: Text(
+                title!,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+            )
+          : null,
       actions: actions,
       bottom: bottom,
     );
