@@ -110,11 +110,15 @@ class DrinkingRecordService {
         });
 
         if (isDrinkingRecord) {
+          // 전체 기록에서 가장 최근 음주 날짜 찾기
+          final latestDrinkDate = await _findLatestDrinkDate();
           await _friendService.updateMyDrinkingData(
             drunkLevel: avgDrunkLevel,
-            lastDrinkDate: record.date,
+            lastDrinkDate: latestDrinkDate ?? record.date,
           );
-          debugPrint('Updated friend drinking data with lastDrinkDate');
+          debugPrint(
+            'Updated friend drinking data with lastDrinkDate: $latestDrinkDate',
+          );
         } else {
           debugPrint('Skipped lastDrinkDate update (금주 기록)');
         }
@@ -281,11 +285,15 @@ class DrinkingRecordService {
         });
 
         if (isDrinkingRecord) {
+          // 전체 기록에서 가장 최근 음주 날짜 찾기
+          final latestDrinkDate = await _findLatestDrinkDate();
           await _friendService.updateMyDrinkingData(
             drunkLevel: avgDrunkLevel,
-            lastDrinkDate: record.date,
+            lastDrinkDate: latestDrinkDate ?? record.date,
           );
-          debugPrint('Updated friend drinking data after record update');
+          debugPrint(
+            'Updated friend drinking data after record update with lastDrinkDate: $latestDrinkDate',
+          );
         } else {
           debugPrint('Skipped lastDrinkDate update (금주 기록)');
         }
@@ -406,11 +414,15 @@ class DrinkingRecordService {
           });
 
           if (isDrinkingRecord) {
+            // 전체 기록에서 가장 최근 음주 날짜 찾기
+            final latestDrinkDate = await _findLatestDrinkDate();
             await _friendService.updateMyDrinkingData(
               drunkLevel: avgDrunkLevel,
-              lastDrinkDate: recordDate,
+              lastDrinkDate: latestDrinkDate ?? recordDate,
             );
-            debugPrint('Updated friend drinking data after record deletion');
+            debugPrint(
+              'Updated friend drinking data after record deletion with lastDrinkDate: $latestDrinkDate',
+            );
           } else {
             debugPrint('Skipped lastDrinkDate update (금주 기록)');
           }
@@ -501,6 +513,25 @@ class DrinkingRecordService {
               .map((doc) => DrinkingRecord.fromFirestore(doc))
               .toList(),
         );
+  }
+
+  /// 전체 기록에서 가장 최근 음주 날짜(금주 제외) 찾기
+  Future<DateTime?> _findLatestDrinkDate() async {
+    final latestRecords = await _getRecordsCollection()
+        .orderBy('date', descending: true)
+        .limit(50)
+        .get();
+
+    for (final doc in latestRecords.docs) {
+      final record = DrinkingRecord.fromFirestore(doc);
+      final isDrinking =
+          record.drunkLevel > 0 ||
+          record.drinkAmount.any((d) => d.amount > 0);
+      if (isDrinking) {
+        return record.date;
+      }
+    }
+    return null;
   }
 
   /// Helper: Update local stats for a specific date
