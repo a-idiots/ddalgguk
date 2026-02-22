@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ddalgguk/features/auth/widgets/animated_login_transition.dart';
 import 'package:ddalgguk/core/providers/app_state_provider.dart';
 
 /// Splash screen that displays the app branding before transitioning to login or home
@@ -26,7 +25,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEA6B6B), // Pink background
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -43,7 +42,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontSize: 24,
-                    color: Colors.white,
+                    color: Color(0xFFEA6B6B),
                     height: 1.4,
                   ),
                 ),
@@ -52,19 +51,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               const SizedBox(height: 80),
 
               // Center logo
-              Hero(
-                tag: 'app_logo',
-                flightShuttleBuilder: logoFlightShuttleBuilder,
-                child: SizedBox(
-                  width: 180,
-                  height: 180,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(90),
-                    child: Center(
-                      child: Image.asset('assets/imgs/logo.png', width: 140),
-                    ),
-                  ),
-                ),
+              Image.asset(
+                'assets/logo/v1_1_logo.png',
+                width: 180,
+                height: 180,
               ),
 
               const SizedBox(height: 60),
@@ -75,7 +65,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white,
+                  color: Color(0xFFEA6B6B),
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -88,7 +78,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
-                  color: Colors.white,
+                  color: Color(0xFFEA6B6B),
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
                 ),
