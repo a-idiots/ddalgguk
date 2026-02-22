@@ -88,17 +88,42 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       });
     });
 
+    // 이번 달 음주/금주 일수 계산
+    final focusedYear = _focusedDay.year;
+    final focusedMonth = _focusedDay.month;
+    int drinkingDaysCount = 0;
+    int soberDaysCount = 0;
+    for (final entry in _recordsMap.entries) {
+      final date = entry.key;
+      if (date.year != focusedYear || date.month != focusedMonth) {
+        continue;
+      }
+      final dayRecords = entry.value;
+      if (dayRecords.isEmpty) {
+        continue;
+      }
+      final allSober = dayRecords.every(
+        (r) => r.drunkLevel == 0 && r.meetingName == '금주',
+      );
+      if (allSober) {
+        soberDaysCount++;
+      } else {
+        drinkingDaysCount++;
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 55,
         title: Padding(
           padding: const EdgeInsets.only(top: 15),
           child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
                 icon: const Icon(Icons.chevron_left, color: Colors.black),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () {
                   setState(() {
                     _focusedDay = DateTime(
@@ -109,12 +134,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   });
                 },
               ),
+              const SizedBox(width: 8),
               Text(
                 DateFormat('MMMM yyyy', 'en_US').format(_focusedDay),
                 style: const TextStyle(color: Colors.black, fontSize: 16),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.chevron_right, color: Colors.black),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () {
                   setState(() {
                     _focusedDay = DateTime(
@@ -128,6 +157,35 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ],
           ),
         ),
+        // 통계 뱃지: 캘린더 우측 끝과 정렬 (FractionallySizedBox 0.96 × Transform.scale 0.9)
+        bottom: drinkingDaysCount > 0 || soberDaysCount > 0
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(22),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: MediaQuery.of(context).size.width * 0.08,
+                    bottom: 6,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (drinkingDaysCount > 0) ...[
+                        _buildStatDot(
+                          const Color(0xFFFFA3A3),
+                          drinkingDaysCount,
+                        ),
+                        if (soberDaysCount > 0) const SizedBox(width: 10),
+                      ],
+                      if (soberDaysCount > 0)
+                        _buildStatDot(
+                          const Color(0xFF9CE0C0),
+                          soberDaysCount,
+                        ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -153,10 +211,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         child: Column(
           children: [
             // 캘린더 영역 - 고정 높이로 표시
-            Transform.scale(
-              scale: 0.9,
-              child: FractionallySizedBox(
-                widthFactor: 0.96,
+            Stack(
+              children: [
+                Transform.scale(
+                  scale: 0.9,
+                  alignment: const Alignment(0, -0.5),
+                  child: FractionallySizedBox(
+                    widthFactor: 0.96,
                 child: TableCalendar<DrinkingRecord>(
                   firstDay: DateTime.utc(2020, 1, 1),
                   lastDay: DateTime.utc(2030, 12, 31),
@@ -240,6 +301,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ),
             ),
+              ],
+            ),
             const SizedBox(height: 8),
             Divider(
               height: 1,
@@ -253,6 +316,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatDot(Color color, int count) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          '$count',
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.black,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 
