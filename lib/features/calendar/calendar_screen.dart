@@ -157,11 +157,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ],
           ),
         ),
-        // 통계 뱃지: 캘린더 우측 끝과 정렬 (FractionallySizedBox 0.96 × Transform.scale 0.9)
-        bottom: drinkingDaysCount > 0 || soberDaysCount > 0
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(22),
-                child: Padding(
+        // 통계 뱃지: 항상 22px 공간을 확보해 월 전환 시 레이아웃 글리치 방지
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(22),
+          child: drinkingDaysCount > 0 || soberDaysCount > 0
+              ? Padding(
                   padding: EdgeInsets.only(
                     right: MediaQuery.of(context).size.width * 0.08,
                     bottom: 6,
@@ -180,9 +180,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         _buildStatDot(const Color(0xFF9CE0C0), soberDaysCount),
                     ],
                   ),
-                ),
-              )
-            : null,
+                )
+              : const SizedBox.shrink(),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
