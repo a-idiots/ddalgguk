@@ -5,7 +5,6 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
-import 'package:ddalgguk/features/settings/screens/main_drink_settings_screen.dart';
 
 /// Edit information screen for user profile settings
 class EditInfoScreen extends ConsumerWidget {
@@ -97,16 +96,6 @@ class EditInfoScreen extends ConsumerWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const AlcoholToleranceScreen(),
-                ),
-              );
-            },
-          ),
-          SettingsListTile(
-            title: '메인 기록 주종',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const MainDrinkSettingsScreen(),
                 ),
               );
             },

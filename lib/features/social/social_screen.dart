@@ -22,7 +22,6 @@ class SocialScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: TabPageHeader(
-        title: 'SAKU Village',
         actions: [
           Stack(
             clipBehavior: Clip.none,
@@ -35,12 +34,16 @@ class SocialScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                icon: const Icon(Icons.notifications_outlined, size: 28),
+                icon: Image.asset(
+                  'assets/icons/alarm_icon.png',
+                  width: 24,
+                  height: 24,
+                ),
               ),
               if (hasFriendRequests)
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 12,
+                  right: 12,
                   child: Container(
                     width: 10,
                     height: 10,
@@ -99,12 +102,12 @@ class SocialScreen extends ConsumerWidget {
       onRefresh: () => _onRefresh(ref),
       color: AppColors.primaryPink,
       child: GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 3열
           childAspectRatio: 0.65, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
-          crossAxisSpacing: 4, // 카드 간 간격 최소화
-          mainAxisSpacing: 16,
+          crossAxisSpacing: 6, // 카드 간 가로 간격
+          mainAxisSpacing: 20,
         ),
         itemCount: friends.length,
         itemBuilder: (context, index) {

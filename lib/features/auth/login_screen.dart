@@ -8,7 +8,6 @@ import 'package:ddalgguk/core/providers/app_state_provider.dart';
 import 'package:ddalgguk/features/auth/widgets/google_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/apple_login_button.dart';
 import 'package:ddalgguk/features/auth/widgets/kakao_login_button.dart';
-import 'package:ddalgguk/features/auth/widgets/animated_login_transition.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// Login Screen with social login options
@@ -190,37 +189,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // 앱 로고
-                    Hero(
-                      tag: 'app_logo',
-                      flightShuttleBuilder: logoFlightShuttleBuilder,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFFFF8080), Color(0xFFDA4444)],
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/imgs/logo.png',
-                              width: 80,
-                            ),
-                          ),
-                        ),
-                      ),
+                    Image.asset(
+                      'assets/logo/v1_1_logo.png',
+                      width: 100,
+                      height: 100,
                     ),
                     const SizedBox(height: 24),
 

@@ -25,7 +25,7 @@ class NotificationManager {
 
   /// Schedule all enabled notifications
   Future<void> scheduleAllNotifications({
-    String userName = '사용자',
+    String userName = '',
     int? weeklyDrinkingFrequency,
   }) async {
     // Get all enabled notification types
@@ -43,7 +43,7 @@ class NotificationManager {
   /// Schedule notifications for a specific type
   Future<void> scheduleNotificationsForType(
     NotificationType type, {
-    String userName = '사용자',
+    String userName = '',
     int? weeklyDrinkingFrequency,
   }) async {
     // Check if this notification type is enabled
@@ -116,7 +116,7 @@ class NotificationManager {
   Future<void> toggleNotification(
     NotificationType type, {
     required bool enabled,
-    String userName = '사용자',
+    String userName = '',
     int? weeklyDrinkingFrequency,
   }) async {
     // Save preference
@@ -181,7 +181,7 @@ class NotificationManager {
   /// Show immediate notification for testing
   Future<void> showTestNotification({
     NotificationType type = NotificationType.recordAlarm,
-    String userName = '사용자',
+    String userName = '',
   }) async {
     final message = NotificationConfig.getMessage(type, userName: userName);
     final notificationId = NotificationConfig.getNotificationId(type, 0);
@@ -197,7 +197,7 @@ class NotificationManager {
   /// Show delayed notification for testing (useful for iOS)
   Future<void> showDelayedTestNotification({
     NotificationType type = NotificationType.recordAlarm,
-    String userName = '사용자',
+    String userName = '',
     int delaySeconds = 5,
   }) async {
     final message = NotificationConfig.getMessage(type, userName: userName);
@@ -214,7 +214,7 @@ class NotificationManager {
 
   /// Reschedule all notifications (useful after updating user name or drinking frequency)
   Future<void> rescheduleAllNotifications({
-    String userName = '사용자',
+    String userName = '',
     int? weeklyDrinkingFrequency,
   }) async {
     await cancelAllNotifications();

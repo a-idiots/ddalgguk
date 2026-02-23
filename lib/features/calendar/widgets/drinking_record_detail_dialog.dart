@@ -135,7 +135,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 // 퍼센트 표시
                                 Text(
-                                  '${record.drunkLevel * 10}%',
+                                  '${(record.drunkLevel * 10).round()}%',
                                   style: const TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,

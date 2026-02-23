@@ -10,7 +10,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
-import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+//import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
 import 'package:ddalgguk/core/services/friend_notification_service.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
@@ -60,7 +60,12 @@ void main() async {
 
     // Schedule notifications if permission is granted
     if (granted) {
-      await notificationManager.scheduleAllNotifications();
+      // Try to get cached user info for personalized notifications
+      final cachedUser = await SecureStorageService.instance.getUserCache();
+      await notificationManager.scheduleAllNotifications(
+        userName: cachedUser?.name ?? '',
+        weeklyDrinkingFrequency: cachedUser?.weeklyDrinkingFrequency,
+      );
       debugPrint('Notifications scheduled successfully');
     }
   } catch (e) {

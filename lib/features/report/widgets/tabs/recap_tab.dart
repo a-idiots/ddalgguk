@@ -513,7 +513,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       title: '가장 얼큰했던 술자리',
       subtitle: '${maxRecord.date.month}월 가장 취한 부문 1위',
       recordName: maxRecord.meetingName,
-      valueText: '${maxRecord.drunkLevel * 10}%',
+      valueText: '${(maxRecord.drunkLevel * 10).round()}%',
     );
   }
 
