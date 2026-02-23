@@ -177,10 +177,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         if (soberDaysCount > 0) const SizedBox(width: 10),
                       ],
                       if (soberDaysCount > 0)
-                        _buildStatDot(
-                          const Color(0xFF9CE0C0),
-                          soberDaysCount,
-                        ),
+                        _buildStatDot(const Color(0xFF9CE0C0), soberDaysCount),
                     ],
                   ),
                 ),
@@ -218,89 +215,90 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   alignment: const Alignment(0, -0.5),
                   child: FractionallySizedBox(
                     widthFactor: 0.96,
-                child: TableCalendar<DrinkingRecord>(
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  // enabledDayPredicate를 제거하여 모든 날짜 선택 가능하도록 변경
-                  calendarFormat: CalendarFormat.month,
-                  rowHeight: 72,
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  headerVisible: false,
-                  calendarStyle: CalendarStyle(
-                    markersMaxCount: 1,
-                    outsideDaysVisible: false,
-                    markerDecoration: const BoxDecoration(
-                      color: Colors.transparent,
+                    child: TableCalendar<DrinkingRecord>(
+                      firstDay: DateTime.utc(2020, 1, 1),
+                      lastDay: DateTime.utc(2030, 12, 31),
+                      focusedDay: _focusedDay,
+                      selectedDayPredicate: (day) =>
+                          isSameDay(_selectedDay, day),
+                      // enabledDayPredicate를 제거하여 모든 날짜 선택 가능하도록 변경
+                      calendarFormat: CalendarFormat.month,
+                      rowHeight: 72,
+                      startingDayOfWeek: StartingDayOfWeek.monday,
+                      headerVisible: false,
+                      calendarStyle: CalendarStyle(
+                        markersMaxCount: 1,
+                        outsideDaysVisible: false,
+                        markerDecoration: const BoxDecoration(
+                          color: Colors.transparent,
+                        ),
+                        todayDecoration: const BoxDecoration(
+                          color: Colors.transparent,
+                        ),
+                        selectedDecoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      eventLoader: _getRecordsForDay,
+                      onDaySelected: (selectedDay, focusedDay) {
+                        setState(() {
+                          _selectedDay = selectedDay;
+                          _focusedDay = focusedDay;
+                        });
+                      },
+                      onPageChanged: (focusedDay) {
+                        setState(() {
+                          _focusedDay = focusedDay;
+                        });
+                      },
+                      calendarBuilders: CalendarBuilders(
+                        defaultBuilder: (context, date, focusedDay) {
+                          final isOutsideMonth = date.month != focusedDay.month;
+                          final isToday = isSameDay(DateTime.now(), date);
+                          return _buildDayCell(
+                            date,
+                            isOutsideMonth: isOutsideMonth,
+                            isToday: isToday,
+                          );
+                        },
+                        todayBuilder: (context, date, focusedDay) {
+                          final isOutsideMonth = date.month != focusedDay.month;
+                          return _buildDayCell(
+                            date,
+                            isOutsideMonth: isOutsideMonth,
+                            isToday: true,
+                          );
+                        },
+                        selectedBuilder: (context, date, focusedDay) {
+                          final isOutsideMonth = date.month != focusedDay.month;
+                          final isToday = isSameDay(DateTime.now(), date);
+                          return _buildDayCell(
+                            date,
+                            isOutsideMonth: isOutsideMonth,
+                            isToday: isToday,
+                            isSelected: true,
+                          );
+                        },
+                        disabledBuilder: (context, date, focusedDay) {
+                          // 미래 날짜도 동일하게 표시 (단, 선택 불가)
+                          final isOutsideMonth = date.month != focusedDay.month;
+                          return _buildDayCell(
+                            date,
+                            isOutsideMonth: isOutsideMonth,
+                            isToday: false,
+                          );
+                        },
+                        outsideBuilder: (context, date, focusedDay) =>
+                            const SizedBox.shrink(),
+                        markerBuilder: (context, date, records) {
+                          // markerBuilder는 사용하지 않음 (이미 _buildDayCell에서 처리)
+                          return null;
+                        },
+                      ),
                     ),
-                    todayDecoration: const BoxDecoration(
-                      color: Colors.transparent,
-                    ),
-                    selectedDecoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  eventLoader: _getRecordsForDay,
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                    });
-                  },
-                  onPageChanged: (focusedDay) {
-                    setState(() {
-                      _focusedDay = focusedDay;
-                    });
-                  },
-                  calendarBuilders: CalendarBuilders(
-                    defaultBuilder: (context, date, focusedDay) {
-                      final isOutsideMonth = date.month != focusedDay.month;
-                      final isToday = isSameDay(DateTime.now(), date);
-                      return _buildDayCell(
-                        date,
-                        isOutsideMonth: isOutsideMonth,
-                        isToday: isToday,
-                      );
-                    },
-                    todayBuilder: (context, date, focusedDay) {
-                      final isOutsideMonth = date.month != focusedDay.month;
-                      return _buildDayCell(
-                        date,
-                        isOutsideMonth: isOutsideMonth,
-                        isToday: true,
-                      );
-                    },
-                    selectedBuilder: (context, date, focusedDay) {
-                      final isOutsideMonth = date.month != focusedDay.month;
-                      final isToday = isSameDay(DateTime.now(), date);
-                      return _buildDayCell(
-                        date,
-                        isOutsideMonth: isOutsideMonth,
-                        isToday: isToday,
-                        isSelected: true,
-                      );
-                    },
-                    disabledBuilder: (context, date, focusedDay) {
-                      // 미래 날짜도 동일하게 표시 (단, 선택 불가)
-                      final isOutsideMonth = date.month != focusedDay.month;
-                      return _buildDayCell(
-                        date,
-                        isOutsideMonth: isOutsideMonth,
-                        isToday: false,
-                      );
-                    },
-                    outsideBuilder: (context, date, focusedDay) =>
-                        const SizedBox.shrink(),
-                    markerBuilder: (context, date, records) {
-                      // markerBuilder는 사용하지 않음 (이미 _buildDayCell에서 처리)
-                      return null;
-                    },
                   ),
                 ),
-              ),
-            ),
               ],
             ),
             const SizedBox(height: 8),

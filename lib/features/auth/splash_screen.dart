@@ -51,11 +51,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               const SizedBox(height: 80),
 
               // Center logo
-              Image.asset(
-                'assets/logo/v1_1_logo.png',
-                width: 180,
-                height: 180,
-              ),
+              Image.asset('assets/logo/v1_1_logo.png', width: 180, height: 180),
 
               const SizedBox(height: 60),
 

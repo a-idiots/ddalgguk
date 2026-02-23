@@ -525,8 +525,7 @@ class DrinkingRecordService {
     for (final doc in latestRecords.docs) {
       final record = DrinkingRecord.fromFirestore(doc);
       final isDrinking =
-          record.drunkLevel > 0 ||
-          record.drinkAmount.any((d) => d.amount > 0);
+          record.drunkLevel > 0 || record.drinkAmount.any((d) => d.amount > 0);
       if (isDrinking) {
         return record.date;
       }
