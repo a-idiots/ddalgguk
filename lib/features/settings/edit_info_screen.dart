@@ -1028,7 +1028,8 @@ class _DrinkingFrequencyScreenState
                                 if (currentValue != null && currentValue > 7) {
                                   _frequencyController.text = '7';
                                   setState(() {
-                                    _errorMessage = '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
+                                    _errorMessage =
+                                        '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
                                   });
                                 } else if (currentValue != null &&
                                     currentValue >= 0) {
