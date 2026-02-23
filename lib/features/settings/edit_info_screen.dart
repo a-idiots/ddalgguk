@@ -5,6 +5,7 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
+import 'package:ddalgguk/features/settings/widgets/save_button.dart';
 
 /// Edit information screen for user profile settings
 class EditInfoScreen extends ConsumerWidget {
@@ -444,25 +445,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
               ],
             ),
             const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  '저장하기',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+            SaveButton(onPressed: _handleSave),
             const SizedBox(height: 20),
           ],
         ),
@@ -662,25 +645,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
                 ],
               ),
               const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _handleSave,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    '저장하기',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
+              SaveButton(onPressed: _handleSave),
               const SizedBox(height: 20),
             ],
           ),
@@ -858,25 +823,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
               ),
             ),
             const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _handleSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  '저장하기',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
+            SaveButton(onPressed: _handleSave),
             const SizedBox(height: 20),
           ],
         ),
@@ -1050,128 +997,109 @@ class _DrinkingFrequencyScreenState
         body: Column(
           children: [
             const SettingsSectionDivider(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        '나는 일주일에',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          '나는 일주일에',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 20),
-                      SizedBox(
-                        width: 30,
-                        child: Focus(
-                          onFocusChange: (hasFocus) {
-                            if (!hasFocus) {
-                              // Keyboard dismissed, validate and clamp value
-                              final currentValue = int.tryParse(
-                                _frequencyController.text,
-                              );
-                              if (currentValue != null && currentValue > 7) {
-                                _frequencyController.text = '7';
-                                setState(() {
-                                  _errorMessage = '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
-                                });
-                              } else if (currentValue != null &&
-                                  currentValue >= 0) {
-                                setState(() {
-                                  _errorMessage = null;
-                                });
+                        const SizedBox(width: 20),
+                        SizedBox(
+                          width: 30,
+                          child: Focus(
+                            onFocusChange: (hasFocus) {
+                              if (!hasFocus) {
+                                // Keyboard dismissed, validate and clamp value
+                                final currentValue = int.tryParse(
+                                  _frequencyController.text,
+                                );
+                                if (currentValue != null && currentValue > 7) {
+                                  _frequencyController.text = '7';
+                                  setState(() {
+                                    _errorMessage =
+                                        '일주일 음주 빈도는 최대 7회까지 입력 가능합니다';
+                                  });
+                                } else if (currentValue != null &&
+                                    currentValue >= 0) {
+                                  setState(() {
+                                    _errorMessage = null;
+                                  });
+                                }
                               }
-                            }
-                          },
-                          child: TextField(
-                            controller: _frequencyController,
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            cursorHeight: 18,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.black87,
-                                  width: 1.5,
-                                ),
+                            },
+                            child: TextField(
+                              controller: _frequencyController,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              cursorHeight: 18,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
                               ),
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Color(0xFFFF6B6B),
-                                  width: 2,
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.black87,
+                                    width: 1.5,
+                                  ),
                                 ),
-                              ),
-                              contentPadding: EdgeInsets.only(
-                                left: 3,
-                                bottom: 1,
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Color(0xFFFF6B6B),
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: EdgeInsets.only(
+                                  left: 3,
+                                  bottom: 1,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        '번 술을 마신다.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(width: 4),
+                        const Text(
+                          '번 술을 마신다.',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  // Error message
-                  if (_errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFFFF6B6B),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      ],
                     ),
-                  const SizedBox(height: 48),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _handleSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
+                    // Error message
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFFF6B6B),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        '저장하기',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                    const Spacer(),
+                    SaveButton(onPressed: _handleSave),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ],
@@ -1303,38 +1231,18 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
       body: Column(
         children: [
           const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                _buildDrinkSelectionCards(),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 24),
+                  _buildDrinkSelectionCards(),
+                  const Spacer(),
+                  SaveButton(onPressed: _handleSave),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ],
@@ -1582,52 +1490,32 @@ class _AlcoholToleranceScreenState
       body: Column(
         children: [
           const SettingsSectionDivider(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                const Text(
-                  '소주 주량을 입력해주세요.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _buildAlcoholSlider(),
-                const SizedBox(height: 12),
-                const Text(
-                  '음주 백과💡 소주 1병은 약 7잔이다.',
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _handleSave,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text(
-                      '저장하기',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 24),
+                  const Text(
+                    '소주 주량을 입력해주세요.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  _buildAlcoholSlider(),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '음주 백과💡 소주 1병은 약 7잔이다.',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const Spacer(),
+                  SaveButton(onPressed: _handleSave),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ],
