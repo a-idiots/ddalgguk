@@ -63,8 +63,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Provider를 구독하기 위해 watch 필요
-    ref.watch(monthRecordsProvider(_focusedDay));
+    // Provider를 구독하기 위해 watch 필요 (isLoading으로 뱃지 숨김 처리)
+    final monthRecordsAsync = ref.watch(monthRecordsProvider(_focusedDay));
 
     // 월별 기록 변경 감지
     ref.listen(monthRecordsProvider(_focusedDay), (previous, next) {
@@ -88,7 +88,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       });
     });
 
-    // 이번 달 음주/금주 일수 계산
+    // 이번 달 음주/금주/무기록 일수 계산
     final focusedYear = _focusedDay.year;
     final focusedMonth = _focusedDay.month;
     int drinkingDaysCount = 0;
@@ -110,6 +110,29 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       } else {
         drinkingDaysCount++;
       }
+    }
+
+    // 무기록 일수: 지난 날 기준 (오늘 포함), 미래 달은 0
+    final todayNow = DateTime.now();
+    final normalizedToday = DateTime(
+      todayNow.year,
+      todayNow.month,
+      todayNow.day,
+    );
+    final isFutureMonth =
+        focusedYear > normalizedToday.year ||
+        (focusedYear == normalizedToday.year &&
+            focusedMonth > normalizedToday.month);
+    final isCurrentMonth =
+        focusedYear == normalizedToday.year &&
+        focusedMonth == normalizedToday.month;
+    int noRecordDaysCount = 0;
+    if (!isFutureMonth) {
+      final elapsedDays = isCurrentMonth
+          ? normalizedToday.day
+          : DateTime(focusedYear, focusedMonth + 1, 0).day;
+      noRecordDaysCount = (elapsedDays - drinkingDaysCount - soberDaysCount)
+          .clamp(0, 999);
     }
 
     return Scaffold(
@@ -160,7 +183,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         // 통계 뱃지: 항상 22px 공간을 확보해 월 전환 시 레이아웃 글리치 방지
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(22),
-          child: drinkingDaysCount > 0 || soberDaysCount > 0
+          child:
+              !monthRecordsAsync.isLoading &&
+                  (drinkingDaysCount > 0 ||
+                      soberDaysCount > 0 ||
+                      noRecordDaysCount > 0)
               ? Padding(
                   padding: EdgeInsets.only(
                     right: MediaQuery.of(context).size.width * 0.08,
@@ -174,10 +201,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           const Color(0xFFFFA3A3),
                           drinkingDaysCount,
                         ),
-                        if (soberDaysCount > 0) const SizedBox(width: 10),
+                        if (soberDaysCount > 0 || noRecordDaysCount > 0)
+                          const SizedBox(width: 10),
                       ],
-                      if (soberDaysCount > 0)
+                      if (soberDaysCount > 0) ...[
                         _buildStatDot(const Color(0xFF9CE0C0), soberDaysCount),
+                        if (noRecordDaysCount > 0) const SizedBox(width: 10),
+                      ],
+                      if (noRecordDaysCount > 0)
+                        _buildStatDot(
+                          const Color(0xFFBDBDBD),
+                          noRecordDaysCount,
+                        ),
                     ],
                   ),
                 )
