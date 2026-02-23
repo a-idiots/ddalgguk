@@ -310,7 +310,7 @@ class _DrinkingRecordItem extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '알딸딸지수 ${record.drunkLevel * 10}%',
+                '알딸딸지수 ${(record.drunkLevel * 10).round()}%',
                 style: const TextStyle(
                   fontSize: 10,
                   color: Color(0xFFF27B7B),

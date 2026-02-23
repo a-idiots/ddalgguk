@@ -18,14 +18,44 @@ class SocialScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final friendsAsync = ref.watch(friendsProvider);
     final hasFriendRequests = ref.watch(hasFriendRequestsProvider);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final postboxSize = screenWidth / 3; // 화면 가로의 1/3
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: TabPageHeader(
-        title: 'SAKU Village',
         actions: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PostboxScreen(),
+                    ),
+                  );
+                },
+                icon: Image.asset(
+                  'assets/icons/alarm_icon.png',
+                  width: 24,
+                  height: 24,
+                ),
+              ),
+              if (hasFriendRequests)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             onPressed: () {
               Navigator.of(context).push(
@@ -38,60 +68,19 @@ class SocialScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          friendsAsync.when(
-            data: (friends) {
-              // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
-              if (friends.isEmpty) {
-                return _buildEmptyStateWithRefresh(context, ref);
-              }
-              // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
-              return _buildFriendsGridWithRefresh(ref, friends);
-            },
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryPink),
-            ),
-            error: (error, stack) => _buildErrorStateWithRefresh(ref, error),
-          ),
-          // 우체통 아이콘 - 네비게이션 바 바로 위 우측 하단
-          Positioned(
-            bottom: 0, // 네비게이션 바 바로 위
-            right: 0,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const PostboxScreen(),
-                  ),
-                );
-              },
-              child: Stack(
-                children: [
-                  Image.asset(
-                    'assets/imgs/socials/empty_postbox.png',
-                    width: postboxSize,
-                    height: postboxSize,
-                  ),
-                  if (hasFriendRequests)
-                    Positioned(
-                      top: postboxSize * 0.05,
-                      right: postboxSize * 0.15,
-                      child: Container(
-                        width: postboxSize * 0.15,
-                        height: postboxSize * 0.15,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      body: friendsAsync.when(
+        data: (friends) {
+          // 친구가 아무도 없으면 (내 프로필도 없으면) Empty State 표시
+          if (friends.isEmpty) {
+            return _buildEmptyStateWithRefresh(context, ref);
+          }
+          // 항상 그리드 표시 (나의 프로필은 항상 첫 번째)
+          return _buildFriendsGridWithRefresh(ref, friends);
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryPink),
+        ),
+        error: (error, stack) => _buildErrorStateWithRefresh(ref, error),
       ),
     );
   }
@@ -113,12 +102,12 @@ class SocialScreen extends ConsumerWidget {
       onRefresh: () => _onRefresh(ref),
       color: AppColors.primaryPink,
       child: GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 3열
           childAspectRatio: 0.65, // 세로로 더 길게 (이름 버튼이 카드 외부에 있음)
-          crossAxisSpacing: 4, // 카드 간 간격 최소화
-          mainAxisSpacing: 16,
+          crossAxisSpacing: 6, // 카드 간 가로 간격
+          mainAxisSpacing: 20,
         ),
         itemCount: friends.length,
         itemBuilder: (context, index) {

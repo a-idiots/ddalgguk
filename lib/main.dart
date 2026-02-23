@@ -10,7 +10,9 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
+//import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
+import 'package:ddalgguk/core/services/friend_notification_service.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
 
 void main() async {
@@ -47,13 +49,37 @@ void main() async {
   // Initialize Secure Storage Service
   await SecureStorageService.instance.init();
 
-  // Initialize Notification Service
+  // Initialize Notification Service FIRST (before FriendNotificationService)
   try {
     final notificationManager = NotificationManager();
     await notificationManager.initialize();
+
+    // Request notification permissions
+    final granted = await notificationManager.requestPermissions();
+    debugPrint('Notification permissions granted: $granted');
+
+    // Schedule notifications if permission is granted
+    if (granted) {
+      // Try to get cached user info for personalized notifications
+      final cachedUser = await SecureStorageService.instance.getUserCache();
+      await notificationManager.scheduleAllNotifications(
+        userName: cachedUser?.name ?? '',
+        weeklyDrinkingFrequency: cachedUser?.weeklyDrinkingFrequency,
+      );
+      debugPrint('Notifications scheduled successfully');
+    }
   } catch (e) {
     debugPrint('Notification initialization error: $e');
     // Continue without notifications if initialization fails
+  }
+
+  // Initialize Friend Notification Service AFTER notification permissions
+  try {
+    final friendNotificationService = FriendNotificationService();
+    await friendNotificationService.startListening();
+    debugPrint('Friend Notification Service initialized successfully');
+  } catch (e) {
+    debugPrint('Friend Notification Service error: $e');
   }
 
   // Run the app with Riverpod

@@ -94,7 +94,7 @@ class _UnifiedProfileSetupPageState extends State<UnifiedProfileSetupPage> {
       case 1:
         return '먼저 성별을 선택해줘!';
       case 2:
-        return '나이도 선택해줘!';
+        return '생년월일을 선택해줘!';
       case 3:
         return '알콜 분해 속도는\n키와 몸무게에 따라서도 달라져!';
       case 4:

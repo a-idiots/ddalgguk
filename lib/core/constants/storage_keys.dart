@@ -14,6 +14,9 @@ class StorageKeys {
   static const String hasCompletedOnboarding = 'has_completed_onboarding';
   static const String lastLoginProvider = 'last_login_provider';
   static const String badgeStats = 'badge_stats'; // Local stats JSON
+  static const String mainDrinkIds = 'main_drink_ids'; // List<int>
+  static const String customDrinks =
+      'custom_drinks'; // List<Map<String, dynamic>>
 }
 
 /// Login provider types

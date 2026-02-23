@@ -8,64 +8,16 @@ Widget logoFlightShuttleBuilder(
   BuildContext fromHeroContext,
   BuildContext toHeroContext,
 ) {
-  // 로고 스타일을 부드럽게 보간
+  // 로고 크기를 부드럽게 보간
   return AnimatedBuilder(
     animation: animation,
     builder: (context, child) {
       final size = Tween<double>(begin: 180, end: 100).evaluate(animation);
-      final imageSize = Tween<double>(begin: 140, end: 80).evaluate(animation);
-      final borderRadius = Tween<double>(
-        begin: 90,
-        end: 24,
-      ).evaluate(animation);
 
-      // 그라디언트는 25~60% 구간에서 서서히 활성화
-      final t = animation.value;
-      final gradientOpacity = t < 0.25
-          ? 0.0
-          : t > 0.6
-          ? 1.0
-          : (t - 0.25) / 0.35;
-
-      final startColor = Color.lerp(
-        const Color(0xFFEA6B6B),
-        const Color(0xFFFF8080),
-        gradientOpacity,
-      )!;
-
-      final endColor = Color.lerp(
-        const Color(0xFFEA6B6B),
-        const Color(0xFFDA4444),
-        gradientOpacity,
-      )!;
-
-      return Container(
+      return Image.asset(
+        'assets/logo/v1_1_logo.png',
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [startColor, endColor],
-          ),
-          borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: Tween<double>(begin: 20, end: 10).evaluate(animation),
-              offset: Offset(
-                0,
-                Tween<double>(begin: 8, end: 4).evaluate(animation),
-              ),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: Center(
-            child: Image.asset('assets/imgs/logo.png', width: imageSize),
-          ),
-        ),
       );
     },
   );

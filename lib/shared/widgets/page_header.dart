@@ -6,12 +6,14 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.onBack,
-    this.height = 40,
+    this.height = 56,
+    this.actions,
   });
 
   final String title;
   final VoidCallback? onBack;
   final double height;
+  final List<Widget>? actions;
 
   @override
   Size get preferredSize => Size.fromHeight(height);
@@ -50,6 +52,7 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
           color: Colors.black,
         ),
       ),
+      actions: actions,
     );
   }
 }
@@ -58,15 +61,15 @@ class CommonPageHeader extends StatelessWidget implements PreferredSizeWidget {
 class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
   const TabPageHeader({
     super.key,
-    required this.title,
+    this.title,
     this.actions,
-    this.height = 40,
+    this.height = 56,
     this.fontSize = 20,
     this.centerTitle = true,
     this.bottom,
   });
 
-  final String title;
+  final String? title;
   final List<Widget>? actions;
   final double height;
   final double fontSize;
@@ -86,17 +89,19 @@ class TabPageHeader extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       toolbarHeight: height,
       titleSpacing: 0,
-      title: Padding(
-        padding: EdgeInsets.only(top: bottom != null ? 0 : 0),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
-        ),
-      ),
+      title: title != null
+          ? Padding(
+              padding: EdgeInsets.only(top: bottom != null ? 0 : 0),
+              child: Text(
+                title!,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+            )
+          : null,
       actions: actions,
       bottom: bottom,
     );

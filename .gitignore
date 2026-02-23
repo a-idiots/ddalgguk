@@ -3,6 +3,7 @@
 *.log
 *.pyc
 *.swp
+*.pem
 .buildlog/
 .history
 
