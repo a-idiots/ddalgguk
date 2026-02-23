@@ -750,7 +750,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         sessionNumber: 0, // 서비스에서 자동 계산
         meetingName: '금주',
         drunkLevel: 0,
-        yearMonth: DateFormat('yyyy-MM').format(_selectedDay!),
+        // UTC 날짜 성분 직접 추출: DateFormat.format()은 로컬 변환하므로 월 경계에서 오류 발생
+        yearMonth:
+            '${_selectedDay!.year.toString().padLeft(4, '0')}-'
+            '${_selectedDay!.month.toString().padLeft(2, '0')}',
         drinkAmount: [],
         memo: {'text': '술을 한방울도 안마셨어요!'},
         cost: 0,

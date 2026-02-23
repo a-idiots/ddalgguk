@@ -54,12 +54,20 @@ class DrinkingRecord {
     final data = snapshot.data()!;
 
     // date 필드가 Timestamp 또는 String일 수 있음
+    // 항상 UTC 날짜 성분 기준으로 파싱: 해외 타임존에서도 날짜가 밀리지 않음
     DateTime parsedDate;
     final dateData = data['date'];
     if (dateData is Timestamp) {
-      parsedDate = dateData.toDate();
+      final utc = dateData.toDate().toUtc();
+      parsedDate = DateTime(utc.year, utc.month, utc.day);
     } else if (dateData is String) {
-      parsedDate = DateTime.parse(dateData);
+      // "YYYY-MM-DD" 형식: 날짜 성분만 추출 (타임존 변환 없음)
+      final parts = dateData.split('-');
+      parsedDate = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2].substring(0, 2)),
+      );
     } else {
       throw Exception('Invalid date format: $dateData');
     }
@@ -91,7 +99,8 @@ class DrinkingRecord {
   /// Firestore에 저장할 Map으로 변환
   Map<String, dynamic> toMap() {
     return {
-      'date': Timestamp.fromDate(date),
+      // UTC 자정으로 정규화: 해외 타임존에서도 날짜가 밀리지 않음
+      'date': Timestamp.fromDate(DateTime.utc(date.year, date.month, date.day)),
       'yearMonth': yearMonth,
       'sessionNumber': sessionNumber,
       'meetingName': meetingName,
