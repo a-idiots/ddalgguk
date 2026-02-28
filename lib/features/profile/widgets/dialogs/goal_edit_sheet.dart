@@ -32,8 +32,9 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
       _budgetController.text = widget.initialBudget.toString();
     }
     if (widget.initialAlcohol != null) {
-      _alcoholController.text = widget.initialAlcohol!
-          .toStringAsFixed(widget.initialAlcohol! % 1 == 0 ? 0 : 1);
+      _alcoholController.text = widget.initialAlcohol!.toStringAsFixed(
+        widget.initialAlcohol! % 1 == 0 ? 0 : 1,
+      );
     }
   }
 
@@ -70,9 +71,9 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('저장에 실패했습니다. 다시 시도해주세요.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('저장에 실패했습니다. 다시 시도해주세요.')));
       }
     } finally {
       if (mounted) {
@@ -113,10 +114,7 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
             // Title
             const Text(
               '음주 목표 설정',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 32),
             // Budget input
@@ -134,8 +132,9 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
               label: '$monthNum월 목표 음주량',
               unit: '병',
               controller: _alcoholController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
@@ -151,9 +150,7 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
                 child: ElevatedButton(
                   onPressed: (_canSave && !_isSaving) ? _save : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _canSave
-                        ? Colors.black
-                        : Colors.grey[300],
+                    backgroundColor: _canSave ? Colors.black : Colors.grey[300],
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

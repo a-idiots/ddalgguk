@@ -141,7 +141,7 @@ class AppUser {
   final double? weight;
 
   // Monthly Goal
-  final int? monthlyGoalBudget;    // 월 술자리 예산 (원)
+  final int? monthlyGoalBudget; // 월 술자리 예산 (원)
   final double? monthlyGoalAlcohol; // 월 목표 음주량 (병)
 
   /// Parse favoriteDrink from JSON - handles both int and List formats

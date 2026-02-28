@@ -112,7 +112,10 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Text(
                         '프로필 편집',
-                        style: TextStyle(fontFamily: 'Pretendard', fontSize: 12),
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -125,7 +128,10 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   CircleAvatar(radius: 32, child: CircularProgressIndicator()),
                   SizedBox(width: 16),
-                  Text('Loading...', style: TextStyle(fontFamily: 'Pretendard')),
+                  Text(
+                    'Loading...',
+                    style: TextStyle(fontFamily: 'Pretendard'),
+                  ),
                 ],
               ),
             ),
@@ -216,9 +222,7 @@ class SettingsScreen extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            newGoal
-                                ? '즐거운 음주로 변경되었습니다'
-                                : '건강한 절주로 변경되었습니다',
+                            newGoal ? '즐거운 음주로 변경되었습니다' : '건강한 절주로 변경되었습니다',
                           ),
                         ),
                       );
@@ -258,29 +262,36 @@ class SettingsScreen extends ConsumerWidget {
 
           // Debug Section
           const SettingsSectionHeader(title: '디버그'),
-          ref.watch(proProvider).when(
-            data: (isPro) => SwitchListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-              title: const Text(
-                'DDALGGUK PRO (디버그)',
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+          ref
+              .watch(proProvider)
+              .when(
+                data: (isPro) => SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  title: const Text(
+                    'DDALGGUK PRO (디버그)',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    isPro ? 'PRO 기능 활성화됨' : 'PRO 기능 비활성화됨',
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 12,
+                    ),
+                  ),
+                  value: isPro,
+                  activeThumbColor: const Color(0xFFF0A9A9),
+                  activeTrackColor: const Color(
+                    0xFFF0A9A9,
+                  ).withValues(alpha: 0.4),
+                  onChanged: (_) => ref.read(proProvider.notifier).toggle(),
                 ),
+                loading: () => const SizedBox(height: 48),
+                error: (_, __) => const SizedBox.shrink(),
               ),
-              subtitle: Text(
-                isPro ? 'PRO 기능 활성화됨' : 'PRO 기능 비활성화됨',
-                style: const TextStyle(fontFamily: 'Pretendard', fontSize: 12),
-              ),
-              value: isPro,
-              activeThumbColor: const Color(0xFFF0A9A9),
-              activeTrackColor: const Color(0xFFF0A9A9).withValues(alpha: 0.4),
-              onChanged: (_) => ref.read(proProvider.notifier).toggle(),
-            ),
-            loading: () => const SizedBox(height: 48),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
         ],
       ),
     );

@@ -224,8 +224,7 @@ class _GoalBottomSheetContent extends StatelessWidget {
                   ),
                   child: const Text(
                     '수정하기',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -498,9 +497,7 @@ class _LegendRow extends StatelessWidget {
             height: 12,
             decoration: BoxDecoration(
               color: item.filled ? Colors.grey[400] : null,
-              border: item.filled
-                  ? null
-                  : Border.all(color: Colors.grey[400]!),
+              border: item.filled ? null : Border.all(color: Colors.grey[400]!),
               borderRadius: BorderRadius.circular(2),
             ),
           ),

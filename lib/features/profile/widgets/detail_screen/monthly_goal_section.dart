@@ -151,9 +151,7 @@ class MonthlyGoalSection extends ConsumerWidget {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => GoalEditSheet(
-          monthLabel: '$monthNum월',
-        ),
+        builder: (_) => GoalEditSheet(monthLabel: '$monthNum월'),
       );
     }
   }
@@ -162,22 +160,16 @@ class MonthlyGoalSection extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'DDALGGUK PRO',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text(
-          '음주 목표 설정은 PRO 기능이에요.\n구독 또는 1회 결제로 이용할 수 있어요.',
-        ),
+        content: const Text('음주 목표 설정은 PRO 기능이에요.\n구독 또는 1회 결제로 이용할 수 있어요.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '확인',
-              style: TextStyle(color: Color(0xFFF0A9A9)),
-            ),
+            child: const Text('확인', style: TextStyle(color: Color(0xFFF0A9A9))),
           ),
         ],
       ),
@@ -242,8 +234,10 @@ class _GoalSummaryText extends StatelessWidget {
     }
 
     if (alcoholGoal != null) {
-      final remaining =
-          (alcoholGoal! - currentAlcohol).clamp(0.0, alcoholGoal!);
+      final remaining = (alcoholGoal! - currentAlcohol).clamp(
+        0.0,
+        alcoholGoal!,
+      );
       if (spans.isNotEmpty) {
         spans.add(const TextSpan(text: ' / '));
       }

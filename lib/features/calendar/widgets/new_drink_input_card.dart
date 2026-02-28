@@ -247,11 +247,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
       return ['ml', '잔', '병'];
     }
 
-    return [
-      'ml',
-      if (d.glassVolume > 0) '잔',
-      if (d.bottleVolume > 0) '병',
-    ];
+    return ['ml', if (d.glassVolume > 0) '잔', if (d.bottleVolume > 0) '병'];
   }
 
   Widget _buildUnitSelector() {
@@ -277,8 +273,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
         },
         itemBuilder: (BuildContext context) => availableUnits
             .map(
-              (unit) =>
-                  PopupMenuItem<String>(value: unit, child: Text(unit)),
+              (unit) => PopupMenuItem<String>(value: unit, child: Text(unit)),
             )
             .toList(),
         child: Container(
@@ -308,8 +303,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     // 이 버튼이 선택되었는지 판별
     bool isSelected;
     if (isOtherButton) {
-      isSelected =
-          isCustomDrinkSelected || widget.inputData.drinkType == -1;
+      isSelected = isCustomDrinkSelected || widget.inputData.drinkType == -1;
     } else {
       isSelected = widget.inputData.drinkType == type;
     }
@@ -366,9 +360,8 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
             }
             final selectedId = await showDialog<int>(
               context: context,
-              builder: (context) => OtherDrinkSelectionDialog(
-                excludeIds: _mainDrinkIds,
-              ),
+              builder: (context) =>
+                  OtherDrinkSelectionDialog(excludeIds: _mainDrinkIds),
             );
             if (selectedId != null) {
               setState(() {
