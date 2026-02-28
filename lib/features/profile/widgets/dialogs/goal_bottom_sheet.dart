@@ -340,28 +340,34 @@ class _ProgressBar extends StatelessWidget {
             const SizedBox(height: 6),
             // Marker label below bar at marker position
             if (ratio > 0)
-              Padding(
-                padding: EdgeInsets.only(
-                  left: (filledWidth - 16).clamp(0.0, totalWidth - 80),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+              SizedBox(
+                height: 22,
+                child: CustomSingleChildLayout(
+                  delegate: _MarkerLabelDelegate(
+                    filledWidth: filledWidth,
+                    totalWidth: totalWidth,
                   ),
-                  decoration: BoxDecoration(
-                    color: barColor.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    markerLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: barColor
-                          .withRed((barColor.r * 0.7).round())
-                          .withGreen((barColor.g * 0.7).round())
-                          .withBlue((barColor.b * 0.7).round()),
-                      fontWeight: FontWeight.w600,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: barColor.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      markerLabel,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: barColor
+                            .withRed((barColor.r * 0.7).round())
+                            .withGreen((barColor.g * 0.7).round())
+                            .withBlue((barColor.b * 0.7).round()),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -371,6 +377,35 @@ class _ProgressBar extends StatelessWidget {
       },
     );
   }
+}
+
+class _MarkerLabelDelegate extends SingleChildLayoutDelegate {
+  const _MarkerLabelDelegate({
+    required this.filledWidth,
+    required this.totalWidth,
+  });
+
+  final double filledWidth;
+  final double totalWidth;
+
+  @override
+  Size getSize(BoxConstraints constraints) => constraints.biggest;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints(maxWidth: totalWidth);
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    final idealLeft = filledWidth - childSize.width / 2;
+    final left = idealLeft.clamp(0.0, totalWidth - childSize.width);
+    return Offset(left, (size.height - childSize.height) / 2);
+  }
+
+  @override
+  bool shouldRelayout(_MarkerLabelDelegate oldDelegate) =>
+      oldDelegate.filledWidth != filledWidth ||
+      oldDelegate.totalWidth != totalWidth;
 }
 
 class _LegendItem {
