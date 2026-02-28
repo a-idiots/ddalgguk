@@ -24,6 +24,13 @@ service cloud.firestore {
              affectedKeys.hasOnly(['currentDrunkLevel']);
     }
 
+    // 친구가 만료된 dailyStatus를 삭제하는 경우만 허용 (삭제 = 결과 문서에 해당 필드 없음)
+    function isDeletingFriendDailyStatus() {
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return affectedKeys.hasOnly(['dailyStatus']) &&
+             !('dailyStatus' in request.resource.data);
+    }
+
     match /users/{userId} {
       // 모든 인증된 사용자는 다른 사용자 프로필 읽기 가능 (친구 검색, 프로필 보기)
       allow read: if isAuthenticated();
@@ -35,7 +42,8 @@ service cloud.firestore {
       // 본인은 모든 필드 수정 가능
       // 친구는 weeklyDrunkLevels와 currentDrunkLevel만 수정 가능
       allow update: if isOwner(userId) ||
-                       (isFriend(userId) && isUpdatingOnlyDrinkingFields());
+                       (isFriend(userId) && isUpdatingOnlyDrinkingFields()) ||
+                       (isFriend(userId) && isDeletingFriendDailyStatus());
 
       match /friends/{friendId} {
         // 본인의 친구 목록 읽기

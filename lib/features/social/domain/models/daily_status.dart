@@ -10,12 +10,22 @@ class DailyStatus {
     required this.expiresAt,
   });
 
-  /// Firestore에서 불러오기
+  /// Firestore에서 불러오기 (Timestamp 또는 String 모두 처리)
   factory DailyStatus.fromFirestore(Map<String, dynamic> data) {
+    DateTime parseDate(dynamic value) {
+      if (value is Timestamp) {
+        return value.toDate();
+      }
+      if (value is String) {
+        return DateTime.parse(value);
+      }
+      return DateTime.now();
+    }
+
     return DailyStatus(
       message: data['message'] as String? ?? defaultMessage,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      expiresAt: (data['expiresAt'] as Timestamp).toDate(),
+      createdAt: parseDate(data['createdAt']),
+      expiresAt: parseDate(data['expiresAt']),
     );
   }
 

@@ -1,7 +1,8 @@
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
+// TODO(premium): 프리미엄 기능 활성화 시 아래 import 주석 해제
+// import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -276,25 +277,26 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     }
 
     return GestureDetector(
-      onTap: () async {
-        if (isOtherButton) {
-          // 기타 버튼 클릭 시 다이얼로그 표시
-          final selectedId = await showDialog<int>(
-            context: context,
-            builder: (context) => const OtherDrinkSelectionDialog(),
-          );
-
-          if (selectedId != null) {
-            setState(() {
-              _updateDrinkData(selectedId);
-            });
-          }
-        } else {
-          // 일반 버튼 클릭
-          setState(() {
-            _updateDrinkData(type);
-          });
-        }
+      onTap: () {
+        // TODO(premium): 기타 버튼 클릭 시 다이얼로그 표시 (프리미엄 기능으로 추후 활성화)
+        // if (isOtherButton) {
+        //   final selectedId = await showDialog<int>(
+        //     context: context,
+        //     builder: (context) => const OtherDrinkSelectionDialog(),
+        //   );
+        //   if (selectedId != null) {
+        //     setState(() {
+        //       _updateDrinkData(selectedId);
+        //     });
+        //   }
+        // } else {
+        //   setState(() {
+        //     _updateDrinkData(type);
+        //   });
+        // }
+        setState(() {
+          _updateDrinkData(type);
+        });
       },
       child: Column(
         children: [
