@@ -239,7 +239,9 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
   /// 선택된 주종에서 사용 가능한 단위 목록을 반환.
   /// 커스텀 주종(id >= 1000)은 ml만, 그 외는 볼륨 값에 따라 필터링.
   List<String> _getAvailableUnits(int drinkType) {
-    if (drinkType >= 1000) return ['ml'];
+    if (drinkType >= 1000) {
+      return ['ml'];
+    }
 
     Drink? d = drinks.where((d) => d.id == drinkType).firstOrNull;
     d ??= _customDrinks.where((d) => d.id == drinkType).firstOrNull;
