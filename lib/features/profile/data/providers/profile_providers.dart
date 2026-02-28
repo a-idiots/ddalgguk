@@ -188,6 +188,41 @@ final monthlySpendingComparisonProvider =
       return AsyncValue.data(prevSum - currentSum);
     });
 
+/// Current month total alcohol consumed in bottles (1병 = 360ml)
+/// Uses DateTime(year, month) key so the same provider instance is reused
+/// throughout the month, avoiding repeated fetches on every rebuild.
+final currentMonthAlcoholBottlesProvider = Provider<AsyncValue<double>>((ref) {
+  final now = DateTime.now();
+  final monthKey = DateTime(now.year, now.month);
+  final recordsAsync = ref.watch(monthRecordsProvider(monthKey));
+  return recordsAsync.whenData((records) {
+    double totalMl = 0;
+    for (final record in records) {
+      for (final drink in record.drinkAmount) {
+        totalMl += drink.amount;
+      }
+    }
+    return totalMl / 360.0;
+  });
+});
+
+/// Previous month average spending per drinking session
+/// Default 30,000원 if no records with cost exist
+final prevMonthAvgSpendingProvider = FutureProvider<double>((ref) async {
+  ref.watch(drinkingRecordsLastUpdatedProvider);
+  final now = DateTime.now();
+  final prevMonth = now.month == 1 ? 12 : now.month - 1;
+  final prevYear = now.month == 1 ? now.year - 1 : now.year;
+  final service = ref.watch(drinkingRecordServiceProvider);
+  final records = await service.getRecordsByMonth(prevYear, prevMonth);
+  final sessionsWithCost = records.where((r) => r.cost > 0).toList();
+  if (sessionsWithCost.isEmpty) {
+    return 30000.0;
+  }
+  final totalCost = sessionsWithCost.fold<int>(0, (sum, r) => sum + r.cost);
+  return totalCost / sessionsWithCost.length;
+});
+
 /// Provider for user physical info
 /// Uses [UserPhysicalInfo] with [Equatable] and [selectAsync] to ensure
 /// this provider ONLY updates when relevant physical data changes

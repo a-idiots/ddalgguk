@@ -387,7 +387,10 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                     padding: EdgeInsets.only(left: 3),
                     child: Text(
                       '술값(지출 금액)',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -423,7 +426,10 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                     padding: EdgeInsets.only(left: 3),
                     child: Text(
                       '메모',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),

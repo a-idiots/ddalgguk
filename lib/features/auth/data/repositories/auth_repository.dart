@@ -617,6 +617,40 @@ class AuthRepository {
     }
   }
 
+  /// Update monthly drinking goal
+  Future<void> updateMonthlyGoal({int? budget, double? alcohol}) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final updates = <String, dynamic>{};
+      if (budget != null) {
+        updates['monthlyGoalBudget'] = budget;
+      }
+      if (alcohol != null) {
+        updates['monthlyGoalAlcohol'] = alcohol;
+      }
+
+      if (updates.isNotEmpty) {
+        await _usersCollection.doc(uid).update(updates);
+
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            monthlyGoalBudget: budget ?? currentUser.monthlyGoalBudget,
+            monthlyGoalAlcohol: alcohol ?? currentUser.monthlyGoalAlcohol,
+          );
+          await _storageService.saveUserCache(updatedUser);
+        }
+      }
+    } catch (e) {
+      debugPrint('Update monthly goal error: $e');
+      rethrow;
+    }
+  }
+
   /// Delete user account
   Future<void> deleteAccount() async {
     try {

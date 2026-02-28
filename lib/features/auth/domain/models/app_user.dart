@@ -28,6 +28,8 @@ class AppUser {
     this.birthDate,
     this.height,
     this.weight,
+    this.monthlyGoalBudget,
+    this.monthlyGoalAlcohol,
   });
 
   /// Create AppUser from Firebase User
@@ -94,6 +96,10 @@ class AppUser {
       weight: json['weight'] != null
           ? (json['weight'] as num).toDouble()
           : null,
+      monthlyGoalBudget: json['monthlyGoalBudget'] as int?,
+      monthlyGoalAlcohol: json['monthlyGoalAlcohol'] != null
+          ? (json['monthlyGoalAlcohol'] as num).toDouble()
+          : null,
     );
   }
 
@@ -133,6 +139,10 @@ class AppUser {
   final DateTime? birthDate;
   final double? height;
   final double? weight;
+
+  // Monthly Goal
+  final int? monthlyGoalBudget; // 월 술자리 예산 (원)
+  final double? monthlyGoalAlcohol; // 월 목표 음주량 (병)
 
   /// Parse favoriteDrink from JSON - handles both int and List formats
   static int? _parseFavoriteDrink(dynamic value) {
@@ -175,6 +185,8 @@ class AppUser {
       'birthDate': birthDate?.toIso8601String(),
       'height': height,
       'weight': weight,
+      'monthlyGoalBudget': monthlyGoalBudget,
+      'monthlyGoalAlcohol': monthlyGoalAlcohol,
     };
   }
 
@@ -217,6 +229,8 @@ class AppUser {
     DateTime? birthDate,
     double? height,
     double? weight,
+    int? monthlyGoalBudget,
+    double? monthlyGoalAlcohol,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -243,6 +257,8 @@ class AppUser {
       birthDate: birthDate ?? this.birthDate,
       height: height ?? this.height,
       weight: weight ?? this.weight,
+      monthlyGoalBudget: monthlyGoalBudget ?? this.monthlyGoalBudget,
+      monthlyGoalAlcohol: monthlyGoalAlcohol ?? this.monthlyGoalAlcohol,
     );
   }
 
@@ -281,7 +297,9 @@ class AppUser {
         other.gender == gender &&
         other.birthDate == birthDate &&
         other.height == height &&
-        other.weight == weight;
+        other.weight == weight &&
+        other.monthlyGoalBudget == monthlyGoalBudget &&
+        other.monthlyGoalAlcohol == monthlyGoalAlcohol;
   }
 
   @override
@@ -309,7 +327,9 @@ class AppUser {
         gender.hashCode ^
         birthDate.hashCode ^
         height.hashCode ^
-        weight.hashCode;
+        weight.hashCode ^
+        monthlyGoalBudget.hashCode ^
+        monthlyGoalAlcohol.hashCode;
   }
 
   /// Helper method to compare lists

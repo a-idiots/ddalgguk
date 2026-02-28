@@ -133,7 +133,11 @@ class EditInfoScreen extends ConsumerWidget {
 
 /// Goal toggle tile widget
 class GoalToggleTile extends StatefulWidget {
-  const GoalToggleTile({super.key, required this.currentGoal, required this.onToggle});
+  const GoalToggleTile({
+    super.key,
+    required this.currentGoal,
+    required this.onToggle,
+  });
 
   final bool currentGoal;
   final Future<void> Function(bool)? onToggle;
@@ -1653,5 +1657,3 @@ class _NonLinearSlider extends StatelessWidget {
     );
   }
 }
-
-

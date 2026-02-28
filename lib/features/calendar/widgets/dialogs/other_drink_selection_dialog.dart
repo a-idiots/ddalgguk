@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OtherDrinkSelectionDialog extends ConsumerStatefulWidget {
-  const OtherDrinkSelectionDialog({
-    super.key,
-    this.excludeIds = const [],
-  });
+  const OtherDrinkSelectionDialog({super.key, this.excludeIds = const []});
 
   /// 메인 기록 주종으로 이미 표시되는 ID — 이 목록에서 제외됨
   final List<int> excludeIds;

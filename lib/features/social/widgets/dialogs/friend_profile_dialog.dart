@@ -1,7 +1,6 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
-import 'package:ddalgguk/features/profile/widgets/detail_screen/achievements_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/alcohol_breakdown_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/weekly_saku_section.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
@@ -236,15 +235,6 @@ class FriendProfileDialog extends ConsumerWidget {
                   weeklyStats: weeklyStats,
                   theme: theme,
                   isScrollable: false,
-                ),
-                const SizedBox(height: 16),
-                // 업적
-                AchievementsSection(
-                  theme: theme,
-                  customTitle: '업적',
-                  showMoreButton: false,
-                  onlyPinned: true,
-                  friendUserId: friendData.userId,
                 ),
                 const SizedBox(height: 16),
                 // 알콜 분해 정보 - provider에서 가져온 정확한 통계 사용

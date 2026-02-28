@@ -239,7 +239,9 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
   /// 선택된 주종에서 사용 가능한 단위 목록을 반환.
   /// 커스텀 주종(id >= 1000)은 ml만, 그 외는 볼륨 값에 따라 필터링.
   List<String> _getAvailableUnits(int drinkType) {
-    if (drinkType >= 1000) return ['ml'];
+    if (drinkType >= 1000) {
+      return ['ml'];
+    }
 
     Drink? d = drinks.where((d) => d.id == drinkType).firstOrNull;
     d ??= _customDrinks.where((d) => d.id == drinkType).firstOrNull;
@@ -247,11 +249,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
       return ['ml', '잔', '병'];
     }
 
-    return [
-      'ml',
-      if (d.glassVolume > 0) '잔',
-      if (d.bottleVolume > 0) '병',
-    ];
+    return ['ml', if (d.glassVolume > 0) '잔', if (d.bottleVolume > 0) '병'];
   }
 
   Widget _buildUnitSelector() {
@@ -277,8 +275,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
         },
         itemBuilder: (BuildContext context) => availableUnits
             .map(
-              (unit) =>
-                  PopupMenuItem<String>(value: unit, child: Text(unit)),
+              (unit) => PopupMenuItem<String>(value: unit, child: Text(unit)),
             )
             .toList(),
         child: Container(
@@ -308,8 +305,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     // 이 버튼이 선택되었는지 판별
     bool isSelected;
     if (isOtherButton) {
-      isSelected =
-          isCustomDrinkSelected || widget.inputData.drinkType == -1;
+      isSelected = isCustomDrinkSelected || widget.inputData.drinkType == -1;
     } else {
       isSelected = widget.inputData.drinkType == type;
     }
@@ -366,9 +362,8 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
             }
             final selectedId = await showDialog<int>(
               context: context,
-              builder: (context) => OtherDrinkSelectionDialog(
-                excludeIds: _mainDrinkIds,
-              ),
+              builder: (context) =>
+                  OtherDrinkSelectionDialog(excludeIds: _mainDrinkIds),
             );
             if (selectedId != null) {
               setState(() {
