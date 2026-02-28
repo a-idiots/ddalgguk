@@ -1,8 +1,8 @@
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-// TODO(premium): 프리미엄 기능 활성화 시 아래 import 주석 해제
-// import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -36,21 +36,34 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     _loadMainDrinkSettings();
   }
 
+  static const List<int> _freeDefaultDrinkIds = kFreeDefaultDrinkIds;
+
   Future<void> _loadMainDrinkSettings() async {
     try {
+      final isPro = await ref.read(proProvider.future);
+
+      if (!isPro) {
+        // 무료 전환 시 storage도 기본값으로 리셋
+        final service = ref.read(drinkSettingsServiceProvider);
+        await service.saveMainDrinkIds(List.of(_freeDefaultDrinkIds));
+        if (mounted) {
+          setState(() {
+            _mainDrinkIds = _freeDefaultDrinkIds;
+            _customDrinks = [];
+          });
+        }
+        return;
+      }
+
       final service = ref.read(drinkSettingsServiceProvider);
       final savedIds = await service.loadMainDrinkIds();
-      final customDrinks = await service
-          .loadCustomDrinks(); // Load custom drinks
+      final customDrinks = await service.loadCustomDrinks();
 
-      if (savedIds.isNotEmpty) {
-        // Ensure we only take up to 5, though settings limits to 5
+      if (mounted) {
         setState(() {
-          _mainDrinkIds = savedIds.take(5).toList();
-          _customDrinks = customDrinks;
-        });
-      } else {
-        setState(() {
+          _mainDrinkIds = savedIds.isNotEmpty
+              ? savedIds.take(5).toList()
+              : _mainDrinkIds;
           _customDrinks = customDrinks;
         });
       }
@@ -61,6 +74,15 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Pro 상태가 바뀌면 주종 목록 재로드 (Pro→free 시 리셋, free→Pro 시 저장된 설정 복원)
+    ref.listen<AsyncValue<bool>>(proProvider, (previous, next) {
+      final wasPro = previous?.valueOrNull ?? false;
+      final isPro = next.valueOrNull ?? false;
+      if (wasPro != isPro) {
+        _loadMainDrinkSettings();
+      }
+    });
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -212,6 +234,47 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
               child: const Text('추가', style: TextStyle(fontSize: 16)),
             ),
           ),
+
+          // Pro 홍보 문구 (Pro가 아닐 때만 표시)
+          if (!(ref.watch(proProvider).valueOrNull ?? false)) ...[
+            const SizedBox(height: 10),
+            Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 11,
+                  color: Colors.grey[500],
+                ),
+                children: [
+                  const TextSpan(text: '기본 주종 외의 주종 아이콘은 '),
+                  const TextSpan(
+                    text: '딸꾹 Pro',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const TextSpan(text: '를 구독해서 이용해보세요!  '),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: navigate to Pro purchase screen
+                      },
+                      child: const Text(
+                        '더 알아보기',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 11,
+                          color: Color(0xFFF0A9A9),
+                          decoration: TextDecoration.underline,
+                          decorationColor: Color(0xFFF0A9A9),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
       ),
     );
@@ -229,7 +292,8 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     // 이 버튼이 선택되었는지 판별
     bool isSelected;
     if (isOtherButton) {
-      isSelected = isCustomDrinkSelected;
+      isSelected =
+          isCustomDrinkSelected || widget.inputData.drinkType == -1;
     } else {
       isSelected = widget.inputData.drinkType == type;
     }
@@ -277,26 +341,34 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     }
 
     return GestureDetector(
-      onTap: () {
-        // TODO(premium): 기타 버튼 클릭 시 다이얼로그 표시 (프리미엄 기능으로 추후 활성화)
-        // if (isOtherButton) {
-        //   final selectedId = await showDialog<int>(
-        //     context: context,
-        //     builder: (context) => const OtherDrinkSelectionDialog(),
-        //   );
-        //   if (selectedId != null) {
-        //     setState(() {
-        //       _updateDrinkData(selectedId);
-        //     });
-        //   }
-        // } else {
-        //   setState(() {
-        //     _updateDrinkData(type);
-        //   });
-        // }
-        setState(() {
-          _updateDrinkData(type);
-        });
+      onTap: () async {
+        if (isOtherButton) {
+          final isPro = ref.read(proProvider).valueOrNull ?? false;
+          if (isPro) {
+            if (!context.mounted) {
+              return;
+            }
+            final selectedId = await showDialog<int>(
+              context: context,
+              builder: (context) => OtherDrinkSelectionDialog(
+                excludeIds: _mainDrinkIds,
+              ),
+            );
+            if (selectedId != null) {
+              setState(() {
+                _updateDrinkData(selectedId);
+              });
+            }
+          } else {
+            setState(() {
+              _updateDrinkData(-1);
+            });
+          }
+        } else {
+          setState(() {
+            _updateDrinkData(type);
+          });
+        }
       },
       child: Column(
         children: [

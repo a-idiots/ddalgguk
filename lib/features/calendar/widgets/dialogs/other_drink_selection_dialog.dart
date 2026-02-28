@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OtherDrinkSelectionDialog extends ConsumerStatefulWidget {
-  const OtherDrinkSelectionDialog({super.key});
+  const OtherDrinkSelectionDialog({
+    super.key,
+    this.excludeIds = const [],
+  });
+
+  /// 메인 기록 주종으로 이미 표시되는 ID — 이 목록에서 제외됨
+  final List<int> excludeIds;
 
   @override
   ConsumerState<OtherDrinkSelectionDialog> createState() =>
@@ -24,16 +30,23 @@ class _OtherDrinkSelectionDialogState
 
   Future<void> _loadDrinks() async {
     try {
-      // Load standard drinks (ID >= 1)
-      final standardDrinks = drinks.where((d) => d.id >= 1).toList();
+      // "기타" 아이콘(id=-1)을 맨 앞에 추가
+      final gitaDrink = drinks.firstWhere((d) => d.id == -1);
 
-      // Load custom drinks
+      // 표준 주종(ID >= 1) 중 메인 목록에 이미 있는 것 제외
+      final standardDrinks = drinks
+          .where((d) => d.id >= 1 && !widget.excludeIds.contains(d.id))
+          .toList();
+
+      // 커스텀 주종도 메인 목록에 있는 것 제외
       final service = ref.read(drinkSettingsServiceProvider);
-      final customDrinks = await service.loadCustomDrinks();
+      final customDrinks = (await service.loadCustomDrinks())
+          .where((d) => !widget.excludeIds.contains(d.id))
+          .toList();
 
       if (mounted) {
         setState(() {
-          _allDrinks = [...standardDrinks, ...customDrinks];
+          _allDrinks = [gitaDrink, ...standardDrinks, ...customDrinks];
           _isLoading = false;
         });
       }
