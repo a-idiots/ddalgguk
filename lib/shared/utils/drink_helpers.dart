@@ -102,8 +102,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/highball.png',
     defaultAlcoholContent: 7.0,
     defaultUnit: '잔',
-    glassVolume: 350.0,
-    bottleVolume: 0.0, // 보통 잔으로 마심
+    glassVolume: 300.0,
+    bottleVolume: 0.0, // 병 없음
   ),
   Drink(
     id: 8,
@@ -111,8 +111,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/sake.png',
     defaultAlcoholContent: 15.0,
     defaultUnit: '잔',
-    glassVolume: 50.0,
-    bottleVolume: 720.0,
+    glassVolume: 30.0,
+    bottleVolume: 180.0,
   ),
   Drink(
     id: 9,

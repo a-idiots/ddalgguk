@@ -151,53 +151,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
             decoration: InputDecoration(
               hintText: '양을 입력해주세요.',
               hintStyle: TextStyle(color: Colors.grey[400]),
-              suffixIcon: Container(
-                padding: const EdgeInsets.only(right: 8),
-                child: PopupMenuButton<String>(
-                  initialValue: widget.inputData.selectedUnit,
-                  color: Colors.grey[200],
-                  onSelected: (String newUnit) {
-                    setState(() {
-                      widget.inputData.selectedUnit = newUnit;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          value: 'ml',
-                          child: Text('ml'),
-                        ),
-                        const PopupMenuItem<String>(
-                          value: '잔',
-                          child: Text('잔'),
-                        ),
-                        const PopupMenuItem<String>(
-                          value: '병',
-                          child: Text('병'),
-                        ),
-                      ],
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.inputData.selectedUnit,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          size: 28,
-                          color: Colors.grey[600],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              suffixIcon: _buildUnitSelector(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(color: Colors.grey[300]!),
@@ -281,6 +235,68 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
   }
 
   List<Drink> _customDrinks = [];
+
+  /// 선택된 주종에서 사용 가능한 단위 목록을 반환.
+  /// 커스텀 주종(id >= 1000)은 ml만, 그 외는 볼륨 값에 따라 필터링.
+  List<String> _getAvailableUnits(int drinkType) {
+    if (drinkType >= 1000) return ['ml'];
+
+    Drink? d = drinks.where((d) => d.id == drinkType).firstOrNull;
+    d ??= _customDrinks.where((d) => d.id == drinkType).firstOrNull;
+    if (d == null) {
+      return ['ml', '잔', '병'];
+    }
+
+    return [
+      'ml',
+      if (d.glassVolume > 0) '잔',
+      if (d.bottleVolume > 0) '병',
+    ];
+  }
+
+  Widget _buildUnitSelector() {
+    final availableUnits = _getAvailableUnits(widget.inputData.drinkType);
+
+    // 단위가 ml 하나뿐이면 드롭다운 없이 정적 텍스트
+    if (availableUnits.length == 1) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: const Text('ml', style: TextStyle(fontSize: 16)),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.only(right: 8),
+      child: PopupMenuButton<String>(
+        initialValue: widget.inputData.selectedUnit,
+        color: Colors.grey[200],
+        onSelected: (String newUnit) {
+          setState(() {
+            widget.inputData.selectedUnit = newUnit;
+          });
+        },
+        itemBuilder: (BuildContext context) => availableUnits
+            .map(
+              (unit) =>
+                  PopupMenuItem<String>(value: unit, child: Text(unit)),
+            )
+            .toList(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.inputData.selectedUnit,
+                style: const TextStyle(fontSize: 16),
+              ),
+              Icon(Icons.arrow_drop_down, size: 28, color: Colors.grey[600]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildDrinkTypeButton(int type) {
     final bool isOtherButton = type == -1;
@@ -418,6 +434,11 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     }
 
     widget.inputData.alcoholController.text = defaultAlcohol.toString();
-    widget.inputData.selectedUnit = defaultUnit;
+
+    // defaultUnit이 이 주종에서 허용되지 않는 경우 ml로 폴백
+    final availableUnits = _getAvailableUnits(type);
+    widget.inputData.selectedUnit = availableUnits.contains(defaultUnit)
+        ? defaultUnit
+        : availableUnits.first;
   }
 }
