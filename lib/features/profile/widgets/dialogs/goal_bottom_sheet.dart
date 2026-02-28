@@ -318,10 +318,12 @@ class _ProgressBar extends StatelessWidget {
                   height: 10,
                   decoration: BoxDecoration(
                     color: barColor,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(5),
-                      bottomLeft: Radius.circular(5),
-                    ),
+                    borderRadius: ratio >= 1.0
+                        ? BorderRadius.circular(5)
+                        : const BorderRadius.only(
+                            topLeft: Radius.circular(5),
+                            bottomLeft: Radius.circular(5),
+                          ),
                   ),
                 ),
                 // Marker line
