@@ -204,35 +204,38 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 모임명
-                  Row(
-                    children: [
-                      const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '모임명',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 3),
+                    child: Row(
+                      children: [
+                        const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '모임명',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '*',
-                            style: TextStyle(fontSize: 18, color: Colors.red),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${widget.sessionNumber}차',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey,
+                            SizedBox(width: 4),
+                            Text(
+                              '*',
+                              style: TextStyle(fontSize: 18, color: Colors.red),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const Spacer(),
+                        Text(
+                          '${widget.sessionNumber}차',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -261,29 +264,32 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                   const SizedBox(height: 24),
 
                   // 알딸딸 지수
-                  const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '알딸딸 지수',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
+                  const Padding(
+                    padding: EdgeInsets.only(left: 3),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '알딸딸 지수',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        '*',
-                        style: TextStyle(fontSize: 18, color: Colors.red),
-                      ),
-                    ],
+                        SizedBox(width: 4),
+                        Text(
+                          '*',
+                          style: TextStyle(fontSize: 18, color: Colors.red),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   // 둥근 슬라이더와 캐릭터를 겹쳐서 표시
                   Center(
                     child: SizedBox(
-                      width: 240,
-                      height: 240,
+                      width: 160,
+                      height: 160,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -293,12 +299,12 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                             min: 0,
                             max: 100,
                             divisions: 20,
-                            size: 240,
-                            trackWidth: 16,
+                            size: 160,
+                            trackWidth: 8,
                             inactiveColor: Colors.grey[300]!,
                             activeColor: const Color(0xFFFA75A5),
                             thumbColor: const Color(0xFFFA75A5),
-                            thumbRadius: 14,
+                            thumbRadius: 9,
                             onChanged: (value) {
                               setState(() {
                                 _drunkLevel = value / 10;
@@ -311,15 +317,15 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                             children: [
                               // 사쿠 캐릭터
                               SakuCharacter(
-                                size: 80,
+                                size: 54,
                                 drunkLevel: (_drunkLevel * 10).toInt(),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               // 퍼센트 표시
                               Text(
                                 '${(_drunkLevel * 10).toInt()}%',
                                 style: const TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -332,22 +338,25 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                   const SizedBox(height: 24),
 
                   // 음주량
-                  const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '음주량',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
+                  const Padding(
+                    padding: EdgeInsets.only(left: 3),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '음주량',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        '*',
-                        style: TextStyle(fontSize: 18, color: Colors.red),
-                      ),
-                    ],
+                        SizedBox(width: 4),
+                        Text(
+                          '*',
+                          style: TextStyle(fontSize: 18, color: Colors.red),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
 
@@ -374,9 +383,12 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                   const SizedBox(height: 24),
 
                   // 술값 (필수 아님)
-                  const Text(
-                    '술값(지출 금액)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 3),
+                    child: Text(
+                      '술값(지출 금액)',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -407,9 +419,12 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                   const SizedBox(height: 24),
 
                   // 메모 (필수 아님)
-                  const Text(
-                    '메모',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 3),
+                    child: Text(
+                      '메모',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
