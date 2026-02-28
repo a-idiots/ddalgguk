@@ -1,0 +1,521 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
+import 'package:ddalgguk/features/profile/widgets/dialogs/goal_edit_sheet.dart';
+
+/// 월 음주 목표 현황 바텀 시트 (유료 사용자용)
+class GoalBottomSheet extends ConsumerWidget {
+  const GoalBottomSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+    final now = DateTime.now();
+    final monthNum = now.month;
+    final monthKey = DateTime(now.year, now.month);
+
+    return userAsync.when(
+      data: (user) {
+        final budget = user?.monthlyGoalBudget;
+        final alcoholGoal = user?.monthlyGoalAlcohol;
+
+        // 현재 월 지출액
+        final spendingAsync = ref.watch(monthlySpendingProvider(monthKey));
+        final currentSpending = spendingAsync.valueOrNull ?? 0;
+
+        // 현재 월 음주량 (병)
+        final alcoholAsync = ref.watch(currentMonthAlcoholBottlesProvider);
+        final currentAlcohol = alcoholAsync.valueOrNull ?? 0.0;
+
+        // 이전 달 평균 지출 (술자리 예상 횟수 계산용)
+        final avgSpendingAsync = ref.watch(prevMonthAvgSpendingProvider);
+        final avgSpending = avgSpendingAsync.valueOrNull ?? 30000.0;
+
+        return _GoalBottomSheetContent(
+          monthNum: monthNum,
+          budget: budget,
+          alcoholGoal: alcoholGoal,
+          currentSpending: currentSpending,
+          currentAlcohol: currentAlcohol,
+          avgDrinkSpending: avgSpending,
+        );
+      },
+      loading: () => const SizedBox(
+        height: 200,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _GoalBottomSheetContent extends StatelessWidget {
+  const _GoalBottomSheetContent({
+    required this.monthNum,
+    required this.budget,
+    required this.alcoholGoal,
+    required this.currentSpending,
+    required this.currentAlcohol,
+    required this.avgDrinkSpending,
+  });
+
+  final int monthNum;
+  final int? budget;
+  final double? alcoholGoal;
+  final int currentSpending;
+  final double currentAlcohol;
+  final double avgDrinkSpending;
+
+  String get _remainingSessionsText {
+    if (budget == null) {
+      return '';
+    }
+    final remaining = (budget! - currentSpending).clamp(0, budget!);
+    final sessions = (remaining / avgDrinkSpending).floor();
+    return '$sessions번';
+  }
+
+  String get _remainingAlcoholText {
+    if (alcoholGoal == null) {
+      return '';
+    }
+    final remaining = (alcoholGoal! - currentAlcohol).clamp(0.0, alcoholGoal!);
+    return '${_formatBottle(remaining)}병';
+  }
+
+  String _formatBottle(double v) {
+    if (v == v.truncateToDouble()) {
+      return v.toInt().toString();
+    }
+    return v.toStringAsFixed(1);
+  }
+
+  String _estimatedSessionsInBudget() {
+    if (budget == null) {
+      return '0회';
+    }
+    final sessions = (budget! / avgDrinkSpending).floor();
+    return '약 $sessions회';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currencyFmt = NumberFormat('#,###');
+    final hasGoal = budget != null || alcoholGoal != null;
+
+    // 헤더 요약 텍스트
+    final parts = <String>[];
+    if (budget != null) {
+      parts.add('술자리 $_remainingSessionsText');
+    }
+    if (alcoholGoal != null) {
+      parts.add('소주 $_remainingAlcoholText');
+    }
+    final summaryText = hasGoal ? '${parts.join(' / ')} 남았습니다.' : '';
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Title
+            const Text(
+              '음주 목표 설정',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+            if (hasGoal && summaryText.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _SummaryText(
+                  summaryText: summaryText,
+                  hasBudget: budget != null,
+                  hasAlcohol: alcoholGoal != null,
+                  remainingSessions: _remainingSessionsText,
+                  remainingAlcohol: _remainingAlcoholText,
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+
+            // Budget section
+            if (budget != null) ...[
+              _GoalProgressSection(
+                title: '$monthNum월 예산',
+                subtitle: budget! - currentSpending > 0
+                    ? '${currencyFmt.format(budget! - currentSpending)}원 남음'
+                    : '예산 초과',
+                current: currentSpending.toDouble(),
+                goal: budget!.toDouble(),
+                markerLabel: '${currencyFmt.format(currentSpending)}원',
+                barColor: const Color(0xFFF7B6B6),
+                legendItems: [
+                  _LegendItem(
+                    filled: false,
+                    label: '$monthNum월 예산',
+                    value: '${currencyFmt.format(budget!)}원',
+                  ),
+                  _LegendItem(
+                    filled: true,
+                    label: '예산 내 가능 술자리',
+                    value: _estimatedSessionsInBudget(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // Alcohol section
+            if (alcoholGoal != null) ...[
+              _GoalProgressSection(
+                title: _remainingAlcoholText.isNotEmpty
+                    ? '$_remainingAlcoholText 남음'
+                    : '$monthNum월 목표',
+                subtitle: null,
+                current: currentAlcohol,
+                goal: alcoholGoal!,
+                markerLabel: '${_formatBottle(currentAlcohol)}병',
+                barColor: const Color(0xFFADE4C3),
+                legendItems: [
+                  _LegendItem(
+                    filled: false,
+                    label: '$monthNum월 목표 음주량',
+                    value: '${_formatBottle(alcoholGoal!)}병',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            const SizedBox(height: 16),
+
+            // 수정하기 button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () => _openEditSheet(context, budget, alcoholGoal),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    '수정하기',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEditSheet(
+    BuildContext context,
+    int? budget,
+    double? alcoholGoal,
+  ) async {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!context.mounted) {
+      return;
+    }
+    await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => GoalEditSheet(
+        initialBudget: budget,
+        initialAlcohol: alcoholGoal,
+        monthLabel: '$monthNum월',
+      ),
+    );
+  }
+}
+
+class _SummaryText extends StatelessWidget {
+  const _SummaryText({
+    required this.summaryText,
+    required this.hasBudget,
+    required this.hasAlcohol,
+    required this.remainingSessions,
+    required this.remainingAlcohol,
+  });
+
+  final String summaryText;
+  final bool hasBudget;
+  final bool hasAlcohol;
+  final String remainingSessions;
+  final String remainingAlcohol;
+
+  @override
+  Widget build(BuildContext context) {
+    // Build rich text with highlighted parts
+    final spans = <InlineSpan>[];
+    // "술자리 3번 / 소주 8.2병 남았습니다."
+    if (hasBudget && hasAlcohol) {
+      spans.addAll([
+        const TextSpan(text: '술자리 '),
+        TextSpan(
+          text: remainingSessions,
+          style: const TextStyle(
+            color: Color(0xFFF27B7B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const TextSpan(text: ' / 소주 '),
+        TextSpan(
+          text: remainingAlcohol,
+          style: const TextStyle(
+            color: Color(0xFFF27B7B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const TextSpan(text: '\n남았습니다.'),
+      ]);
+    } else if (hasBudget) {
+      spans.addAll([
+        const TextSpan(text: '술자리 '),
+        TextSpan(
+          text: remainingSessions,
+          style: const TextStyle(
+            color: Color(0xFFF27B7B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const TextSpan(text: ' 남았습니다.'),
+      ]);
+    } else {
+      spans.addAll([
+        const TextSpan(text: '소주 '),
+        TextSpan(
+          text: remainingAlcohol,
+          style: const TextStyle(
+            color: Color(0xFFF27B7B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const TextSpan(text: ' 남았습니다.'),
+      ]);
+    }
+
+    return Text.rich(
+      TextSpan(
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        children: spans,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+}
+
+class _GoalProgressSection extends StatelessWidget {
+  const _GoalProgressSection({
+    required this.title,
+    required this.subtitle,
+    required this.current,
+    required this.goal,
+    required this.markerLabel,
+    required this.barColor,
+    required this.legendItems,
+  });
+
+  final String title;
+  final String? subtitle;
+  final double current;
+  final double goal;
+  final String markerLabel;
+  final Color barColor;
+  final List<_LegendItem> legendItems;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = goal > 0 ? (current / goal).clamp(0.0, 1.0) : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle!,
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
+          const SizedBox(height: 12),
+          // Progress bar with marker
+          _ProgressBar(
+            ratio: ratio,
+            barColor: barColor,
+            markerLabel: markerLabel,
+          ),
+          const SizedBox(height: 12),
+          // Legend
+          ...legendItems.map((item) => _LegendRow(item: item)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({
+    required this.ratio,
+    required this.barColor,
+    required this.markerLabel,
+  });
+
+  final double ratio;
+  final Color barColor;
+  final String markerLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        final filledWidth = totalWidth * ratio;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Bar
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Background
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                // Filled
+                Container(
+                  width: filledWidth.clamp(0.0, totalWidth),
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: barColor,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                // Marker line
+                if (ratio > 0 && ratio < 1)
+                  Positioned(
+                    left: filledWidth - 0.5,
+                    top: -2,
+                    child: Container(
+                      width: 1,
+                      height: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // Marker label below bar at marker position
+            if (ratio > 0)
+              Padding(
+                padding: EdgeInsets.only(
+                  left: (filledWidth - 20).clamp(0.0, totalWidth - 60),
+                ),
+                child: Text(
+                  markerLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: barColor.withValues(alpha: 1.0),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _LegendItem {
+  const _LegendItem({
+    required this.filled,
+    required this.label,
+    required this.value,
+  });
+
+  final bool filled;
+  final String label;
+  final String value;
+}
+
+class _LegendRow extends StatelessWidget {
+  const _LegendRow({required this.item});
+
+  final _LegendItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: item.filled ? Colors.grey[400] : null,
+              border: item.filled
+                  ? null
+                  : Border.all(color: Colors.grey[400]!),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            item.label,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const Spacer(),
+          Text(
+            item.value,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+}
