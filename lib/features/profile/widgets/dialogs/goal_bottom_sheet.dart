@@ -16,21 +16,18 @@ class GoalBottomSheet extends ConsumerWidget {
     final monthNum = now.month;
     final monthKey = DateTime(now.year, now.month);
 
+    // 최상위에서 watch해야 변경 시 즉시 반영됨
+    final spendingAsync = ref.watch(monthlySpendingProvider(monthKey));
+    final alcoholAsync = ref.watch(currentMonthAlcoholBottlesProvider);
+    final avgSpendingAsync = ref.watch(prevMonthAvgSpendingProvider);
+
     return userAsync.when(
       data: (user) {
         final budget = user?.monthlyGoalBudget;
         final alcoholGoal = user?.monthlyGoalAlcohol;
 
-        // 현재 월 지출액
-        final spendingAsync = ref.watch(monthlySpendingProvider(monthKey));
         final currentSpending = spendingAsync.valueOrNull ?? 0;
-
-        // 현재 월 음주량 (병)
-        final alcoholAsync = ref.watch(currentMonthAlcoholBottlesProvider);
         final currentAlcohol = alcoholAsync.valueOrNull ?? 0.0;
-
-        // 이전 달 평균 지출 (술자리 예상 횟수 계산용)
-        final avgSpendingAsync = ref.watch(prevMonthAvgSpendingProvider);
         final avgSpending = avgSpendingAsync.valueOrNull ?? 30000.0;
 
         return _GoalBottomSheetContent(
@@ -68,15 +65,6 @@ class _GoalBottomSheetContent extends StatelessWidget {
   final double currentAlcohol;
   final double avgDrinkSpending;
 
-  String get _remainingSessionsText {
-    if (budget == null) {
-      return '';
-    }
-    final remaining = (budget! - currentSpending).clamp(0, budget!);
-    final sessions = (remaining / avgDrinkSpending).floor();
-    return '$sessions번';
-  }
-
   String get _remainingAlcoholText {
     if (alcoholGoal == null) {
       return '';
@@ -103,17 +91,6 @@ class _GoalBottomSheetContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currencyFmt = NumberFormat('#,###');
-    final hasGoal = budget != null || alcoholGoal != null;
-
-    // 헤더 요약 텍스트
-    final parts = <String>[];
-    if (budget != null) {
-      parts.add('술자리 $_remainingSessionsText');
-    }
-    if (alcoholGoal != null) {
-      parts.add('소주 $_remainingAlcoholText');
-    }
-    final summaryText = hasGoal ? '${parts.join(' / ')} 남았습니다.' : '';
 
     return Container(
       decoration: const BoxDecoration(
@@ -140,19 +117,6 @@ class _GoalBottomSheetContent extends StatelessWidget {
               '음주 목표 설정',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
             ),
-            if (hasGoal && summaryText.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _SummaryText(
-                  summaryText: summaryText,
-                  hasBudget: budget != null,
-                  hasAlcohol: alcoholGoal != null,
-                  remainingSessions: _remainingSessionsText,
-                  remainingAlcohol: _remainingAlcoholText,
-                ),
-              ),
-            ],
             const SizedBox(height: 24),
 
             // Budget section
@@ -185,10 +149,10 @@ class _GoalBottomSheetContent extends StatelessWidget {
             // Alcohol section
             if (alcoholGoal != null) ...[
               _GoalProgressSection(
-                title: _remainingAlcoholText.isNotEmpty
-                    ? '$_remainingAlcoholText 남음'
-                    : '$monthNum월 목표',
-                subtitle: null,
+                title: '$monthNum월 목표 음주량',
+                subtitle: _remainingAlcoholText.isNotEmpty
+                    ? '소주 $_remainingAlcoholText 남음'
+                    : null,
                 current: currentAlcohol,
                 goal: alcoholGoal!,
                 markerLabel: '${_formatBottle(currentAlcohol)}병',
@@ -256,82 +220,6 @@ class _GoalBottomSheetContent extends StatelessWidget {
         initialAlcohol: alcoholGoal,
         monthLabel: '$monthNum월',
       ),
-    );
-  }
-}
-
-class _SummaryText extends StatelessWidget {
-  const _SummaryText({
-    required this.summaryText,
-    required this.hasBudget,
-    required this.hasAlcohol,
-    required this.remainingSessions,
-    required this.remainingAlcohol,
-  });
-
-  final String summaryText;
-  final bool hasBudget;
-  final bool hasAlcohol;
-  final String remainingSessions;
-  final String remainingAlcohol;
-
-  @override
-  Widget build(BuildContext context) {
-    // Build rich text with highlighted parts
-    final spans = <InlineSpan>[];
-    // "술자리 3번 / 소주 8.2병 남았습니다."
-    if (hasBudget && hasAlcohol) {
-      spans.addAll([
-        const TextSpan(text: '술자리 '),
-        TextSpan(
-          text: remainingSessions,
-          style: const TextStyle(
-            color: Color(0xFFF27B7B),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const TextSpan(text: ' / 소주 '),
-        TextSpan(
-          text: remainingAlcohol,
-          style: const TextStyle(
-            color: Color(0xFFF27B7B),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const TextSpan(text: '\n남았습니다.'),
-      ]);
-    } else if (hasBudget) {
-      spans.addAll([
-        const TextSpan(text: '술자리 '),
-        TextSpan(
-          text: remainingSessions,
-          style: const TextStyle(
-            color: Color(0xFFF27B7B),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const TextSpan(text: ' 남았습니다.'),
-      ]);
-    } else {
-      spans.addAll([
-        const TextSpan(text: '소주 '),
-        TextSpan(
-          text: remainingAlcohol,
-          style: const TextStyle(
-            color: Color(0xFFF27B7B),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const TextSpan(text: ' 남았습니다.'),
-      ]);
-    }
-
-    return Text.rich(
-      TextSpan(
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        children: spans,
-      ),
-      textAlign: TextAlign.center,
     );
   }
 }
