@@ -318,7 +318,10 @@ class _ProgressBar extends StatelessWidget {
                   height: 10,
                   decoration: BoxDecoration(
                     color: barColor,
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(5),
+                      bottomLeft: Radius.circular(5),
+                    ),
                   ),
                 ),
                 // Marker line
@@ -339,14 +342,27 @@ class _ProgressBar extends StatelessWidget {
             if (ratio > 0)
               Padding(
                 padding: EdgeInsets.only(
-                  left: (filledWidth - 20).clamp(0.0, totalWidth - 60),
+                  left: (filledWidth - 16).clamp(0.0, totalWidth - 80),
                 ),
-                child: Text(
-                  markerLabel,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: barColor.withValues(alpha: 1.0),
-                    fontWeight: FontWeight.w500,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: barColor.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    markerLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: barColor
+                          .withRed((barColor.r * 0.7).round())
+                          .withGreen((barColor.g * 0.7).round())
+                          .withBlue((barColor.b * 0.7).round()),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
