@@ -120,38 +120,69 @@ class _BubblePainter extends CustomPainter {
   }
 }
 
+/// Clean dialog widget with black header and white body
+class _CleanDialog extends StatelessWidget {
+  const _CleanDialog({required this.title, required this.content});
+
+  final String title;
+  final Widget content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.hardEdge,
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 72, vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Black header
+          Container(
+            width: double.infinity,
+            color: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          // White body
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            child: content,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Shows the app version dialog
 void showVersionDialog(BuildContext context) {
   showDialog(
     context: context,
-    builder: (context) => SakuInfoDialog(
+    builder: (context) => _CleanDialog(
+      title: '앱 버전',
       content: FutureBuilder<PackageInfo>(
         future: PackageInfo.fromPlatform(),
         builder: (context, snapshot) {
           final version = snapshot.hasData ? snapshot.data!.version : '';
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '딸꾹',
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'ver $version',
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
+          return Text(
+            'ver $version',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
           );
         },
       ),
@@ -163,7 +194,8 @@ void showVersionDialog(BuildContext context) {
 void showContactDialog(BuildContext context) {
   showDialog(
     context: context,
-    builder: (context) => const SakuInfoDialog(
+    builder: (context) => const _CleanDialog(
+      title: '문의하기',
       content: Text(
         '@ddal_gguk_으로\n인스타그램 DM',
         textAlign: TextAlign.center,
@@ -172,7 +204,7 @@ void showContactDialog(BuildContext context) {
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: Colors.black87,
-          height: 1.5,
+          height: 1.6,
         ),
       ),
     ),
