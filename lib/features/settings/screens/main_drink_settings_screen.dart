@@ -1,3 +1,4 @@
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/features/settings/widgets/add_custom_drink_card.dart';
@@ -28,20 +29,30 @@ class _MainDrinkSettingsScreenState
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
+      final isPro = await ref.read(proProvider.future);
+      final standardDrinks = drinks.where((d) => d.id > 0).toList();
+
+      if (!isPro) {
+        // 무료 유저: 기본 5개 고정, 커스텀 주종 없음
+        setState(() {
+          _allDrinks = standardDrinks;
+          _selectedIds
+            ..clear()
+            ..addAll(kFreeDefaultDrinkIds);
+          _isLoading = false;
+        });
+        return;
+      }
+
       final service = ref.read(drinkSettingsServiceProvider);
       final savedIds = await service.loadMainDrinkIds();
       final customDrinks = await service.loadCustomDrinks();
-
-      // Standard drinks excluding "Other" and "Undecided" which usually have negative or zero IDs not suitable for selection list if they are meta-types
-      // Based on drink_helpers.dart: -1 is '기타', 0 is '알 수 없음'. We probably want to exclude them from "Main Drinks" selection.
-      // Standard IDs are 1..9
-      final standardDrinks = drinks.where((d) => d.id > 0).toList();
 
       setState(() {
         _allDrinks = [...standardDrinks, ...customDrinks];
         _selectedIds.clear();
         if (savedIds.isEmpty) {
-          _selectedIds.addAll([1, 2, 4, 5, 3]);
+          _selectedIds.addAll(kFreeDefaultDrinkIds);
         } else {
           _selectedIds.addAll(savedIds);
         }
@@ -53,7 +64,45 @@ class _MainDrinkSettingsScreenState
     }
   }
 
+  bool get _isPro => ref.read(proProvider).valueOrNull ?? false;
+
+  void _showProDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'DDALGGUK PRO',
+          style: TextStyle(
+            fontFamily: 'Pretendard',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          '메인 기록 주종 커스터마이징은 PRO 기능이에요.\n구독 또는 1회 결제로 이용할 수 있어요.',
+          style: TextStyle(fontFamily: 'Pretendard'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              '확인',
+              style: TextStyle(
+                fontFamily: 'Pretendard',
+                color: Color(0xFFF0A9A9),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleDrinkTap(int id) {
+    if (!_isPro) {
+      _showProDialog();
+      return;
+    }
     setState(() {
       if (_selectedIds.contains(id)) {
         _selectedIds.remove(id);
@@ -74,6 +123,10 @@ class _MainDrinkSettingsScreenState
   }
 
   Future<void> _handleSave() async {
+    if (!_isPro) {
+      _showProDialog();
+      return;
+    }
     if (_selectedIds.isEmpty) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,6 +155,10 @@ class _MainDrinkSettingsScreenState
   }
 
   Future<void> _handleDeleteCustomDrink(Drink drink) async {
+    if (!_isPro) {
+      _showProDialog();
+      return;
+    }
     final service = ref.read(drinkSettingsServiceProvider);
     await service.deleteCustomDrink(drink.id);
 
@@ -112,6 +169,10 @@ class _MainDrinkSettingsScreenState
   }
 
   void _showAddCustomDrinkDialog() {
+    if (!_isPro) {
+      _showProDialog();
+      return;
+    }
     showDialog(
       context: context,
       builder: (context) => Dialog(
