@@ -133,21 +133,12 @@ flutter:
     - assets/imgs/badges/sober/
 
   fonts:
-    - family: GmarketSans
+    - family: Pretendard
       fonts:
-        - asset: assets/fonts/GmarketSans/GmarketSansBold.ttf
-          weight: 500
-        - asset: assets/fonts/GmarketSans/GmarketSansLight.ttf
-          weight: 300
-        - asset: assets/fonts/GmarketSans/GmarketSansMedium.ttf
-          weight: 400
+        - asset: assets/fonts/Pretendard/PretendardVariable.ttf
     - family: GriunSimsimche
       fonts:
         - asset: assets/fonts/GriunSimsimche/GriunSimsimcheMedium.ttf
-          weight: 400
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter/InterMedium.ttf
           weight: 400
 
 

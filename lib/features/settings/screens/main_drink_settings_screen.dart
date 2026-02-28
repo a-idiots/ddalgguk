@@ -167,7 +167,7 @@ class _MainDrinkSettingsScreenState
           title: const Text(
             '메인 기록 주종',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -187,7 +187,7 @@ class _MainDrinkSettingsScreenState
         title: const Text(
           '메인 기록 주종',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),

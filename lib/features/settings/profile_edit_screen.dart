@@ -93,7 +93,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
             const Text(
               '프로필 사진 선택',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: 'Pretendard',
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -110,7 +110,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     Text(
                       '사쿠',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: 'Pretendard',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey[700],
@@ -181,7 +181,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     Text(
                       '주종',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: 'Pretendard',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey[700],
@@ -342,7 +342,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           title: const Text(
             '프로필 편집',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -362,7 +362,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         title: const Text(
           '프로필 편집',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -438,7 +438,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     Text(
                       '프로필 사진 변경',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: 'Pretendard',
                         fontSize: 14,
                         color: Colors.grey[600],
                       ),
@@ -459,7 +459,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           const Text(
                             '아이디',
                             style: TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Pretendard',
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -469,7 +469,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             child: Text(
                               '@${_userId ?? ''}',
                               style: const TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: 'Pretendard',
                                 fontSize: 16,
                                 color: Colors.grey,
                               ),
@@ -492,7 +492,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           const Text(
                             '닉네임',
                             style: TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Pretendard',
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -502,7 +502,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             child: TextField(
                               controller: _nameController,
                               style: const TextStyle(
-                                fontFamily: 'Inter',
+                                fontFamily: 'Pretendard',
                                 fontSize: 16,
                               ),
                               textAlign: TextAlign.right,
@@ -546,7 +546,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             : const Text(
                                 '저장하기',
                                 style: TextStyle(
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Pretendard',
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),

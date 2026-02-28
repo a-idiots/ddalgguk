@@ -926,7 +926,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           '이 기록을 삭제하시겠습니까?',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: 'Pretendard',
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             color: Colors.black87,
@@ -958,7 +958,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       child: const Text(
                         '삭제',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'Pretendard',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

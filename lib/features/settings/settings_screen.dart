@@ -128,7 +128,7 @@ class SettingsScreen extends ConsumerWidget {
                           Text(
                             user.name ?? 'Unknown User',
                             style: const TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Pretendard',
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
                             ),
@@ -137,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
                           Text(
                             '@${user.id ?? ''}',
                             style: const TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Pretendard',
                               color: Colors.grey,
                             ),
                           ),
@@ -163,7 +163,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       child: const Text(
                         '프로필 편집',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 12),
+                        style: TextStyle(fontFamily: 'Pretendard', fontSize: 12),
                       ),
                     ),
                   ],
@@ -176,7 +176,7 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   CircleAvatar(radius: 32, child: CircularProgressIndicator()),
                   SizedBox(width: 16),
-                  Text('Loading...', style: TextStyle(fontFamily: 'Inter')),
+                  Text('Loading...', style: TextStyle(fontFamily: 'Pretendard')),
                 ],
               ),
             ),

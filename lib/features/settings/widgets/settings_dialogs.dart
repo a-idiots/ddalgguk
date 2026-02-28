@@ -135,7 +135,7 @@ void showVersionDialog(BuildContext context) {
               const Text(
                 '딸꾹',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'Pretendard',
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -145,7 +145,7 @@ void showVersionDialog(BuildContext context) {
               Text(
                 'ver $version',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'Pretendard',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[600],
@@ -168,7 +168,7 @@ void showContactDialog(BuildContext context) {
         '@ddal_gguk_으로\n인스타그램 DM',
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Pretendard',
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: Colors.black87,
@@ -188,7 +188,7 @@ Future<bool?> showLogoutDialog(BuildContext context) {
         '정말 로그아웃 하시겠습니까?',
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Pretendard',
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: Colors.black87,
@@ -209,7 +209,7 @@ Future<bool?> showLogoutDialog(BuildContext context) {
           child: const Text(
             '로그아웃',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -232,7 +232,7 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
             '정말 탈퇴하시겠습니까?',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -243,7 +243,7 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
             '탈퇴하시면 사쿠와 쌓은 모든 추억이\n즉시 지워지며, 복구하실 수 없습니다.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Colors.grey[600],
@@ -267,7 +267,7 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
           child: const Text(
             '탈퇴하기',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),

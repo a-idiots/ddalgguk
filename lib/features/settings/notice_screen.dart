@@ -53,7 +53,7 @@ class _NoticeScreenState extends State<NoticeScreen> {
         title: const Text(
           '공지사항',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -67,7 +67,7 @@ class _NoticeScreenState extends State<NoticeScreen> {
               child: Text(
                 '공지사항이 없습니다',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'Pretendard',
                   fontSize: 16,
                   color: Colors.grey,
                 ),
@@ -94,7 +94,7 @@ class _NoticeScreenState extends State<NoticeScreen> {
                       Text(
                         notice.title,
                         style: const TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'Pretendard',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -103,7 +103,7 @@ class _NoticeScreenState extends State<NoticeScreen> {
                       Text(
                         notice.content,
                         style: const TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'Pretendard',
                           fontSize: 14,
                           color: Colors.black87,
                         ),
@@ -113,7 +113,7 @@ class _NoticeScreenState extends State<NoticeScreen> {
                         Text(
                           notice.date!,
                           style: const TextStyle(
-                            fontFamily: 'Inter',
+                            fontFamily: 'Pretendard',
                             fontSize: 12,
                             color: Colors.grey,
                           ),

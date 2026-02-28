@@ -104,7 +104,7 @@ class DdalggukApp extends ConsumerWidget {
       ],
       supportedLocales: const [Locale('ko', ''), Locale('en', '')],
       theme: ThemeData(
-        fontFamily: 'GmarketSans',
+        fontFamily: 'Pretendard',
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,

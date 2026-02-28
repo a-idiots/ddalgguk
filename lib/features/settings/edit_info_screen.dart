@@ -24,7 +24,7 @@ class EditInfoScreen extends ConsumerWidget {
         title: const Text(
           '정보 수정',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -238,7 +238,7 @@ class _GoalToggleTileState extends State<_GoalToggleTile> {
           children: [
             Text(
               _localGoal ? '즐거운 음주' : '건강한 절주',
-              style: const TextStyle(fontFamily: 'Inter', fontSize: 16),
+              style: const TextStyle(fontFamily: 'Pretendard', fontSize: 16),
             ),
             GestureDetector(
               onTap: widget.onToggle != null ? _handleToggle : null,
@@ -388,7 +388,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
           title: const Text(
             '성별',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -408,7 +408,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
         title: const Text(
           '성별',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -591,7 +591,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
           title: const Text(
             '신체 정보',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -615,7 +615,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
           title: const Text(
             '신체 정보',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -775,7 +775,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
           title: const Text(
             '생년월일',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -795,7 +795,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
         title: const Text(
           '생년월일',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -962,7 +962,7 @@ class _DrinkingFrequencyScreenState
           title: const Text(
             '음주 빈도',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -987,7 +987,7 @@ class _DrinkingFrequencyScreenState
           title: const Text(
             '음주 빈도',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -1201,7 +1201,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
           title: const Text(
             '가장 선호하는 주종',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -1221,7 +1221,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
         title: const Text(
           '가장 선호하는 주종',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -1460,7 +1460,7 @@ class _AlcoholToleranceScreenState
           title: const Text(
             '주량',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -1480,7 +1480,7 @@ class _AlcoholToleranceScreenState
         title: const Text(
           '주량',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
