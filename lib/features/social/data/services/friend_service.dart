@@ -1039,6 +1039,32 @@ class FriendService {
     }
   }
 
+  // ==================== 주종 통계 ====================
+
+  /// 특정 사용자의 메인 기록 주종 조회
+  /// Firestore users 문서의 mainDrinkIds 필드를 읽고, 없으면 기본값 반환
+  Future<List<int>> getFriendTopDrinkTypes(String userId) async {
+    const List<int> defaultIds = [1, 2, 5, 4, 3]; // 소주, 맥주, 막걸리, 와인, 칵테일
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      final data = doc.data();
+      if (data == null) {
+        return defaultIds;
+      }
+
+      final raw = data['mainDrinkIds'];
+      if (raw == null) {
+        return defaultIds;
+      }
+
+      final ids = (raw as List<dynamic>).map((e) => (e as num).toInt()).toList();
+      return ids.isEmpty ? defaultIds : ids;
+    } catch (e) {
+      debugPrint('Error getting main drink types for user $userId: $e');
+      return defaultIds;
+    }
+  }
+
   // ==================== 사용자 검색 ====================
 
   /// ID로 사용자 검색 ('id' 필드로 검색)

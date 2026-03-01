@@ -5,6 +5,7 @@ import 'package:ddalgguk/features/profile/widgets/detail_screen/alcohol_breakdow
 import 'package:ddalgguk/features/profile/widgets/detail_screen/weekly_saku_section.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -158,6 +159,88 @@ class FriendProfileDialog extends ConsumerWidget {
     }
   }
 
+  Widget _buildTopDrinkTypesSection(WidgetRef ref) {
+    final topDrinkTypesAsync = ref.watch(
+      friendTopDrinkTypesProvider(friendData.userId),
+    );
+
+    return topDrinkTypesAsync.when(
+      skipLoadingOnReload: true,
+      data: (topDrinks) {
+        if (topDrinks.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  '메인 기록 주종',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: topDrinks.map((drinkType) {
+                        return Image.asset(
+                          getDrinkIconPath(drinkType),
+                          width: 46,
+                          height: 46,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: topDrinks.map((drinkType) {
+                        return SizedBox(
+                          width: 46,
+                          child: Text(
+                            getDrinkTypeName(drinkType),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox(
+        height: 90,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyStats = _createWeeklyStats();
@@ -229,7 +312,9 @@ class FriendProfileDialog extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                // 주간 통계
+                // 메인 기록 주종
+                _buildTopDrinkTypesSection(ref),
+                const SizedBox(height: 8),
                 // 주간 통계
                 WeeklySakuSection(
                   weeklyStats: weeklyStats,
