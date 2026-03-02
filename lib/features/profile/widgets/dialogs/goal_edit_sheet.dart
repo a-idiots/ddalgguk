@@ -153,7 +153,7 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
                     backgroundColor: _canSave ? Colors.black : Colors.grey[300],
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(28),
                     ),
                     elevation: 0,
                   ),
