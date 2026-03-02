@@ -122,11 +122,11 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                         unselectedLabelColor: Colors.grey,
                         labelStyle: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                         unselectedLabelStyle: const TextStyle(
                           fontWeight: FontWeight.w500,
-                          fontSize: 10,
+                          fontSize: 12,
                         ),
                         dividerColor: Colors.transparent,
                         tabs: const [
