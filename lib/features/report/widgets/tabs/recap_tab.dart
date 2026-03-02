@@ -347,7 +347,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(28),
                         side: const BorderSide(color: Colors.grey),
                       ),
                       elevation: 0,
@@ -364,7 +364,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(28),
                       ),
                       elevation: 0,
                     ),
@@ -685,8 +685,6 @@ class _SojuGlassWidgetState extends State<_SojuGlassWidget>
   late List<Bubble> _bubbles;
   final int _bubbleCount = 5;
 
-  // We use the controller passed from parent to sync with page scroll.
-  // If not provided, we create a local one (e.g. for testing or isolated usage).
   late final SojuGlassController _sojuGlassController;
   double _currentTilt = 0.0;
   double _velocity = 0.0;
@@ -843,16 +841,12 @@ class _SojuGlassPainter extends CustomPainter {
     final double height = size.height;
 
     // Apply tilt to top corners for sloshing effect
-    // Limit tilt to avoid breaking geometry too much
-    // Tilt > 0: Scrolling down (content moves down), surface waves UP relative?
     final double clampedTilt = tilt.clamp(-30.0, 30.0);
 
     path.reset();
     path.moveTo(0, 0); // Top Left (Pinned)
 
     // Waving effect
-    // We add 'tilt' to control point Ys to create a wave.
-    // One goes up, one goes down.
     path.cubicTo(
       topWidth * 0.25,
       height * 0.1 + clampedTilt, // CP1 moves
