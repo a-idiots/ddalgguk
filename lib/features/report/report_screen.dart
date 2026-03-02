@@ -130,9 +130,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                         ),
                         dividerColor: Colors.transparent,
                         tabs: const [
+                          Tab(height: 28, text: '레포트'),
                           Tab(height: 28, text: '알콜섭취량'),
                           Tab(height: 28, text: '소비 금액'),
-                          Tab(height: 28, text: '레포트'),
                         ],
                       ),
                     ),
@@ -141,9 +141,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                 body: TabBarView(
                   controller: _tabController,
                   children: const [
+                    RecapTab(),
                     AlcoholIntakeTab(),
                     SpendingTab(),
-                    RecapTab(),
                   ],
                 ),
               ),
