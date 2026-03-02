@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
+import 'package:ddalgguk/features/ranking/data/services/ranking_service.dart';
 import 'package:ddalgguk/features/social/data/services/friend_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ddalgguk/features/profile/data/services/badge_service.dart';
@@ -13,15 +14,18 @@ class DrinkingRecordService {
     FirebaseAuth? firebaseAuth,
     FriendService? friendService,
     BadgeService? badgeService, // Injected
+    RankingService? rankingService,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _auth = firebaseAuth ?? FirebaseAuth.instance,
        _friendService = friendService ?? FriendService(),
-       _badgeService = badgeService ?? BadgeService.instance;
+       _badgeService = badgeService ?? BadgeService.instance,
+       _rankingService = rankingService ?? RankingService();
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
   final FriendService _friendService;
   final BadgeService _badgeService;
+  final RankingService _rankingService;
 
   /// 현재 로그인한 사용자 ID 가져오기
   String? get _currentUserId => _auth.currentUser?.uid;
@@ -133,6 +137,24 @@ class DrinkingRecordService {
         await _updateLocalStats(record.date);
       } catch (e) {
         debugPrint('Failed to update local stats: $e');
+      }
+
+      // Update ranking: 순수 알코올량(ml) = 음주량(ml) × 도수(%) / 100
+      // drinkAmount 가 하나라도 있으면 호출 (0ml 포함) — 기록 존재 자체를 서브컬렉션에 남김.
+      if (_currentUserId != null && record.drinkAmount.isNotEmpty) {
+        try {
+          final totalAlcoholMl = record.drinkAmount.fold<double>(
+            0.0,
+            (acc, d) => acc + d.amount * d.alcoholContent / 100,
+          );
+          await _rankingService.addAlcohol(
+            _currentUserId!,
+            totalAlcoholMl,
+            record.date, // 입력 시점이 아닌 기록 날짜 기준
+          );
+        } catch (e) {
+          debugPrint('Failed to update ranking: $e');
+        }
       }
 
       return docRef.id;
