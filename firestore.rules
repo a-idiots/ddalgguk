@@ -77,6 +77,35 @@ service cloud.firestore {
       }
     }
 
+    match /rankings/{userId} {
+      // 모든 인증된 사용자가 랭킹 조회 가능 (주간/월간 랭킹 쿼리 포함)
+      allow read: if isAuthenticated();
+
+      // 본인의 랭킹 문서만 생성·수정·삭제 가능
+      allow write: if isOwner(userId);
+
+      // 주간/월간 히스토리 서브컬렉션
+      match /weekly/{weekKey} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+
+      match /monthly/{monthKey} {
+        allow read: if isAuthenticated();
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // 컬렉션 그룹 쿼리 지원 (나의 기록 탭 등수 계산용)
+    // rankings/{uid}/monthly, rankings/{uid}/weekly 를 cross-collection 으로 읽기
+    match /{path=**}/monthly/{monthKey} {
+      allow read: if isAuthenticated();
+    }
+
+    match /{path=**}/weekly/{weekKey} {
+      allow read: if isAuthenticated();
+    }
+
     // 기본적으로 모든 접근 거부
     match /{document=**} {
       allow read, write: if false;
