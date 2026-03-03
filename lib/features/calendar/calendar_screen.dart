@@ -669,7 +669,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           '잔',
                         );
 
-                        if (drink.amount >= bottleMultiplier) {
+                        if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
                           unit = '병';
                           amount = drink.amount / bottleMultiplier;
                         } else if (drink.amount >= glassMultiplier) {

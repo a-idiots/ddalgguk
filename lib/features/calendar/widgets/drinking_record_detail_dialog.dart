@@ -31,7 +31,7 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
       final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
       final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
 
-      if (drink.amount >= bottleMultiplier) {
+      if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
         unit = '병';
         amount = drink.amount / bottleMultiplier;
       } else if (drink.amount >= glassMultiplier) {

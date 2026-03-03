@@ -30,13 +30,13 @@ const db = admin.firestore();
 // ─── 대상 기간 ──────────────────────────────────────────────────────────────
 
 // 조회 시작: 2026_W01의 첫날 (2025-12-29 UTC)
-// 조회 종료: 2026-03-01 (포함)
+// 조회 종료: 2026-03-08 (2026_W10 마지막날, 포함)
 const RANGE_START = new Date(Date.UTC(2025, 11, 29)); // 2025-12-29
-const RANGE_END   = new Date(Date.UTC(2026,  2,  1)); // 2026-03-01 (inclusive)
+const RANGE_END   = new Date(Date.UTC(2026,  2,  8)); // 2026-03-08 (inclusive)
 
 const TARGET_WEEK_KEYS  = [
   '2026_W01', '2026_W02', '2026_W03', '2026_W04', '2026_W05',
-  '2026_W06', '2026_W07', '2026_W08', '2026_W09',
+  '2026_W06', '2026_W07', '2026_W08', '2026_W09', '2026_W10',
 ];
 const TARGET_MONTH_KEYS = ['2026_01', '2026_02', '2026_03'];
 
@@ -123,11 +123,11 @@ async function main() {
         const weekKey  = getWeekKey(date);
         const monthKey = getMonthKey(date);
 
-        // 순수 알코올량 (ml) 계산
+        // 순수 알코올량 (g) 계산: 음주량(ml) × 도수(%) / 100 × 0.8
         const drinkAmounts = Array.isArray(data.drinkAmount) ? data.drinkAmount : [];
-        let alcoholMl = 0;
+        let alcoholG = 0;
         for (const drink of drinkAmounts) {
-          alcoholMl += (drink.amount || 0) * (drink.alcoholContent || 0) / 100;
+          alcoholG += (drink.amount || 0) * (drink.alcoholContent || 0) / 100 * 0.8;
         }
 
         // 주차 집계 (대상 범위 내만)
@@ -136,7 +136,7 @@ async function main() {
             weeklyMap[weekKey] = { hasRecords: false, amount: 0 };
           }
           weeklyMap[weekKey].hasRecords = true;
-          weeklyMap[weekKey].amount    += alcoholMl;
+          weeklyMap[weekKey].amount    += alcoholG;
         }
 
         // 월별 집계 (대상 범위 내만)
@@ -145,7 +145,7 @@ async function main() {
             monthlyMap[monthKey] = { hasRecords: false, amount: 0 };
           }
           monthlyMap[monthKey].hasRecords = true;
-          monthlyMap[monthKey].amount    += alcoholMl;
+          monthlyMap[monthKey].amount    += alcoholG;
         }
       }
 
@@ -157,8 +157,9 @@ async function main() {
         const entry = weeklyMap[weekKey];
         if (entry && entry.hasRecords) {
           // 기록 있음 → 저장 (amount가 0이어도 저장 → UI에서 "0g" 표시)
+          // periodKey, uid 필드 포함 → 컬렉션 그룹 쿼리(등수 계산) 지원
           const ref = db.doc(`rankings/${uid}/weekly/${weekKey}`);
-          batch.set(ref, { amount: entry.amount });
+          batch.set(ref, { amount: entry.amount, periodKey: weekKey, uid });
           batchCount++;
         }
         // 기록 없음 → 문서 미생성 → UI에서 "-" 표시
@@ -168,7 +169,7 @@ async function main() {
         const entry = monthlyMap[monthKey];
         if (entry && entry.hasRecords) {
           const ref = db.doc(`rankings/${uid}/monthly/${monthKey}`);
-          batch.set(ref, { amount: entry.amount });
+          batch.set(ref, { amount: entry.amount, periodKey: monthKey, uid });
           batchCount++;
         }
       }

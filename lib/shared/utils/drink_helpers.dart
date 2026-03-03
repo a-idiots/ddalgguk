@@ -67,7 +67,7 @@ const List<Drink> drinks = [
     defaultAlcoholContent: 10.0,
     defaultUnit: '잔',
     glassVolume: 200.0,
-    bottleVolume: 750.0,
+    bottleVolume: 0.0, // 병 없음
   ),
   Drink(
     id: 4,

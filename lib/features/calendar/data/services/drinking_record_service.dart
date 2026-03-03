@@ -139,17 +139,17 @@ class DrinkingRecordService {
         debugPrint('Failed to update local stats: $e');
       }
 
-      // Update ranking: 순수 알코올량(ml) = 음주량(ml) × 도수(%) / 100
-      // drinkAmount 가 하나라도 있으면 호출 (0ml 포함) — 기록 존재 자체를 서브컬렉션에 남김.
+      // Update ranking: 순수 알코올량(g) = 음주량(ml) × 도수(%) / 100 × 0.8
+      // drinkAmount 가 하나라도 있으면 호출 (0g 포함) — 기록 존재 자체를 서브컬렉션에 남김.
       if (_currentUserId != null && record.drinkAmount.isNotEmpty) {
         try {
-          final totalAlcoholMl = record.drinkAmount.fold<double>(
+          final totalAlcoholG = record.drinkAmount.fold<double>(
             0.0,
-            (acc, d) => acc + d.amount * d.alcoholContent / 100,
+            (acc, d) => acc + d.amount * d.alcoholContent / 100 * 0.8,
           );
           await _rankingService.addAlcohol(
             _currentUserId!,
-            totalAlcoholMl,
+            totalAlcoholG,
             record.date, // 입력 시점이 아닌 기록 날짜 기준
           );
         } catch (e) {
@@ -269,6 +269,9 @@ class DrinkingRecordService {
   /// 음주 기록 업데이트
   Future<void> updateRecord(DrinkingRecord record) async {
     try {
+      // 랭킹 delta 계산을 위해 수정 전 기록 조회
+      final oldRecord = await getRecord(record.id);
+
       await _getRecordsCollection().doc(record.id).update(record.toMap());
       debugPrint('Updated drinking record: ${record.id}');
 
@@ -333,6 +336,42 @@ class DrinkingRecordService {
         await _updateLocalStats(record.date);
       } catch (e) {
         debugPrint('Failed to update local stats: $e');
+      }
+
+      // Update ranking: 기존 알코올량 제거 후 새 알코올량 반영
+      if (_currentUserId != null) {
+        try {
+          double calcAlcohol(DrinkingRecord r) => r.drinkAmount.fold<double>(
+            0.0,
+            (acc, d) => acc + d.amount * d.alcoholContent / 100 * 0.8,
+          );
+
+          // 기존 기여분 제거
+          if (oldRecord != null && oldRecord.drinkAmount.isNotEmpty) {
+            final oldAlcohol = calcAlcohol(oldRecord);
+            if (oldAlcohol > 0) {
+              await _rankingService.adjustAlcohol(
+                _currentUserId!,
+                -oldAlcohol,
+                oldRecord.date,
+              );
+            }
+          }
+
+          // 새 기여분 추가
+          if (record.drinkAmount.isNotEmpty) {
+            final newAlcohol = calcAlcohol(record);
+            if (newAlcohol > 0) {
+              await _rankingService.adjustAlcohol(
+                _currentUserId!,
+                newAlcohol,
+                record.date,
+              );
+            }
+          }
+        } catch (e) {
+          debugPrint('Failed to update ranking: $e');
+        }
       }
     } catch (e) {
       debugPrint('Error updating drinking record: $e');
@@ -464,6 +503,25 @@ class DrinkingRecordService {
         await _updateLocalStats(recordDate);
       } catch (e) {
         debugPrint('Failed to update local stats: $e');
+      }
+
+      // Update ranking: 삭제된 알코올량만큼 차감
+      if (_currentUserId != null && recordToDelete.drinkAmount.isNotEmpty) {
+        try {
+          final alcoholToRemove = recordToDelete.drinkAmount.fold<double>(
+            0.0,
+            (acc, d) => acc + d.amount * d.alcoholContent / 100 * 0.8,
+          );
+          if (alcoholToRemove > 0) {
+            await _rankingService.adjustAlcohol(
+              _currentUserId!,
+              -alcoholToRemove,
+              recordToDelete.date,
+            );
+          }
+        } catch (e) {
+          debugPrint('Failed to update ranking after deletion: $e');
+        }
       }
     } catch (e) {
       debugPrint('Error deleting drinking record: $e');
