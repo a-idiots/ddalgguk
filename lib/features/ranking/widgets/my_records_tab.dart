@@ -145,12 +145,24 @@ class _MonthCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        // 등수
-        _rankWidget(isFuture),
-        const SizedBox(height: 2),
-        // 그램수
-        _gramsWidget(isFuture),
+        const SizedBox(height: 10),
+        // 기록 없음 / 미래: 기호 하나만 크게
+        if (isFuture || record.amount == null)
+          Text(
+            isFuture ? '?' : '-',
+            style: TextStyle(
+              color: isFuture ? Colors.grey.shade400 : Colors.black38,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        else ...[
+          // 등수
+          _rankWidget(),
+          const SizedBox(height: 4),
+          // 그램수
+          _gramsWidget(),
+        ],
       ],
     );
 
@@ -178,25 +190,14 @@ class _MonthCard extends StatelessWidget {
     );
   }
 
-  Widget _rankWidget(bool isFuture) {
-    if (isFuture) {
-      return Text(
-        '?',
-        style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-      );
-    }
-    if (record.amount == null) {
-      return const Text(
-        '-',
-        style: TextStyle(color: Colors.black38, fontSize: 14),
-      );
-    }
+  // amount != null 인 경우에만 호출됨
+  Widget _rankWidget() {
     if (record.amount == 0) {
       return const Text(
         'WOW!',
         style: TextStyle(
           color: Colors.black54,
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
       );
@@ -204,33 +205,21 @@ class _MonthCard extends StatelessWidget {
     if (record.rank != null) {
       return Text(
         '${record.rank}등',
-        style: const TextStyle(color: Colors.black54, fontSize: 13),
+        style: const TextStyle(color: Colors.black54, fontSize: 16),
       );
     }
     return const Text(
       '-',
-      style: TextStyle(color: Colors.black38, fontSize: 14),
+      style: TextStyle(color: Colors.black38, fontSize: 16),
     );
   }
 
-  Widget _gramsWidget(bool isFuture) {
-    if (isFuture) {
-      return Text(
-        '?',
-        style: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-    if (record.amount == null) {
-      return const SizedBox.shrink();
-    }
+  // amount != null 인 경우에만 호출됨
+  Widget _gramsWidget() {
     final grams = record.displayGrams!;
     return Text(
       '${grams.toStringAsFixed(0)}g',
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 
