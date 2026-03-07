@@ -95,18 +95,26 @@ class _RankingTabState extends ConsumerState<RankingTab> {
 
   Widget _buildPillToggle() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildPill(label: 'week', selected: _isWeekly, onTap: () {
-            setState(() => _isWeekly = true);
-          }),
-          const SizedBox(width: 8),
-          _buildPill(label: 'month', selected: !_isWeekly, onTap: () {
-            setState(() => _isWeekly = false);
-          }),
-        ],
+      padding: const EdgeInsets.fromLTRB(60, 16, 60, 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _buildPill(label: 'week', selected: _isWeekly, onTap: () {
+                setState(() => _isWeekly = true);
+              }),
+            ),
+            Expanded(
+              child: _buildPill(label: 'month', selected: !_isWeekly, onTap: () {
+                setState(() => _isWeekly = false);
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -120,20 +128,28 @@ class _RankingTabState extends ConsumerState<RankingTab> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? Colors.black : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: selected ? Colors.black : Colors.grey.shade300,
-          ),
-        ),
+        margin: const EdgeInsets.all(3),
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        decoration: selected
+            ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              )
+            : const BoxDecoration(color: Colors.transparent),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
-            color: selected ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+            color: selected ? Colors.black : Colors.grey,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 13,
           ),
         ),
       ),
@@ -202,7 +218,7 @@ class _RankingTabState extends ConsumerState<RankingTab> {
             'WARNING',
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: Colors.red,
               letterSpacing: 2,
             ),
@@ -210,13 +226,13 @@ class _RankingTabState extends ConsumerState<RankingTab> {
           const SizedBox(height: 4),
           Text(
             _periodDisplay(),
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 17, color: Colors.grey.shade500),
           ),
           const SizedBox(height: 6),
           Text(
             '딸꾹 유저 총 음주량 ${totalGrams.toStringAsFixed(1)}g',
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 19,
               fontWeight: FontWeight.bold,
             ),
           ),

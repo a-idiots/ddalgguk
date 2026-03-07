@@ -250,40 +250,35 @@ class _WeeklyPopup extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 16, 28),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 헤더: 월 레이블 + 닫기 버튼
-            Row(
-              children: [
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '$month월',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
+            // 닫기 버튼 (우측 상단)
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, size: 22),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ),
+            // 월 레이블 pill (단독 행, 중앙 정렬)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$month월',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close, size: 22),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 20),
             // 주차 그리드
@@ -367,37 +362,43 @@ class _WeekCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // 등수
-        _rankWidget(),
-        // 그램수
-        _gramsWidget(),
+        // 미래 / 기록 없음: 기호 하나만 크게 (월별 카드와 동일한 스타일)
+        if (record.isFuture)
+          Text(
+            '?',
+            style: TextStyle(
+              color: Colors.grey.shade400,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        else if (record.amount == null)
+          const Text(
+            '-',
+            style: TextStyle(
+              color: Colors.black38,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          )
+        else if (record.amount == 0)
+          const Text(
+            'WOW!',
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          )
+        else ...[
+          _rankWidget(),
+          _gramsWidget(),
+        ],
       ],
     );
   }
 
   Widget _rankWidget() {
-    if (record.isFuture) {
-      return Text(
-        '?',
-        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-      );
-    }
-    if (record.amount == null) {
-      return const Text(
-        '-',
-        style: TextStyle(color: Colors.black38, fontSize: 13),
-      );
-    }
-    if (record.amount == 0) {
-      return const Text(
-        'WOW!',
-        style: TextStyle(
-          color: Colors.black54,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      );
-    }
     if (record.rank != null) {
       return Text(
         '${record.rank}등',
@@ -411,19 +412,6 @@ class _WeekCard extends StatelessWidget {
   }
 
   Widget _gramsWidget() {
-    if (record.isFuture) {
-      return Text(
-        '?',
-        style: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: 15,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-    if (record.amount == null) {
-      return const SizedBox.shrink();
-    }
     final grams = record.displayGrams!;
     return Text(
       '${grams.toStringAsFixed(0)}g',
