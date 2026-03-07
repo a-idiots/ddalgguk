@@ -123,7 +123,17 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
             padding: const EdgeInsets.only(left: 4),
             tabs: const [
               Tab(height: 36, text: '나의 친구'),
-              Tab(height: 36, text: '과음관리구역'),
+              Tab(
+                height: 36,
+                child: Text(
+                  '과음관리구역',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
               Tab(height: 36, text: '나의 기록'),
             ],
             labelColor: Colors.black87,

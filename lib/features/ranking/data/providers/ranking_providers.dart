@@ -80,17 +80,27 @@ Future<List<RankingEntryWithUser>> _joinWithUserData(
       continue; // 삭제된 계정 건너뜀
     }
 
+    // users 문서의 rankingPermission이 명시적으로 false인 경우만 제외
+    // (null = 필드 없음 = 기본 true로 취급)
+    final rankingPermission = data['rankingPermission'] as bool?;
+    if (rankingPermission == false) {
+      continue;
+    }
+
     final rawLevels = data['weeklyDrunkLevels'];
     final weeklyDrunkLevels =
         rawLevels is List
             ? rawLevels.map((e) => (e as num).toInt()).toList()
             : null;
 
+    // addFriendPermission도 users 문서에서 읽음 (null = 기본 true)
+    final addFriendPermission = data['addFriendPermission'] as bool? ?? true;
+
     result.add(
       RankingEntryWithUser(
         uid: entry.uid,
         amount: entry.amount,
-        addFriendPermission: entry.addFriendPermission,
+        addFriendPermission: addFriendPermission,
         name: data['name'] as String? ?? '',
         customId: data['id'] as String?,
         profilePhoto: (data['profilePhoto'] as num? ?? 0).toInt(),

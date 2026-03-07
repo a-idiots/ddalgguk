@@ -30,6 +30,8 @@ class AppUser {
     this.weight,
     this.monthlyGoalBudget,
     this.monthlyGoalAlcohol,
+    this.rankingPermission,
+    this.addFriendPermission,
   });
 
   /// Create AppUser from Firebase User
@@ -100,6 +102,8 @@ class AppUser {
       monthlyGoalAlcohol: json['monthlyGoalAlcohol'] != null
           ? (json['monthlyGoalAlcohol'] as num).toDouble()
           : null,
+      rankingPermission: json['rankingPermission'] as bool?,
+      addFriendPermission: json['addFriendPermission'] as bool?,
     );
   }
 
@@ -144,6 +148,10 @@ class AppUser {
   final int? monthlyGoalBudget; // 월 술자리 예산 (원)
   final double? monthlyGoalAlcohol; // 월 목표 음주량 (병)
 
+  // Ranking Permissions (null = 기본값 true로 취급)
+  final bool? rankingPermission; // 과음관리구역에 노출 여부
+  final bool? addFriendPermission; // 랭킹을 통한 친구 신청 허용 여부
+
   /// Parse favoriteDrink from JSON - handles both int and List formats
   static int? _parseFavoriteDrink(dynamic value) {
     if (value == null) {
@@ -187,6 +195,8 @@ class AppUser {
       'weight': weight,
       'monthlyGoalBudget': monthlyGoalBudget,
       'monthlyGoalAlcohol': monthlyGoalAlcohol,
+      'rankingPermission': rankingPermission,
+      'addFriendPermission': addFriendPermission,
     };
   }
 
@@ -231,6 +241,8 @@ class AppUser {
     double? weight,
     int? monthlyGoalBudget,
     double? monthlyGoalAlcohol,
+    bool? rankingPermission,
+    bool? addFriendPermission,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -259,6 +271,8 @@ class AppUser {
       weight: weight ?? this.weight,
       monthlyGoalBudget: monthlyGoalBudget ?? this.monthlyGoalBudget,
       monthlyGoalAlcohol: monthlyGoalAlcohol ?? this.monthlyGoalAlcohol,
+      rankingPermission: rankingPermission ?? this.rankingPermission,
+      addFriendPermission: addFriendPermission ?? this.addFriendPermission,
     );
   }
 
@@ -299,7 +313,9 @@ class AppUser {
         other.height == height &&
         other.weight == weight &&
         other.monthlyGoalBudget == monthlyGoalBudget &&
-        other.monthlyGoalAlcohol == monthlyGoalAlcohol;
+        other.monthlyGoalAlcohol == monthlyGoalAlcohol &&
+        other.rankingPermission == rankingPermission &&
+        other.addFriendPermission == addFriendPermission;
   }
 
   @override
@@ -329,7 +345,9 @@ class AppUser {
         height.hashCode ^
         weight.hashCode ^
         monthlyGoalBudget.hashCode ^
-        monthlyGoalAlcohol.hashCode;
+        monthlyGoalAlcohol.hashCode ^
+        rankingPermission.hashCode ^
+        addFriendPermission.hashCode;
   }
 
   /// Helper method to compare lists

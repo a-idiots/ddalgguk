@@ -651,6 +651,34 @@ class AuthRepository {
     }
   }
 
+  /// 랭킹 권한 업데이트 (users/{uid}에 merge로 씀, 기존 데이터 보존)
+  Future<void> updateRankingPermissions({
+    bool? rankingPermission,
+    bool? addFriendPermission,
+  }) async {
+    try {
+      final uid = _firebaseAuthService.userId;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final updates = <String, dynamic>{};
+      if (rankingPermission != null) {
+        updates['rankingPermission'] = rankingPermission;
+      }
+      if (addFriendPermission != null) {
+        updates['addFriendPermission'] = addFriendPermission;
+      }
+
+      if (updates.isNotEmpty) {
+        await _usersCollection.doc(uid).update(updates);
+      }
+    } catch (e) {
+      debugPrint('updateRankingPermissions error: $e');
+      rethrow;
+    }
+  }
+
   /// Delete user account
   Future<void> deleteAccount() async {
     try {

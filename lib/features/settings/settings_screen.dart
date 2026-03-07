@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
 import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
 import 'package:ddalgguk/features/settings/notification_settings_screen.dart';
+import 'package:ddalgguk/features/settings/ranking_settings_screen.dart';
 import 'package:ddalgguk/features/settings/screens/main_drink_settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
@@ -155,6 +156,16 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          SettingsListTile(
+            title: '랭킹 설정',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const RankingSettingsScreen(),
                 ),
               );
             },

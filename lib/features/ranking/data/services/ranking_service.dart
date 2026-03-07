@@ -387,8 +387,8 @@ class RankingService {
     try {
       final snapshot =
           await _rankings
-              .where('weeklyKey', isEqualTo: _currentWeekKey())
               .where('rankingPermission', isEqualTo: true)
+              .where('weeklyKey', isEqualTo: _currentWeekKey())
               .orderBy('weeklyAmount', descending: true)
               .limit(limit)
               .get();
@@ -412,8 +412,8 @@ class RankingService {
     try {
       final snapshot =
           await _rankings
-              .where('monthlyKey', isEqualTo: _currentMonthKey())
               .where('rankingPermission', isEqualTo: true)
+              .where('monthlyKey', isEqualTo: _currentMonthKey())
               .orderBy('monthlyAmount', descending: true)
               .limit(limit)
               .get();
