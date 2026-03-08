@@ -255,8 +255,7 @@ class FriendProfileDialog extends ConsumerWidget {
 
     return Column(
       children: [
-        Expanded(
-          child: SingleChildScrollView(
+        SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,7 +332,6 @@ class FriendProfileDialog extends ConsumerWidget {
               ],
             ),
           ),
-        ),
       ],
     );
   }

@@ -211,6 +211,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
                 : () {
                     showBottomHandleDialogue(
                       context: context,
+                      fitContent: true,
                       child: FriendProfileDialog(friendData: friendData),
                     );
                   },
