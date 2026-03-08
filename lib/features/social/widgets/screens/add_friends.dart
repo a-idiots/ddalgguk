@@ -333,34 +333,34 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                     ],
                   ),
                 ),
-                // 친구 신청 보내기 (종이비행기)
-                IconButton(
-                  onPressed: isSending ? null : () => _sendRequest(selected),
-                  icon: isSending
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.primaryPink,
-                          ),
-                        )
-                      : Icon(Icons.send, color: Colors.grey[500], size: 22),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
-                  ),
-                ),
-                // 제거 버튼
-                IconButton(
-                  onPressed: () => _removeUser(selected),
-                  icon: Icon(Icons.close, size: 18, color: Colors.grey[400]),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
-                  ),
+                // 친구 신청 보내기 (종이비행기) + 제거 버튼
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: isSending ? null : () => _sendRequest(selected),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: isSending
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primaryPink,
+                                ),
+                              )
+                            : Icon(Icons.send, color: Colors.grey[500], size: 22),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _removeUser(selected),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                        child: Icon(Icons.close, size: 18, color: Colors.grey[400]),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
