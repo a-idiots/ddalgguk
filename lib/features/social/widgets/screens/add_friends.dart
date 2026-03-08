@@ -9,6 +9,17 @@ import 'package:ddalgguk/shared/widgets/page_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// 선택된 친구 신청 대상 (메시지 컨트롤러 포함)
+class _SelectedUser {
+  _SelectedUser({required this.user})
+      : messageController = TextEditingController();
+
+  final AppUser user;
+  final TextEditingController messageController;
+
+  void dispose() => messageController.dispose();
+}
+
 /// 친구 추가 화면 (페이지)
 class AddFriendScreen extends ConsumerStatefulWidget {
   const AddFriendScreen({super.key});
@@ -19,28 +30,18 @@ class AddFriendScreen extends ConsumerStatefulWidget {
 
 class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   final _userIdController = TextEditingController();
-  final _messageController = TextEditingController();
   final _focusNode = FocusNode();
-  bool _isLoading = false;
   bool _isSearching = false;
-  String? _foundUserName;
-  String? _foundUserId;
-  AppUser? _foundUser;
   List<AppUser> _suggestions = [];
+  final List<_SelectedUser> _selectedUsers = [];
+  final Set<String> _sendingUids = {};
   bool _skipNextSearch = false;
-  bool _hasConfirmedSelection = false;
   Timer? _debounce;
   bool _showSuggestions = false;
 
   @override
   void initState() {
     super.initState();
-    _userIdController.text = '@';
-    _userIdController.selection = TextSelection.fromPosition(
-      const TextPosition(offset: 1),
-    );
-    _messageController.text = '우리 친구해요!';
-
     _userIdController.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
   }
@@ -51,8 +52,10 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     _userIdController.removeListener(_onTextChanged);
     _focusNode.removeListener(_onFocusChanged);
     _userIdController.dispose();
-    _messageController.dispose();
     _focusNode.dispose();
+    for (final s in _selectedUsers) {
+      s.dispose();
+    }
     super.dispose();
   }
 
@@ -70,24 +73,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       _skipNextSearch = false;
       return;
     }
-    _hasConfirmedSelection = false;
-    final text = _userIdController.text;
-
-    if (!text.startsWith('@')) {
-      _userIdController.text = '@$text';
-      _userIdController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _userIdController.text.length),
-      );
-      return;
-    }
-
-    if (text == '@' || _userIdController.selection.baseOffset == 0) {
-      _userIdController.selection = TextSelection.fromPosition(
-        const TextPosition(offset: 1),
-      );
-    }
-
-    final searchQuery = text.substring(1);
+    final searchQuery = _userIdController.text;
 
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
@@ -114,7 +100,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     setState(() => _isSearching = true);
 
     try {
-      if (_hasConfirmedSelection || !_focusNode.hasFocus) {
+      if (!_focusNode.hasFocus) {
         setState(() {
           _suggestions = [];
           _showSuggestions = false;
@@ -129,7 +115,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       );
 
       if (mounted) {
-        if (_hasConfirmedSelection || !_focusNode.hasFocus) {
+        if (!_focusNode.hasFocus) {
           setState(() {
             _suggestions = [];
             _showSuggestions = false;
@@ -154,12 +140,9 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   void _selectSuggestion(AppUser user) {
     _debounce?.cancel();
     _skipNextSearch = true;
-    _hasConfirmedSelection = true;
+    _addUser(user);
     setState(() {
-      _userIdController.text = '@${user.id ?? ''}';
-      _foundUserName = user.name ?? 'Unknown';
-      _foundUserId = user.uid;
-      _foundUser = user;
+      _userIdController.clear();
       _showSuggestions = false;
       _suggestions = [];
     });
@@ -167,10 +150,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   }
 
   Future<void> _searchUser() async {
-    String userId = _userIdController.text.trim();
-    if (userId.startsWith('@')) {
-      userId = userId.substring(1);
-    }
+    final userId = _userIdController.text.trim();
 
     if (userId.isEmpty) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -187,13 +167,12 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       final user = await friendService.searchUserById(userId);
 
       if (user != null) {
-        _hasConfirmedSelection = true;
+        _addUser(user);
         setState(() {
-          _foundUser = user;
-          _foundUserName = user.name ?? 'Unknown';
-          _foundUserId = user.uid;
+          _userIdController.clear();
           _showSuggestions = false;
         });
+        _focusNode.unfocus();
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).clearSnackBars();
@@ -201,12 +180,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
             context,
           ).showSnackBar(const SnackBar(content: Text('사용자를 찾을 수 없습니다')));
         }
-        setState(() {
-          _foundUserName = null;
-          _foundUserId = null;
-          _foundUser = null;
-          _hasConfirmedSelection = false;
-        });
       }
     } catch (e) {
       if (mounted) {
@@ -222,23 +195,23 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     }
   }
 
-  Future<void> _sendRequest() async {
-    if (_foundUserId == null) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('먼저 사용자를 검색해주세요')));
+  void _addUser(AppUser user) {
+    if (_selectedUsers.any((s) => s.user.uid == user.uid)) {
       return;
     }
+    setState(() => _selectedUsers.add(_SelectedUser(user: user)));
+  }
 
-    final message = _messageController.text.trim();
-    if (message.isEmpty) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('요청 메시지를 입력해주세요')));
-      return;
-    }
+  void _removeUser(_SelectedUser selected) {
+    setState(() => _selectedUsers.remove(selected));
+    selected.dispose();
+  }
+
+  Future<void> _sendRequest(_SelectedUser selected) async {
+    final message =
+        selected.messageController.text.trim().isEmpty
+            ? '우리 친구해요!'
+            : selected.messageController.text.trim();
 
     if (message.length > FriendRequest.maxMessageLength) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -252,18 +225,22 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _sendingUids.add(selected.user.uid));
 
     try {
       final friendService = ref.read(friendServiceProvider);
       await friendService.sendFriendRequest(
-        toUserId: _foundUserId!,
-        toUserName: _foundUserName!,
+        toUserId: selected.user.uid,
+        toUserName: selected.user.name ?? '',
         message: message,
       );
 
       if (mounted) {
-        Navigator.of(context).pop();
+        setState(() {
+          _selectedUsers.remove(selected);
+          _sendingUids.remove(selected.user.uid);
+        });
+        selected.dispose();
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(
           context,
@@ -271,14 +248,11 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _sendingUids.remove(selected.user.uid));
         final errorMessage = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(errorMessage)));
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -313,6 +287,114 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     );
   }
 
+  Widget _buildSelectedUserCard(_SelectedUser selected) {
+    final isSending = _sendingUids.contains(selected.user.uid);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // 유저 정보 행
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 8, 10),
+            child: Row(
+              children: [
+                _buildProfileAvatar(selected.user, size: 38),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selected.user.name ?? '',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        '@${selected.user.id ?? ''}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // 친구 신청 보내기 (종이비행기)
+                IconButton(
+                  onPressed: isSending ? null : () => _sendRequest(selected),
+                  icon: isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryPink,
+                          ),
+                        )
+                      : Icon(Icons.send, color: Colors.grey[500], size: 22),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                ),
+                // 제거 버튼
+                IconButton(
+                  onPressed: () => _removeUser(selected),
+                  icon: Icon(Icons.close, size: 18, color: Colors.grey[400]),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 메시지 입력
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TextField(
+              controller: selected.messageController,
+              maxLength: FriendRequest.maxMessageLength,
+              maxLines: 2,
+              style: const TextStyle(fontSize: 14),
+              decoration: InputDecoration(
+                hintText: '메시지 보내기',
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                filled: true,
+                fillColor: Colors.grey[100],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                counterText: '',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -324,7 +406,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 사용자 ID 검색
+              // 사용자 ID 검색창
               SizedBox(
                 height: 44,
                 child: TextField(
@@ -333,23 +415,17 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   onSubmitted: (_) => _isSearching ? null : _searchUser(),
                   style: const TextStyle(fontSize: 14),
                   decoration: InputDecoration(
-                    hintText: '@ 사용자 ID',
-                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    hintText: '검색',
+                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 10,
                     ),
-                    suffixIcon: IconButton(
-                      onPressed: _isSearching ? null : _searchUser,
-                      icon: Icon(
-                        Icons.search,
-                        color: Colors.black.withValues(alpha: 0.8),
-                      ),
-                    ),
                     filled: true,
                     fillColor: Colors.grey[100],
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(100),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -404,95 +480,12 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   ),
                 ),
               ],
-              // 검색 결과
-              if (_foundUserName != null && _foundUser != null) ...[
+              // 선택된 유저 카드 목록
+              if (_selectedUsers.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.green[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildProfileAvatar(_foundUser!, size: 38),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _foundUserName!,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '@${_foundUser!.id ?? ''}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.check_circle, color: Colors.green),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // 요청 메시지
-                TextField(
-                  controller: _messageController,
-                  maxLength: FriendRequest.maxMessageLength,
-                  maxLines: 3,
-                  style: const TextStyle(fontSize: 14),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
+                for (final selected in _selectedUsers)
+                  _buildSelectedUserCard(selected),
               ],
-              const SizedBox(height: 20),
-              if (_foundUserName != null)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _sendRequest,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPink,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                        minimumSize: const Size(0, 40),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('요청 보내기'),
-                    ),
-                  ],
-                ),
             ],
           ),
         ),
