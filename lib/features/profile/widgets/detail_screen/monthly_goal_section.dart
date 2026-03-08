@@ -299,6 +299,7 @@ class _GoalProgressContent extends StatelessWidget {
                   : 0.0,
               markerLabel: _formatCurrency(currentSpending),
               barColor: const Color(0xFFF7B6B6),
+              isOverGoal: currentSpending > budget!,
             ),
             const SizedBox(height: 20),
           ],
@@ -310,28 +311,44 @@ class _GoalProgressContent extends StatelessWidget {
                   : 0.0,
               markerLabel: '${_formatBottle(currentAlcohol)}병',
               barColor: const Color(0xFFADE4C3),
+              isOverGoal: currentAlcohol > alcoholGoal!,
             ),
           ],
           if (budget != null || alcoholGoal != null) ...[
             const SizedBox(height: 20),
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
             const SizedBox(height: 12),
-            if (budget != null)
-              _SummaryRow(
-                color: const Color(0xFFF7B6B6),
-                label: '$monthNum월 잔액',
-                value: _formatCurrency(budget! - currentSpending),
-              ),
+            if (budget != null) ...[
+              () {
+                final over = currentSpending > budget!;
+                return _SummaryRow(
+                  color: const Color(0xFFF7B6B6),
+                  label: '$monthNum월 잔액',
+                  value: over
+                      ? '${_formatCurrency(currentSpending - budget!)} 초과'
+                      : _formatCurrency(budget! - currentSpending),
+                  isOverGoal: over,
+                );
+              }(),
+            ],
             if (budget != null && alcoholGoal != null)
               const SizedBox(height: 8),
-            if (alcoholGoal != null)
-              _SummaryRow(
-                color: const Color(0xFFADE4C3),
-                label: '$monthNum월 잔여 음주량',
-                // 1/10단위 정수 뺄셈으로 반올림 오차 없이 목표 - 음주량 계산
-                value:
-                    '${_formatBottle(((alcoholGoal! * 10).round() - (currentAlcohol * 10).round()) / 10.0)}병',
-              ),
+            if (alcoholGoal != null) ...[
+              () {
+                final goalTenths = (alcoholGoal! * 10).round();
+                final currentTenths = (currentAlcohol * 10).round();
+                final diffTenths = currentTenths - goalTenths;
+                final over = diffTenths > 0;
+                return _SummaryRow(
+                  color: const Color(0xFFADE4C3),
+                  label: '$monthNum월 잔여 음주량',
+                  value: over
+                      ? '${_formatBottle(diffTenths / 10.0)}병 초과'
+                      : '${_formatBottle(-diffTenths / 10.0)}병',
+                  isOverGoal: over,
+                );
+              }(),
+            ],
           ],
         ],
       ),
@@ -355,11 +372,13 @@ class _SummaryRow extends StatelessWidget {
     required this.color,
     required this.label,
     required this.value,
+    this.isOverGoal = false,
   });
 
   final Color color;
   final String label;
   final String value;
+  final bool isOverGoal;
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +388,9 @@ class _SummaryRow extends StatelessWidget {
           width: 14,
           height: 14,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.5),
+            color: isOverGoal
+                ? Colors.red[300]!.withValues(alpha: 0.5)
+                : color.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(3),
           ),
         ),
@@ -384,9 +405,10 @@ class _SummaryRow extends StatelessWidget {
         const Spacer(),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
+            color: isOverGoal ? Colors.red[400] : Colors.black87,
           ),
         ),
       ],
@@ -400,12 +422,14 @@ class _BarRow extends StatelessWidget {
     required this.ratio,
     required this.markerLabel,
     required this.barColor,
+    this.isOverGoal = false,
   });
 
   final String label;
   final double ratio;
   final String markerLabel;
   final Color barColor;
+  final bool isOverGoal;
 
   @override
   Widget build(BuildContext context) {
@@ -445,7 +469,7 @@ class _BarRow extends StatelessWidget {
                       width: filledWidth.clamp(0.0, totalWidth),
                       height: 10,
                       decoration: BoxDecoration(
-                        color: barColor,
+                        color: isOverGoal ? Colors.red[400] : barColor,
                         borderRadius: ratio >= 1.0
                             ? BorderRadius.circular(5)
                             : const BorderRadius.only(
