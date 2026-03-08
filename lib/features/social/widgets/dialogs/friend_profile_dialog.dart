@@ -97,12 +97,12 @@ class FriendProfileDialog extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         backgroundColor: Colors.grey[200],
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(100),
                         ),
                       ),
                       child: const Text(
                         '취소하기',
-                        style: TextStyle(color: Colors.black87),
+                        style: TextStyle(color: Colors.black87, fontSize: 15),
                       ),
                     ),
                   ),
@@ -112,14 +112,14 @@ class FriendProfileDialog extends ConsumerWidget {
                       onPressed: () => Navigator.of(context).pop(true),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor: AppColors.primaryPink,
+                        backgroundColor: Colors.black87,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(100),
                         ),
                       ),
                       child: const Text(
                         '삭제하기',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white, fontSize: 15),
                       ),
                     ),
                   ),
