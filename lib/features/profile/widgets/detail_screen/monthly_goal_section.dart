@@ -258,8 +258,8 @@ class _GoalSummaryText extends StatelessWidget {
     return Text.rich(
       TextSpan(
         style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
+          fontSize: 21,
+          fontWeight: FontWeight.w700,
           height: 1.4,
         ),
         children: spans,
