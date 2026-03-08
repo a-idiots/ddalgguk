@@ -320,9 +320,7 @@ class _GoalProgressContent extends StatelessWidget {
               _SummaryRow(
                 color: const Color(0xFFF7B6B6),
                 label: '$monthNum월 잔액',
-                value: _formatCurrency(
-                  (budget! - currentSpending).clamp(0, budget!),
-                ),
+                value: _formatCurrency(budget! - currentSpending),
               ),
             if (budget != null && alcoholGoal != null)
               const SizedBox(height: 8),
@@ -330,8 +328,9 @@ class _GoalProgressContent extends StatelessWidget {
               _SummaryRow(
                 color: const Color(0xFFADE4C3),
                 label: '$monthNum월 잔여 음주량',
+                // 1/10단위 정수 뺄셈으로 반올림 오차 없이 목표 - 음주량 계산
                 value:
-                    '${_formatBottle((alcoholGoal! - currentAlcohol).clamp(0.0, alcoholGoal!))}병',
+                    '${_formatBottle(((alcoholGoal! * 10).round() - (currentAlcohol * 10).round()) / 10.0)}병',
               ),
           ],
         ],
