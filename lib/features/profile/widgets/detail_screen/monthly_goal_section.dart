@@ -81,11 +81,11 @@ class MonthlyGoalSection extends ConsumerWidget {
                           '$monthNum월달 음주 잔고',
                           style: const TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined, size: 22),
+                          icon: const Icon(Icons.arrow_forward, size: 22),
                           color: Colors.grey[500],
                           onPressed: () => _onEditTapped(
                             context,
@@ -293,7 +293,7 @@ class _GoalProgressContent extends StatelessWidget {
         children: [
           if (budget != null) ...[
             _BarRow(
-              label: '지출액',
+              label: '예산',
               ratio: budget! > 0
                   ? (currentSpending / budget!).clamp(0.0, 1.0)
                   : 0.0,
@@ -312,6 +312,28 @@ class _GoalProgressContent extends StatelessWidget {
               barColor: const Color(0xFFADE4C3),
             ),
           ],
+          if (budget != null || alcoholGoal != null) ...[
+            const SizedBox(height: 20),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            const SizedBox(height: 12),
+            if (budget != null)
+              _SummaryRow(
+                color: const Color(0xFFF7B6B6),
+                label: '$monthNum월 잔액',
+                value: _formatCurrency(
+                  (budget! - currentSpending).clamp(0, budget!),
+                ),
+              ),
+            if (budget != null && alcoholGoal != null)
+              const SizedBox(height: 8),
+            if (alcoholGoal != null)
+              _SummaryRow(
+                color: const Color(0xFFADE4C3),
+                label: '$monthNum월 잔여 음주량',
+                value:
+                    '${_formatBottle((alcoholGoal! - currentAlcohol).clamp(0.0, alcoholGoal!))}병',
+              ),
+          ],
         ],
       ),
     );
@@ -326,6 +348,50 @@ class _GoalProgressContent extends StatelessWidget {
       return v.toInt().toString();
     }
     return v.toStringAsFixed(1);
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+
+  final Color color;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[700],
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 }
 
