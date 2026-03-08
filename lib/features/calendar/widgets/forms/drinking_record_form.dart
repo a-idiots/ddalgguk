@@ -288,8 +288,8 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                   // 둥근 슬라이더와 캐릭터를 겹쳐서 표시
                   Center(
                     child: SizedBox(
-                      width: 160,
-                      height: 160,
+                      width: 170,
+                      height: 170,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -299,7 +299,7 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                             min: 0,
                             max: 100,
                             divisions: 20,
-                            size: 160,
+                            size: 170,
                             trackWidth: 8,
                             inactiveColor: Colors.grey[300]!,
                             activeColor: const Color(0xFFFA75A5),
