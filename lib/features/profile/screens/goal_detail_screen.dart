@@ -197,7 +197,7 @@ class _GoalTabContent extends StatelessWidget {
                     summaryIsOver: budgetOver,
                     ratio: budget! > 0
                         ? (currentSpending / budget!).clamp(0.0, 1.0)
-                        : 0.0,
+                        : (budgetOver ? 1.0 : 0.0),
                     markerLabel: _formatCurrency(currentSpending),
                     barColor: const Color(0xFFF7B6B6),
                     isOverGoal: budgetOver,
@@ -232,7 +232,7 @@ class _GoalTabContent extends StatelessWidget {
                     summaryIsOver: alcoholOver,
                     ratio: alcoholGoal! > 0
                         ? (currentAlcohol / alcoholGoal!).clamp(0.0, 1.0)
-                        : 0.0,
+                        : (alcoholOver ? 1.0 : 0.0),
                     markerLabel: '${_formatBottle(currentAlcohol)}병',
                     barColor: const Color(0xFFADE4C3),
                     isOverGoal: alcoholOver,
@@ -718,10 +718,10 @@ class _MonthRow extends ConsumerWidget {
 
     final budgetRatio = budget != null && budget > 0
         ? (spending / budget).clamp(0.0, 1.0)
-        : 0.0;
+        : (budgetOver ? 1.0 : 0.0);
     final alcoholRatio = alcoholGoal != null && alcoholGoal > 0
         ? (alcohol / alcoholGoal).clamp(0.0, 1.0)
-        : 0.0;
+        : (alcoholOver ? 1.0 : 0.0);
 
     final currencyFmt = NumberFormat('#,###');
 
