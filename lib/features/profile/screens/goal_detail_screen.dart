@@ -33,32 +33,52 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: const BackButton(color: Colors.black),
-        titleSpacing: 0,
-        title: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: '음주 목표'),
-            Tab(text: '달성 현황'),
-          ],
-          labelColor: Colors.black,
-          unselectedLabelColor: Colors.grey,
-          labelStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Builder(
+          builder: (context) => Container(
+            color: Colors.white,
+            child: SafeArea(
+              bottom: false,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: BackButton(color: Colors.black),
+                  ),
+                  TabBar(
+                    controller: _tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    padding: EdgeInsets.zero,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 36),
+                    tabs: const [
+                      Tab(text: '음주 목표', height: 36),
+                      Tab(text: '달성 현황', height: 36),
+                    ],
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    labelStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    indicator: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Colors.black, width: 2),
+                      ),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.label,
+                    dividerColor: Colors.transparent,
+                  ),
+                ],
+              ),
+            ),
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-          ),
-          indicatorColor: Colors.black,
-          indicatorWeight: 2,
-          indicatorSize: TabBarIndicatorSize.label,
-          dividerColor: Colors.transparent,
         ),
       ),
       body: TabBarView(
