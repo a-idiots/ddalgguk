@@ -182,10 +182,10 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
                 backgroundColor: Colors.black87,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                 ),
               ),
-              child: const Text('추가', style: TextStyle(fontSize: 16)),
+              child: const Text('추가하기', style: TextStyle(fontSize: 16)),
             ),
           ),
 

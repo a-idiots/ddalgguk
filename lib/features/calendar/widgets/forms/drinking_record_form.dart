@@ -1,4 +1,3 @@
-import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/features/calendar/widgets/completed_drink_card.dart';
@@ -466,7 +465,7 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             backgroundColor: Colors.grey[200],
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(100),
                             ),
                           ),
                           child: const Text(
@@ -481,10 +480,10 @@ class _DrinkingRecordFormState extends State<DrinkingRecordForm> {
                           onPressed: () => _handleSubmit(context),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: AppColors.primaryPink,
+                            backgroundColor: Colors.black87,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(100),
                             ),
                           ),
                           child: Text(widget.submitButtonText),
