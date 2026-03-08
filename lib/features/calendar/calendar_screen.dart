@@ -902,80 +902,90 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.hardEdge,
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Stack(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // 검정 헤더
+            Container(
+              width: double.infinity,
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: const Text(
+                '기록 삭제',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            // 흰 본문
             Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 말풍선
-                  Center(
-                    child: CustomPaint(
-                      painter: _BubblePainter(
-                        Colors.white,
-                        TailPosition.bottom,
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
-                        child: const Text(
-                          '이 기록을 삭제하시겠습니까?',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
+                  const Text(
+                    '이 기록을 삭제하시겠습니까?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: Colors.grey[200],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          ),
+                          child: const Text(
+                            '취소',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // 사쿠 캐릭터
-                  const Center(child: SakuCharacter(size: 84, drunkLevel: 0)),
-                  const SizedBox(height: 16),
-                  // 삭제 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPink,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          ),
+                          child: const Text(
+                            '삭제',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        '삭제',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
-              ),
-            ),
-            // X 버튼
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.black54),
-                onPressed: () => Navigator.of(context).pop(false),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ),
           ],
@@ -1034,88 +1044,3 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
-/// 말풍선 꼬리 위치
-enum TailPosition { bottom }
-
-/// 테두리가 있는 말풍선을 그리는 CustomPainter
-class _BubblePainter extends CustomPainter {
-  _BubblePainter(this.backgroundColor, this.tailPosition);
-
-  final Color backgroundColor;
-  final TailPosition tailPosition;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = Colors.grey[300]!
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    const double tailWidth = 20.0;
-    const double tailHeight = 10.0;
-    const double radius = 20.0;
-
-    final bubbleHeight = size.height - tailHeight;
-    final tailCenterX = size.width / 2;
-
-    // 전체 말풍선 경로 (꼬리 포함)
-    final path = Path();
-
-    // 왼쪽 상단 모서리부터 시작
-    path.moveTo(0, radius);
-    path.arcToPoint(Offset(radius, 0), radius: const Radius.circular(radius));
-
-    // 상단 선
-    path.lineTo(size.width - radius, 0);
-
-    // 오른쪽 상단 모서리
-    path.arcToPoint(
-      Offset(size.width, radius),
-      radius: const Radius.circular(radius),
-    );
-
-    // 오른쪽 선
-    path.lineTo(size.width, bubbleHeight - radius);
-
-    // 오른쪽 하단 모서리
-    path.arcToPoint(
-      Offset(size.width - radius, bubbleHeight),
-      radius: const Radius.circular(radius),
-    );
-
-    // 하단 선 (꼬리 오른쪽까지)
-    path.lineTo(tailCenterX + tailWidth / 2, bubbleHeight);
-
-    // 꼬리
-    path.lineTo(tailCenterX, size.height);
-    path.lineTo(tailCenterX - tailWidth / 2, bubbleHeight);
-
-    // 하단 선 (꼬리 왼쪽부터)
-    path.lineTo(radius, bubbleHeight);
-
-    // 왼쪽 하단 모서리
-    path.arcToPoint(
-      Offset(0, bubbleHeight - radius),
-      radius: const Radius.circular(radius),
-    );
-
-    // 왼쪽 선 (닫기)
-    path.close();
-
-    // 배경 그리기
-    canvas.drawPath(path, paint);
-
-    // 테두리 그리기
-    canvas.drawPath(path, borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(_BubblePainter oldDelegate) {
-    return oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.tailPosition != tailPosition;
-  }
-}
