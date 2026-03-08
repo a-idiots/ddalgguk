@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/features/auth/domain/models/monthly_goal.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/widgets/dialogs/goal_edit_sheet.dart';
 
@@ -521,13 +522,262 @@ class _LegendRow extends StatelessWidget {
   }
 }
 
-// ── 달성 현황 탭 (미구현) ──────────────────────────────────────
+// ── 달성 현황 탭 ──────────────────────────────────────────────
 
-class _AchievementTab extends StatelessWidget {
+class _AchievementTab extends ConsumerStatefulWidget {
   const _AchievementTab();
 
   @override
+  ConsumerState<_AchievementTab> createState() => _AchievementTabState();
+}
+
+class _AchievementTabState extends ConsumerState<_AchievementTab> {
+  late int _year;
+
+  @override
+  void initState() {
+    super.initState();
+    _year = DateTime.now().year;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const SizedBox.shrink();
+    final userAsync = ref.watch(currentUserProvider);
+    final allGoals = userAsync.valueOrNull?.monthlyGoals ?? {};
+    final now = DateTime.now();
+
+    // Filter to months in the selected year that have a goal set
+    final monthsWithGoals = List.generate(
+      _year == now.year ? now.month : 12,
+      (i) => i + 1,
+    ).where((m) {
+      final key = '$_year-${m.toString().padLeft(2, '0')}';
+      return allGoals.containsKey(key);
+    }).toList();
+
+    return Column(
+      children: [
+        // Year navigation
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: () => setState(() => _year--),
+                icon: const Icon(Icons.chevron_left, size: 24),
+                color: Colors.black,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                '$_year년',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                onPressed: _year < now.year
+                    ? () => setState(() => _year++)
+                    : null,
+                icon: Icon(
+                  Icons.chevron_right,
+                  size: 24,
+                  color: _year < now.year ? Colors.black : Colors.grey[300],
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ),
+        if (monthsWithGoals.isEmpty)
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/imgs/goal_assets/goal_badge/goal_none.png',
+                    width: 72,
+                    height: 72,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '설정하신 목표가 없어요.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              itemCount: monthsWithGoals.length,
+              separatorBuilder: (_, __) => const Divider(
+                height: 1,
+                thickness: 1,
+                color: Color(0xFFF2F2F2),
+              ),
+              itemBuilder: (context, index) {
+                final month = monthsWithGoals[index];
+                final key = '$_year-${month.toString().padLeft(2, '0')}';
+                final goal = allGoals[key]!;
+                return _MonthRow(
+                  month: month,
+                  monthKey: DateTime(_year, month),
+                  goal: goal,
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _MonthRow extends ConsumerWidget {
+  const _MonthRow({
+    required this.month,
+    required this.monthKey,
+    required this.goal,
+  });
+
+  final int month;
+  final DateTime monthKey;
+  final MonthlyGoal goal;
+
+  String _badgeAsset(double spending, double alcohol) {
+    final hasBudget = goal.budget != null;
+    final hasAlcohol = goal.alcohol != null;
+    final budgetMet = !hasBudget || spending <= goal.budget!;
+    final alcoholMet = !hasAlcohol || alcohol <= goal.alcohol!;
+    if (hasBudget && hasAlcohol) {
+      if (budgetMet && alcoholMet) {
+        return 'assets/imgs/goal_assets/goal_badge/goal_success.png';
+      }
+      if (budgetMet || alcoholMet) {
+        return 'assets/imgs/goal_assets/goal_badge/goal_partly.png';
+      }
+      return 'assets/imgs/goal_assets/goal_badge/goal_fail.png';
+    }
+    final onlyMet = hasBudget ? budgetMet : alcoholMet;
+    return onlyMet
+        ? 'assets/imgs/goal_assets/goal_badge/goal_success.png'
+        : 'assets/imgs/goal_assets/goal_badge/goal_fail.png';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final spendingAsync = ref.watch(monthlySpendingProvider(monthKey));
+    final alcoholAsync = ref.watch(monthlyAlcoholBottlesProvider(monthKey));
+
+    final spending = spendingAsync.valueOrNull?.toDouble() ?? 0.0;
+    final alcohol = alcoholAsync.valueOrNull ?? 0.0;
+
+    final budget = goal.budget;
+    final alcoholGoal = goal.alcohol;
+
+    final budgetRatio = budget != null && budget > 0
+        ? (spending / budget).clamp(0.0, 1.0)
+        : 0.0;
+    final alcoholRatio = alcoholGoal != null && alcoholGoal > 0
+        ? (alcohol / alcoholGoal).clamp(0.0, 1.0)
+        : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Image.asset(_badgeAsset(spending, alcohol), width: 32, height: 32),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 30,
+            child: Text(
+              '$month월',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (budget != null) ...[
+                  _MiniBar(
+                    ratio: budgetRatio,
+                    isOver: spending > budget,
+                    color: const Color(0xFFF7B6B6),
+                  ),
+                  if (alcoholGoal != null) const SizedBox(height: 6),
+                ],
+                if (alcoholGoal != null)
+                  _MiniBar(
+                    ratio: alcoholRatio,
+                    isOver: alcohol > alcoholGoal,
+                    color: const Color(0xFFADE4C3),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniBar extends StatelessWidget {
+  const _MiniBar({
+    required this.ratio,
+    required this.isOver,
+    required this.color,
+  });
+
+  final double ratio;
+  final bool isOver;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final barColor = isOver ? Colors.red[400]! : color;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        final filledWidth = (totalWidth * ratio).clamp(0.0, totalWidth);
+        return Container(
+          height: 7,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              width: filledWidth,
+              decoration: BoxDecoration(
+                color: barColor,
+                borderRadius: ratio >= 1.0
+                    ? BorderRadius.circular(4)
+                    : const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        bottomLeft: Radius.circular(4),
+                      ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

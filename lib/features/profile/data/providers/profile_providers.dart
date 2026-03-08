@@ -206,6 +206,22 @@ final currentMonthAlcoholBottlesProvider = Provider<AsyncValue<double>>((ref) {
   });
 });
 
+/// Monthly alcohol consumed in bottles for any month
+/// Family version of currentMonthAlcoholBottlesProvider
+final monthlyAlcoholBottlesProvider =
+    Provider.family<AsyncValue<double>, DateTime>((ref, date) {
+  final recordsAsync = ref.watch(monthRecordsProvider(date));
+  return recordsAsync.whenData((records) {
+    double totalMl = 0;
+    for (final record in records) {
+      for (final drink in record.drinkAmount) {
+        totalMl += drink.amount;
+      }
+    }
+    return totalMl / 360.0;
+  });
+});
+
 /// Previous month average spending per drinking session
 /// Default 30,000원 if no records with cost exist
 final prevMonthAvgSpendingProvider = FutureProvider<double>((ref) async {

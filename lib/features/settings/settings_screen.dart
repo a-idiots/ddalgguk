@@ -43,6 +43,32 @@ class SettingsScreen extends ConsumerWidget {
     return const SakuCharacter(size: 55);
   }
 
+  Future<void> _backfillGoals(BuildContext context, WidgetRef ref) async {
+    final now = DateTime.now();
+    final monthKeys = List.generate(
+      now.month,
+      (i) => '${now.year}-${(i + 1).toString().padLeft(2, '0')}',
+    );
+
+    try {
+      await ref.read(authRepositoryProvider).backfillMonthlyGoals(monthKeys);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${monthKeys.join(', ')} 소급 적용 완료')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('실패: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
@@ -303,6 +329,10 @@ class SettingsScreen extends ConsumerWidget {
                 loading: () => const SizedBox(height: 48),
                 error: (_, __) => const SizedBox.shrink(),
               ),
+          SettingsListTile(
+            title: '[DEV] 월 목표 소급 적용',
+            onTap: () => _backfillGoals(context, ref),
+          ),
         ],
       ),
     );

@@ -131,6 +131,7 @@ flutter:
     - assets/imgs/onboarding/
     - assets/imgs/badges/drink/
     - assets/imgs/badges/sober/
+    - assets/imgs/goal_assets/goal_badge/
 
   fonts:
     - family: Pretendard

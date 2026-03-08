@@ -8,6 +8,7 @@ import 'package:ddalgguk/features/auth/data/services/apple_auth_service.dart';
 import 'package:ddalgguk/features/auth/data/services/kakao_auth_service.dart';
 import 'package:ddalgguk/features/auth/domain/models/app_user.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart'; // Added import for Badge
+import 'package:ddalgguk/features/auth/domain/models/monthly_goal.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
 
@@ -618,6 +619,7 @@ class AuthRepository {
   }
 
   /// Update monthly drinking goal
+  /// Saves to flat fields (current display) and archives to monthlyGoals map
   Future<void> updateMonthlyGoal({int? budget, double? alcohol}) async {
     try {
       final uid = _firebaseAuthService.userId;
@@ -625,12 +627,18 @@ class AuthRepository {
         throw Exception('User not authenticated');
       }
 
+      final now = DateTime.now();
+      final monthKey =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}';
+
       final updates = <String, dynamic>{};
       if (budget != null) {
         updates['monthlyGoalBudget'] = budget;
+        updates['monthlyGoals.$monthKey.budget'] = budget;
       }
       if (alcohol != null) {
         updates['monthlyGoalAlcohol'] = alcohol;
+        updates['monthlyGoals.$monthKey.alcohol'] = alcohol;
       }
 
       if (updates.isNotEmpty) {
@@ -638,9 +646,17 @@ class AuthRepository {
 
         final currentUser = await getCurrentUser();
         if (currentUser != null) {
+          final updatedGoals =
+              Map<String, MonthlyGoal>.from(currentUser.monthlyGoals);
+          final existing = updatedGoals[monthKey];
+          updatedGoals[monthKey] = MonthlyGoal(
+            budget: budget ?? existing?.budget,
+            alcohol: alcohol ?? existing?.alcohol,
+          );
           final updatedUser = currentUser.copyWith(
             monthlyGoalBudget: budget ?? currentUser.monthlyGoalBudget,
             monthlyGoalAlcohol: alcohol ?? currentUser.monthlyGoalAlcohol,
+            monthlyGoals: updatedGoals,
           );
           await _storageService.saveUserCache(updatedUser);
         }
@@ -649,6 +665,46 @@ class AuthRepository {
       debugPrint('Update monthly goal error: $e');
       rethrow;
     }
+  }
+
+  /// [DEV] 현재 flat 목표값을 지정한 월들에 소급 적용
+  Future<void> backfillMonthlyGoals(List<String> monthKeys) async {
+    final uid = _firebaseAuthService.userId;
+    if (uid == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('User not found');
+    }
+
+    final budget = currentUser.monthlyGoalBudget;
+    final alcohol = currentUser.monthlyGoalAlcohol;
+    if (budget == null && alcohol == null) {
+      throw Exception('현재 설정된 목표가 없습니다');
+    }
+
+    final updates = <String, dynamic>{};
+    for (final key in monthKeys) {
+      if (budget != null) {
+        updates['monthlyGoals.$key.budget'] = budget;
+      }
+      if (alcohol != null) {
+        updates['monthlyGoals.$key.alcohol'] = alcohol;
+      }
+    }
+
+    await _usersCollection.doc(uid).update(updates);
+
+    // 캐시 갱신
+    final updatedGoals = Map<String, MonthlyGoal>.from(currentUser.monthlyGoals);
+    for (final key in monthKeys) {
+      updatedGoals[key] = MonthlyGoal(budget: budget, alcohol: alcohol);
+    }
+    await _storageService.saveUserCache(
+      currentUser.copyWith(monthlyGoals: updatedGoals),
+    );
   }
 
   /// 랭킹 권한 업데이트 (users/{uid}에 merge로 씀, 기존 데이터 보존)
