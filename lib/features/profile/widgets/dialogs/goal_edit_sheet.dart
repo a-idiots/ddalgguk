@@ -48,7 +48,7 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
   bool get _canSave {
     final budget = int.tryParse(_budgetController.text);
     final alcohol = double.tryParse(_alcoholController.text);
-    return (budget != null && budget > 0) || (alcohol != null && alcohol > 0);
+    return budget != null || alcohol != null;
   }
 
   Future<void> _save() async {
@@ -63,8 +63,8 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
     try {
       final authRepository = ref.read(authRepositoryProvider);
       await authRepository.updateMonthlyGoal(
-        budget: (budget != null && budget > 0) ? budget : null,
-        alcohol: (alcohol != null && alcohol > 0) ? alcohol : null,
+        budget: budget,
+        alcohol: alcohol,
       );
       if (mounted) {
         Navigator.of(context).pop(true);

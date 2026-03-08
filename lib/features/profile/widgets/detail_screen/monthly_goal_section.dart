@@ -293,9 +293,11 @@ class _GoalProgressContent extends StatelessWidget {
           if (budget != null) ...[
             _BarRow(
               label: '예산',
-              ratio: budget! > 0
-                  ? (currentSpending / budget!).clamp(0.0, 1.0)
-                  : 0.0,
+              ratio: currentSpending > budget!
+                  ? 1.0
+                  : budget! > 0
+                      ? (currentSpending / budget!).clamp(0.0, 1.0)
+                      : 0.0,
               markerLabel: _formatCurrency(currentSpending),
               barColor: const Color(0xFFF7B6B6),
               isOverGoal: currentSpending > budget!,
@@ -305,9 +307,11 @@ class _GoalProgressContent extends StatelessWidget {
           if (alcoholGoal != null) ...[
             _BarRow(
               label: '음주량',
-              ratio: alcoholGoal! > 0
-                  ? (currentAlcohol / alcoholGoal!).clamp(0.0, 1.0)
-                  : 0.0,
+              ratio: currentAlcohol > alcoholGoal!
+                  ? 1.0
+                  : alcoholGoal! > 0
+                      ? (currentAlcohol / alcoholGoal!).clamp(0.0, 1.0)
+                      : 0.0,
               markerLabel: '${_formatBottle(currentAlcohol)}병',
               barColor: const Color(0xFFADE4C3),
               isOverGoal: currentAlcohol > alcoholGoal!,
