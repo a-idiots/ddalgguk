@@ -336,7 +336,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
             Divider(
               height: 1,
               thickness: 1,
