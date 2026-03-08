@@ -26,11 +26,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<DrinkingRecord>> _recordsMap = {};
+  final GlobalKey _fabKey = GlobalKey();
+  OverlayEntry? _menuOverlay;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+  }
+
+  @override
+  void dispose() {
+    _removeMenu();
+    super.dispose();
   }
 
   void _updateRecordsMap(List<DrinkingRecord> records) {
@@ -225,12 +233,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(0, -20), // 오른쪽 20% 가리기
+        offset: const Offset(0, -20),
         child: SizedBox(
           width: 55,
           height: 55,
           child: FloatingActionButton(
-            onPressed: () => _showAddRecordDialog(context),
+            key: _fabKey,
+            onPressed: _showAddMenu,
             backgroundColor: AppColors.primaryPink,
             foregroundColor: Colors.white,
             elevation: 0,
@@ -336,13 +345,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ],
             ),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Colors.grey[300],
-              indent: 0,
-              endIndent: 0,
-            ),
+            Divider(height: 1, thickness: 1, color: Colors.grey[300]),
             // 음주 기록 리스트 - 스크롤 가능
             _buildRecordsList(),
           ],
@@ -478,16 +481,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final records = _getRecordsForDay(_selectedDay!);
 
     if (records.isEmpty) {
-      // 미래 날짜 체크
-      final today = DateTime.now();
-      final normalizedToday = DateTime(today.year, today.month, today.day);
-      final normalizedSelectedDay = DateTime(
-        _selectedDay!.year,
-        _selectedDay!.month,
-        _selectedDay!.day,
-      );
-      final isFutureDate = normalizedSelectedDay.isAfter(normalizedToday);
-
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
@@ -511,25 +504,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              if (!isFutureDate) ...[
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 0,
-                    ),
-                  ),
-                  child: const Text(
-                    '+ 금주 기록 추가하기',
-                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -827,6 +801,95 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         );
       }
     }
+  }
+
+  void _removeMenu() {
+    _menuOverlay?.remove();
+    _menuOverlay = null;
+  }
+
+  /// + 버튼 팝업 메뉴 (음주 / 금주) — 커스텀 오버레이로 애니메이션 없이 정확한 위치에 표시
+  void _showAddMenu() {
+    if (_menuOverlay != null) {
+      return;
+    }
+
+    final renderBox =
+        _fabKey.currentContext!.findRenderObject()! as RenderBox;
+    final fabPos = renderBox.localToGlobal(Offset.zero);
+    final fabSize = renderBox.size;
+    final screenSize = MediaQuery.of(context).size;
+
+    // 팝업 우하단 = FAB 우측 상단
+    final anchorRight = screenSize.width - (fabPos.dx + fabSize.width);
+    final anchorY = fabPos.dy;
+
+    _menuOverlay = OverlayEntry(
+      builder: (ctx) => GestureDetector(
+        onTap: _removeMenu,
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
+            Positioned(
+              right: anchorRight,
+              bottom: screenSize.height - anchorY + 12,
+              width: 172,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                      offset: Offset.zero,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Material(
+                    color: Colors.white,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildMenuItem('음주 기록 추가하기', () {
+                          _removeMenu();
+                          _showAddRecordDialog(context);
+                        }),
+                        Divider(height: 1, color: Colors.grey[200]),
+                        _buildMenuItem('금주 기록 추가하기', () {
+                          _removeMenu();
+                          if (_selectedDay != null) {
+                            _confirmAndAddNoDrinkRecord(_selectedDay!);
+                          }
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_menuOverlay!);
+  }
+
+  Widget _buildMenuItem(String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: SizedBox(
+          width: double.infinity,
+          child: Text(text, style: const TextStyle(fontSize: 15)),
+        ),
+      ),
+    );
   }
 
   /// 기록 추가 다이얼로그
