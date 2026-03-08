@@ -91,7 +91,9 @@ class _RankingToggleTileState extends ConsumerState<_RankingToggleTile> {
   bool _isUpdating = false;
 
   bool _currentValue(AppUser? user) {
-    if (user == null) return true;
+    if (user == null) {
+      return true;
+    }
     switch (widget.field) {
       case _RankingField.rankingPermission:
         return user.rankingPermission ?? true;
@@ -197,7 +199,9 @@ class _RankingToggleTileState extends ConsumerState<_RankingToggleTile> {
                           );
                         }
                       } finally {
-                        if (mounted) setState(() => _isUpdating = false);
+                        if (mounted) {
+                          setState(() => _isUpdating = false);
+                        }
                       }
                     },
               child: Opacity(
