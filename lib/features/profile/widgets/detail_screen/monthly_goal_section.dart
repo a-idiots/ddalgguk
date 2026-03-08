@@ -5,7 +5,7 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/profile/widgets/dialogs/goal_bottom_sheet.dart';
+import 'package:ddalgguk/features/profile/screens/goal_detail_screen.dart';
 import 'package:ddalgguk/features/profile/widgets/dialogs/goal_edit_sheet.dart';
 
 class MonthlyGoalSection extends ConsumerWidget {
@@ -137,12 +137,11 @@ class MonthlyGoalSection extends ConsumerWidget {
 
     final hasGoal = budget != null || alcoholGoal != null;
     if (hasGoal) {
-      // 이미 목표가 설정됨 → 현황 바텀시트 표시
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const GoalBottomSheet(),
+      // 이미 목표가 설정됨 → 상세 페이지로 이동
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const GoalDetailScreen(),
+        ),
       );
     } else {
       // 목표 미설정 → 바로 입력 시트 표시
