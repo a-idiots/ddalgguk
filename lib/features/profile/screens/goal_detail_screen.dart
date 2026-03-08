@@ -675,6 +675,13 @@ class _MonthRow extends ConsumerWidget {
         : 'assets/imgs/goal_assets/goal_badge/goal_fail.png';
   }
 
+  String _formatBottle(double v) {
+    if (v == v.truncateToDouble()) {
+      return v.toInt().toString();
+    }
+    return v.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spendingAsync = ref.watch(monthlySpendingProvider(monthKey));
@@ -686,6 +693,9 @@ class _MonthRow extends ConsumerWidget {
     final budget = goal.budget;
     final alcoholGoal = goal.alcohol;
 
+    final budgetOver = budget != null && spending > budget;
+    final alcoholOver = alcoholGoal != null && alcohol > alcoholGoal;
+
     final budgetRatio = budget != null && budget > 0
         ? (spending / budget).clamp(0.0, 1.0)
         : 0.0;
@@ -693,9 +703,12 @@ class _MonthRow extends ConsumerWidget {
         ? (alcohol / alcoholGoal).clamp(0.0, 1.0)
         : 0.0;
 
+    final currencyFmt = NumberFormat('#,###');
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(_badgeAsset(spending, alcohol), width: 32, height: 32),
           const SizedBox(width: 12),
@@ -709,25 +722,66 @@ class _MonthRow extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
+          const Spacer(),
+          SizedBox(
+            width: 280,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (budget != null) ...[
-                  _MiniBar(
-                    ratio: budgetRatio,
-                    isOver: spending > budget,
-                    color: const Color(0xFFF7B6B6),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${currencyFmt.format(spending.toInt())}원',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: budgetOver ? Colors.red[400] : Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' /${currencyFmt.format(budget)}원',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  if (alcoholGoal != null) const SizedBox(height: 6),
+                  const SizedBox(height: 4),
+                  _MiniBar(ratio: budgetRatio, isOver: budgetOver),
+                  if (alcoholGoal != null) const SizedBox(height: 10),
                 ],
-                if (alcoholGoal != null)
-                  _MiniBar(
-                    ratio: alcoholRatio,
-                    isOver: alcohol > alcoholGoal,
-                    color: const Color(0xFFADE4C3),
+                if (alcoholGoal != null) ...[
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${_formatBottle(alcohol)}병',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color:
+                                alcoholOver ? Colors.red[400] : Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' /${_formatBottle(alcoholGoal)}병',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height: 4),
+                  _MiniBar(ratio: alcoholRatio, isOver: alcoholOver),
+                ],
               ],
             ),
           ),
@@ -738,28 +792,26 @@ class _MonthRow extends ConsumerWidget {
 }
 
 class _MiniBar extends StatelessWidget {
-  const _MiniBar({
-    required this.ratio,
-    required this.isOver,
-    required this.color,
-  });
+  const _MiniBar({required this.ratio, required this.isOver});
 
   final double ratio;
   final bool isOver;
-  final Color color;
+
+  static const _green = Color(0xFF6DCC99);
+  static const _red = Color(0xFFFF6B6B);
 
   @override
   Widget build(BuildContext context) {
-    final barColor = isOver ? Colors.red[400]! : color;
+    final barColor = isOver ? _red : _green;
     return LayoutBuilder(
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
         final filledWidth = (totalWidth * ratio).clamp(0.0, totalWidth);
         return Container(
-          height: 7,
+          height: 6,
           decoration: BoxDecoration(
             color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(3),
           ),
           child: Align(
             alignment: Alignment.centerLeft,
@@ -768,10 +820,10 @@ class _MiniBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: barColor,
                 borderRadius: ratio >= 1.0
-                    ? BorderRadius.circular(4)
+                    ? BorderRadius.circular(3)
                     : const BorderRadius.only(
-                        topLeft: Radius.circular(4),
-                        bottomLeft: Radius.circular(4),
+                        topLeft: Radius.circular(3),
+                        bottomLeft: Radius.circular(3),
                       ),
               ),
             ),
