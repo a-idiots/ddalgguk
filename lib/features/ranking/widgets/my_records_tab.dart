@@ -2,6 +2,7 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/ranking/data/providers/my_records_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// 소셜 탭 → "나의 기록" 서브탭
 ///
@@ -193,12 +194,12 @@ class _MonthCard extends StatelessWidget {
   // amount != null 인 경우에만 호출됨
   Widget _rankWidget() {
     if (record.amount == 0) {
-      return const Text(
+      return Text(
         'WOW!',
-        style: TextStyle(
+        style: GoogleFonts.inter(
           color: Colors.black54,
           fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       );
     }
@@ -382,12 +383,12 @@ class _WeekCard extends StatelessWidget {
             ),
           )
         else if (record.amount == 0)
-          const Text(
+          Text(
             'WOW!',
-            style: TextStyle(
+            style: GoogleFonts.inter(
               color: Colors.black54,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           )
         else ...[

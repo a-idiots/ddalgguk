@@ -5,6 +5,7 @@ import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
 import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RankingTab extends ConsumerStatefulWidget {
   const RankingTab({super.key});
@@ -214,13 +215,12 @@ class _RankingTabState extends ConsumerState<RankingTab> {
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Column(
         children: [
-          const Text(
+          Text(
             'WARNING',
-            style: TextStyle(
+            style: GoogleFonts.inter(
               fontSize: 22,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w700,
               color: Colors.red,
-              letterSpacing: 2,
             ),
           ),
           const SizedBox(height: 4),
