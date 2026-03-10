@@ -257,23 +257,29 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.70,
         ),
-        child: Stack(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Title
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 20, 40, 12),
-                  child: Text(
-                    '음주 가이드라인',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+            // X button row
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            // Title – full width, properly centered
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Text(
+                '음주 가이드라인',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
+              ),
+            ),
                 // Day pill
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -329,17 +335,6 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
                     ],
                   ),
                 ),
-              ],
-            ),
-            // X button – top right
-            Positioned(
-              top: 4,
-              right: 4,
-              child: IconButton(
-                icon: const Icon(Icons.close, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
           ],
         ),
       ),
@@ -474,7 +469,7 @@ class _GuidelineTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            '*해당 기준은 최소한의 안전을 위한 가이드라인이며, 하루 1잔 이하의 음주 역시 유해할 수 있습니다.\n*음주 시 안면 홍조 등의 증상이 나타나는 경우, 하루 10g 미만 섭취도 위험할 수 있습니다.',
+            '*해당 기준은 최소한의 안전을 위한 가이드라인이며, \n하루 1잔 이하의 음주 역시 유해할 수 있습니다.\n*음주 시 안면 홍조 등의 증상이 나타나는 경우,\n하루 10g 미만 섭취도 위험할 수 있습니다.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
