@@ -106,6 +106,12 @@ service cloud.firestore {
       allow read: if isAuthenticated();
     }
 
+    // 프로필 사진 (base64 JPEG, 본인만 읽기/쓰기)
+    match /profilePhotos/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
     // 기본적으로 모든 접근 거부
     match /{document=**} {
       allow read, write: if false;
