@@ -253,11 +253,7 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 36, vertical: 80),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.70,
-        ),
-        child: Column(
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // X button row
@@ -310,6 +306,12 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
                 TabBar(
                   controller: _tabController,
                   indicatorColor: Colors.black,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  indicator: const UnderlineTabIndicator(
+                    borderSide: BorderSide(width: 2, color: Colors.black),
+                    borderRadius: BorderRadius.zero,
+                  ),
+                  labelPadding: EdgeInsets.zero,
                   labelColor: Colors.black,
                   unselectedLabelColor: Colors.grey,
                   labelStyle: const TextStyle(
@@ -321,12 +323,13 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
                     fontSize: 13,
                   ),
                   tabs: const [
-                    Tab(text: '음주 위험도 분류 기준'),
-                    Tab(text: '순수 알코올 양 계산'),
+                    Tab(height: 30, text: '음주 위험도 분류 기준'),
+                    Tab(height: 30, text: '순수 알코올 양 계산'),
                   ],
                 ),
                 // Tab content
-                Expanded(
+                SizedBox(
+                  height: 300,
                   child: TabBarView(
                     controller: _tabController,
                     children: const [
@@ -337,7 +340,6 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
                 ),
           ],
         ),
-      ),
     );
   }
 }
@@ -411,70 +413,82 @@ class _GuidelineTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      padding: const EdgeInsets.only(top: 16, bottom: 20, right: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  '*순수 알코올 양(g) 기준',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+          // Header row + table – with left padding
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        '*순수 알코올 양(g) 기준',
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Center(child: _HeaderChip(label: '남성')),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 2,
+                      child: Center(child: _HeaderChip(label: '여성')),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 10),
+                _GuidelineRow(
+                  label: '적정',
+                  bgColor: const Color(0xFFD4EFDF),
+                  textColor: const Color(0xFF27AE60),
+                  maleRange: '1~40g',
+                  femaleRange: '1~20g',
+                ),
+                const SizedBox(height: 8),
+                _GuidelineRow(
+                  label: '저위험군',
+                  bgColor: const Color(0xFFFEF9E7),
+                  textColor: const Color(0xFFF39C12),
+                  maleRange: '41~60g',
+                  femaleRange: '21~40g',
+                ),
+                const SizedBox(height: 8),
+                _GuidelineRow(
+                  label: '고위험군',
+                  bgColor: const Color(0xFFFEF0D9),
+                  textColor: const Color(0xFFE67E22),
+                  maleRange: '61~100g',
+                  femaleRange: '41~60g',
+                ),
+                const SizedBox(height: 8),
+                _GuidelineRow(
+                  label: '매우 위험군',
+                  bgColor: const Color(0xFFFDECEC),
+                  textColor: const Color(0xFFE74C3C),
+                  maleRange: '100g 초과',
+                  femaleRange: '60g 초과',
+                ),
+              ],
+            ),
+          ),
+          // Disclaimer
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              '* 해당 기준은 최소한의 안전을 위한 가이드라인이며, 하루 1잔 이하의 음주 역시 유해할 수 있습니다.\n* 음주 시 안면 홍조 등의 증상이 나타나는 경우, 하루 10g 미만 섭취도 위험할 수 있습니다.',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[500],
+                height: 1.6,
               ),
-              Expanded(
-                flex: 2,
-                child: _HeaderChip(label: '남성'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: _HeaderChip(label: '여성'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _GuidelineRow(
-            label: '적정',
-            bgColor: const Color(0xFFD4EFDF),
-            textColor: const Color(0xFF27AE60),
-            maleRange: '1~40g',
-            femaleRange: '1~20g',
-          ),
-          const SizedBox(height: 12),
-          _GuidelineRow(
-            label: '저위험군',
-            bgColor: const Color(0xFFFEF9E7),
-            textColor: const Color(0xFFF39C12),
-            maleRange: '41~60g',
-            femaleRange: '21~40g',
-          ),
-          const SizedBox(height: 12),
-          _GuidelineRow(
-            label: '고위험군',
-            bgColor: const Color(0xFFFEF0D9),
-            textColor: const Color(0xFFE67E22),
-            maleRange: '61~100g',
-            femaleRange: '41~60g',
-          ),
-          const SizedBox(height: 12),
-          _GuidelineRow(
-            label: '매우 위험군',
-            bgColor: const Color(0xFFFDECEC),
-            textColor: const Color(0xFFE74C3C),
-            maleRange: '100g 초과',
-            femaleRange: '60g 초과',
-          ),
-          const SizedBox(height: 24),
-          Text(
-            '*해당 기준은 최소한의 안전을 위한 가이드라인이며, \n하루 1잔 이하의 음주 역시 유해할 수 있습니다.\n*음주 시 안면 홍조 등의 증상이 나타나는 경우,\n하루 10g 미만 섭취도 위험할 수 있습니다.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[500],
-              height: 1.6,
             ),
           ),
         ],
@@ -490,7 +504,7 @@ class _HeaderChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFF0F0F0),
         borderRadius: BorderRadius.circular(20),
@@ -498,7 +512,7 @@ class _HeaderChip extends StatelessWidget {
       child: Text(
         label,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -525,20 +539,20 @@ class _GuidelineRow extends StatelessWidget {
       children: [
         Expanded(
           flex: 3,
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -548,15 +562,16 @@ class _GuidelineRow extends StatelessWidget {
           child: Text(
             maleRange,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14),
+            style: const TextStyle(fontSize: 12),
           ),
         ),
+        const SizedBox(width: 8),
         Expanded(
           flex: 2,
           child: Text(
             femaleRange,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14),
+            style: const TextStyle(fontSize: 12),
           ),
         ),
       ],
