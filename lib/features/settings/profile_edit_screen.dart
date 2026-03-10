@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/providers/profile_photo_providers.dart';
+import 'package:ddalgguk/features/settings/widgets/save_button.dart';
 import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:flutter/material.dart';
@@ -582,7 +583,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF0A9A9),
+                                color: Colors.black,
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: Colors.white,
@@ -597,15 +598,6 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '프로필 사진 변경',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 14,
-                        color: Colors.grey[600],
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -682,42 +674,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                       ),
                     ),
                     const SizedBox(height: 48),
-                    // 저장 버튼
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: _isSaving ? null : _handleSave,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 48,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                        ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text(
-                                '저장하기',
-                                style: TextStyle(
-                                  fontFamily: 'Pretendard',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                      ),
-                    ),
+                    SaveButton(onPressed: _isSaving ? null : _handleSave),
                   ],
                 ),
               ),
