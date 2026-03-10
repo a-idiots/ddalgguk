@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
+import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/profile/data/services/profile_stats_service.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
 import 'package:ddalgguk/features/profile/domain/models/profile_stats.dart';
@@ -247,6 +248,146 @@ final prevMonthAvgSpendingProvider = FutureProvider<double>((ref) async {
   }
   final totalCost = sessionsWithCost.fold<int>(0, (sum, r) => sum + r.cost);
   return totalCost / sessionsWithCost.length;
+});
+
+// ---------------------------------------------------------------------------
+// Alcohol Guideline Data
+// ---------------------------------------------------------------------------
+
+/// Per-drink-type breakdown for the guideline popup info box
+class DrinkBreakdownItem {
+  const DrinkBreakdownItem({
+    required this.drinkType,
+    required this.name,
+    required this.totalAmountMl,
+    required this.grams,
+  });
+
+  final int drinkType;
+  final String name;
+  final double totalAmountMl;
+  final double grams;
+}
+
+/// Data class for the drinking guideline widget
+class AlcoholGuidelineData {
+  const AlcoholGuidelineData({
+    required this.hasRecord,
+    required this.isToday,
+    required this.totalAlcoholGrams,
+    this.breakdown = const [],
+  });
+
+  /// Whether any drinking record was found (today or yesterday)
+  final bool hasRecord;
+
+  /// true = today's record, false = yesterday's record
+  final bool isToday;
+
+  /// Total pure alcohol in grams (volume × abv × 0.8)
+  final double totalAlcoholGrams;
+
+  /// Per-drink-type breakdown
+  final List<DrinkBreakdownItem> breakdown;
+}
+
+/// Aggregates records by drinkType and calculates grams (× 0.8)
+List<DrinkBreakdownItem> _buildBreakdown(List<DrinkingRecord> records) {
+  final Map<int, ({double totalMl, double grams})> map = {};
+
+  for (final r in records) {
+    for (final d in r.drinkAmount) {
+      if (d.amount <= 0) {
+        continue;
+      }
+      final g = d.amount * (d.alcoholContent / 100) * 0.8;
+      final prev = map[d.drinkType];
+      map[d.drinkType] = prev == null
+          ? (totalMl: d.amount, grams: g)
+          : (totalMl: prev.totalMl + d.amount, grams: prev.grams + g);
+    }
+  }
+
+  return map.entries.map((e) {
+    // Resolve name from the shared drinks list via the int ID
+    // We use a simple inline lookup to avoid importing drink_helpers into providers
+    const nameMap = {
+      -1: '기타',
+      0: '알 수 없음',
+      1: '소주',
+      2: '맥주',
+      3: '칵테일',
+      4: '와인',
+      5: '막걸리',
+      6: '위스키',
+      7: '하이볼',
+      8: '사케',
+      9: '보드카',
+    };
+    return DrinkBreakdownItem(
+      drinkType: e.key,
+      name: nameMap[e.key] ?? '기타',
+      totalAmountMl: e.value.totalMl,
+      grams: e.value.grams,
+    );
+  }).toList();
+}
+
+double _sumGrams(List<DrinkingRecord> records) {
+  double total = 0;
+  for (final r in records) {
+    for (final d in r.drinkAmount) {
+      if (d.amount > 0) {
+        total += d.amount * (d.alcoholContent / 100) * 0.8;
+      }
+    }
+  }
+  return total;
+}
+
+/// Provides today-or-yesterday alcohol consumption for the guideline widget.
+/// Fetches today first; falls back to yesterday if today has no drinking records.
+final alcoholGuidelineDataProvider =
+    FutureProvider<AlcoholGuidelineData>((ref) async {
+  ref.watch(drinkingRecordsLastUpdatedProvider);
+
+  final service = ref.watch(drinkingRecordServiceProvider);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+
+  // Today
+  final todayAll = await service.getRecordsByDate(today);
+  final todayDrinking =
+      todayAll.where((r) => r.drinkAmount.any((d) => d.amount > 0)).toList();
+  if (todayDrinking.isNotEmpty) {
+    return AlcoholGuidelineData(
+      hasRecord: true,
+      isToday: true,
+      totalAlcoholGrams: _sumGrams(todayDrinking),
+      breakdown: _buildBreakdown(todayDrinking),
+    );
+  }
+
+  // Yesterday
+  final yesterdayAll = await service.getRecordsByDate(yesterday);
+  final yesterdayDrinking = yesterdayAll
+      .where((r) => r.drinkAmount.any((d) => d.amount > 0))
+      .toList();
+  if (yesterdayDrinking.isNotEmpty) {
+    return AlcoholGuidelineData(
+      hasRecord: true,
+      isToday: false,
+      totalAlcoholGrams: _sumGrams(yesterdayDrinking),
+      breakdown: _buildBreakdown(yesterdayDrinking),
+    );
+  }
+
+  return const AlcoholGuidelineData(
+    hasRecord: false,
+    isToday: false,
+    totalAlcoholGrams: 0,
+  );
 });
 
 /// Provider for user physical info
