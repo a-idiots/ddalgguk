@@ -30,6 +30,23 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   final SojuGlassController _sojuGlassController = SojuGlassController();
   final AppinioSocialShare _appinioSocialShare = AppinioSocialShare();
 
+  DateTime _selectedMonth = () {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month);
+  }();
+
+  void _prevMonth() {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    });
+  }
+
   Future<String?> _captureImage() async {
     try {
       final RenderRepaintBoundary boundary =
@@ -161,9 +178,10 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   @override
   Widget build(BuildContext context) {
-    // Normalize DateTime
     final now = DateTime.now();
-    final normalizedDate = DateTime(now.year, now.month);
+    final normalizedDate = _selectedMonth;
+    final isCurrentMonth =
+        _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     final currentUserAsync = ref.watch(currentUserProvider);
     final monthRecordsAsync = ref.watch(
@@ -209,12 +227,37 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '${now.month}월 음주 Recap',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: _prevMonth,
+                                  child: const Icon(
+                                    Icons.chevron_left,
+                                    size: 20,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${_selectedMonth.month}월 음주 Recap',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: isCurrentMonth ? null : _nextMonth,
+                                  child: Icon(
+                                    Icons.chevron_right,
+                                    size: 20,
+                                    color: isCurrentMonth
+                                        ? Colors.grey[400]
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         );
@@ -306,7 +349,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                             Align(
                               alignment: Alignment.center,
                               child: Text(
-                                '${now.month}월 한줄평',
+                                '${_selectedMonth.month}월 한줄평',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -380,24 +423,14 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   }
 
   Widget _buildStatsGrid(List<DrinkingRecord> records, double? maxAlcohol) {
-    // Calculate stats
-    // 만취 횟수: 주량 초과 여부로 판단
-    // maxAlcohol(주량)이 있으면 주량 초과 시 만취로 간주
-    // 없으면 기존 로직(drunkLevel >= 9) 유지
-    final drunkCount = records.where((r) {
-      if (maxAlcohol != null) {
-        // Calculate total pure alcohol for this record
-        double totalPureAlcohol = 0;
-        for (final drink in r.drinkAmount) {
-          totalPureAlcohol += drink.amount * (drink.alcoholContent / 100);
-        }
-        // Soju 1 bottle (360ml, 16.5%) = ~59.4ml pure alcohol
-        final limitPureAlcohol = maxAlcohol * 59.4;
-        return totalPureAlcohol > limitPureAlcohol;
-      } else {
-        return r.drunkLevel >= 9;
+    // 총 순수 알코올 그램
+    double totalPureAlcoholMl = 0;
+    for (final r in records) {
+      for (final d in r.drinkAmount) {
+        totalPureAlcoholMl += d.amount * (d.alcoholContent / 100);
       }
-    }).length;
+    }
+    final pureAlcoholGrams = (totalPureAlcoholMl * 0.7893).round();
 
     double totalBottles = 0;
     for (var r in records) {
@@ -456,7 +489,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: _StatCard(value: '$drunkCount번', label: '만취'),
+              child: _StatCard(value: '${pureAlcoholGrams}g', label: '총 알코올'),
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -479,7 +512,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     if (records.isEmpty) {
       return _RecordHighlightSection(
         title: '지갑에 빵꾸 뚫린 날',
-        subtitle: '${DateTime.now().month}월 술값 지출 부문 1위',
+        subtitle: '${_selectedMonth.month}월 술값 지출 부문 1위',
         recordName: '-',
         valueText: '0원',
       );
@@ -500,7 +533,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     if (records.isEmpty) {
       return _RecordHighlightSection(
         title: '가장 얼큰했던 술자리',
-        subtitle: '${DateTime.now().month}월 가장 취한 부문 1위',
+        subtitle: '${_selectedMonth.month}월 가장 취한 부문 1위',
         recordName: '-',
         valueText: '0%',
       );
