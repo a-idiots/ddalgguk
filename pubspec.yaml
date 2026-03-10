@@ -77,6 +77,8 @@ dependencies:
   firebase_analytics: ^12.1.0
   url_launcher: ^6.3.2
   package_info_plus: ^9.0.0
+  image_picker: ^1.1.2
+  image: ^4.3.0
 
 dev_dependencies:
   flutter_test:

@@ -9,39 +9,11 @@ import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
 import 'package:ddalgguk/features/settings/notification_settings_screen.dart';
 import 'package:ddalgguk/features/settings/ranking_settings_screen.dart';
 import 'package:ddalgguk/features/settings/screens/main_drink_settings_screen.dart';
-import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
-  Widget _buildProfileAvatar(int profilePhoto) {
-    if (profilePhoto <= 10) {
-      return SakuCharacter(size: 55, drunkLevel: profilePhoto * 10);
-    }
-
-    const alcoholIcons = [
-      'assets/imgs/alcohol_icons/soju.png',
-      'assets/imgs/alcohol_icons/beer.png',
-      'assets/imgs/alcohol_icons/cocktail.png',
-      'assets/imgs/alcohol_icons/wine.png',
-      'assets/imgs/alcohol_icons/makgulli.png',
-    ];
-    final iconIndex = profilePhoto - 11;
-
-    if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
-      return Center(
-        child: Image.asset(
-          alcoholIcons[iconIndex],
-          width: 50,
-          height: 50,
-          fit: BoxFit.contain,
-        ),
-      );
-    }
-
-    return const SakuCharacter(size: 55);
-  }
 
   Future<void> _backfillGoals(BuildContext context, WidgetRef ref) async {
     final now = DateTime.now();
@@ -87,14 +59,10 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: _buildProfileAvatar(user.profilePhoto),
+                    ProfileAvatar(
+                      profilePhoto: user.profilePhoto,
+                      uid: user.uid,
+                      size: 64,
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -120,7 +88,7 @@ class SettingsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    OutlinedButton(
+                    ElevatedButton(
                       onPressed: () async {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
@@ -129,19 +97,20 @@ class SettingsScreen extends ConsumerWidget {
                         );
                         ref.invalidate(currentUserProvider);
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFF0A9A9)),
-                        foregroundColor: const Color(0xFFF0A9A9),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                          horizontal: 20,
+                          vertical: 12,
                         ),
+                        shape: const StadiumBorder(),
                       ),
                       child: const Text(
                         '프로필 편집',
                         style: TextStyle(
                           fontFamily: 'Pretendard',
-                          fontSize: 12,
+                          fontSize: 15,
                         ),
                       ),
                     ),

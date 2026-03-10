@@ -2,7 +2,7 @@ import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/ranking/data/providers/ranking_providers.dart';
 import 'package:ddalgguk/features/ranking/widgets/ranking_profile_dialog.dart';
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
-import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -244,11 +244,6 @@ class _RankingTabState extends ConsumerState<RankingTab> {
   // ── 순위 행 ───────────────────────────────────────────────────────────────
 
   Widget _buildRow(RankingEntryWithUser entry, int rank) {
-    final colorKey = (entry.profilePhoto * 10).clamp(0, 100);
-    final bgColor =
-        AppColors.sakuGradientColors[colorKey] ??
-        AppColors.sakuGradientColors[0]!;
-
     return InkWell(
       onTap: () => showBottomHandleDialogue(
         context: context,
@@ -274,16 +269,10 @@ class _RankingTabState extends ConsumerState<RankingTab> {
             ),
             const SizedBox(width: 12),
             // 프로필 아바타
-            ClipOval(
-              child: Container(
-                width: 44,
-                height: 44,
-                color: bgColor,
-                child: SakuCharacter(
-                  drunkLevel: entry.profilePhoto * 10,
-                  size: 44,
-                ),
-              ),
+            ProfileAvatar(
+              profilePhoto: entry.profilePhoto,
+              uid: entry.uid,
+              size: 44,
             ),
             const SizedBox(width: 12),
             // 닉네임 + 아이디
