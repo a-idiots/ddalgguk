@@ -13,149 +13,182 @@ class AlcoholIntakeTab extends ConsumerStatefulWidget {
 }
 
 class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
-  final PageController _pageController = PageController();
-  int _currentIndex = 0;
   DailySakuData? _selectedData;
   int? _selectedIndex;
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _selectedWeekMonday = _thisWeekMonday();
+
+  static DateTime _thisWeekMonday() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day - (now.weekday - 1));
+  }
+
+  /// Returns all Mondays within [year]/[month] that are ≤ today's Monday.
+  List<DateTime> _weeksInMonth(int year, int month) {
+    final todayMonday = _thisWeekMonday();
+    final List<DateTime> weeks = [];
+    final firstOfMonth = DateTime(year, month, 1);
+    // Days until the first Monday on or after the 1st
+    final daysUntilMonday = (8 - firstOfMonth.weekday) % 7;
+    DateTime current = firstOfMonth.add(Duration(days: daysUntilMonday));
+    while (current.month == month) {
+      if (!current.isAfter(todayMonday)) {
+        weeks.add(DateTime(current.year, current.month, current.day));
+      }
+      current = current.add(const Duration(days: 7));
+    }
+    return weeks;
+  }
+
+  void _prevMonth() {
+    final newMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    final weeks = _weeksInMonth(newMonth.year, newMonth.month);
+    setState(() {
+      _selectedMonth = newMonth;
+      _selectedWeekMonday = weeks.isNotEmpty ? weeks.last : _thisWeekMonday();
+      _selectedData = null;
+      _selectedIndex = null;
+    });
+  }
+
+  void _nextMonth() {
+    final newMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    final now = DateTime.now();
+    final isCurrentMonth =
+        newMonth.year == now.year && newMonth.month == now.month;
+    setState(() {
+      _selectedMonth = newMonth;
+      _selectedWeekMonday = isCurrentMonth
+          ? _thisWeekMonday()
+          : _weeksInMonth(newMonth.year, newMonth.month).first;
+      _selectedData = null;
+      _selectedIndex = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final isCurrentMonth =
+        _selectedMonth.year == now.year && _selectedMonth.month == now.month;
+    final weeks = _weeksInMonth(_selectedMonth.year, _selectedMonth.month);
+    final weekIndex = weeks.indexOf(_selectedWeekMonday);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
+          // Month navigation
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnimatedOpacity(
-                opacity: _selectedData != null ? 1.0 : 0.0,
-                duration: _selectedData != null
-                    ? const Duration(milliseconds: 200)
-                    : Duration.zero,
-                curve: Curves.easeInOut,
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFEBEB),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        '순수 알코올',
-                        style: TextStyle(
-                          color: Color(0xFFF27B7B),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _selectedData != null
-                          ? '${_selectedData!.totalAlcoholMl.toInt()}g'
-                          : '',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
+              GestureDetector(
+                onTap: _prevMonth,
+                child: const Icon(Icons.chevron_left, size: 24),
+              ),
+              Text(
+                '${_selectedMonth.year}년 ${_selectedMonth.month}월',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _getWeekLabel(_currentIndex),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
+              GestureDetector(
+                onTap: isCurrentMonth ? null : _nextMonth,
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 24,
+                  color: isCurrentMonth ? Colors.grey[400] : Colors.black,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
 
-          // Chart Section with PageView
-          SizedBox(
-            height: 200,
-            child: PageView.builder(
-              controller: _pageController,
-              reverse: true,
-              onPageChanged: (index) {
+          // Week dropdown
+          Align(
+            alignment: Alignment.centerRight,
+            child: _WeekDropdown(
+              weeks: weeks,
+              selectedIndex: weekIndex,
+              onSelected: (index) {
                 setState(() {
-                  _currentIndex = index;
-                  _selectedData = null; // Reset selection on page change
+                  _selectedWeekMonday = weeks[index];
+                  _selectedData = null;
                   _selectedIndex = null;
                 });
               },
-              itemBuilder: (context, index) {
-                // Limit to 4 weeks for now
-                if (index > 3) {
-                  return null;
-                }
-                return _WeeklyChartPage(
-                  offset: index,
-                  selectedIndex: _selectedIndex,
-                  onBarTouch: (data, index) {
-                    setState(() {
-                      _selectedData = data;
-                      _selectedIndex = index;
-                    });
-                  },
-                );
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Selected bar alcohol display
+          AnimatedOpacity(
+            opacity: _selectedData != null ? 1.0 : 0.0,
+            duration: _selectedData != null
+                ? const Duration(milliseconds: 200)
+                : Duration.zero,
+            curve: Curves.easeInOut,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEB),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    '순수 알코올',
+                    style: TextStyle(color: Color(0xFFF27B7B), fontSize: 12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _selectedData != null
+                      ? '${_selectedData!.totalAlcoholMl.toInt()}g'
+                      : '',
+                  style: const TextStyle(fontSize: 20, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Chart
+          SizedBox(
+            height: 200,
+            child: _WeeklyChartPage(
+              monday: _selectedWeekMonday,
+              selectedIndex: _selectedIndex,
+              onBarTouch: (data, index) {
+                setState(() {
+                  _selectedData = data;
+                  _selectedIndex = index;
+                });
               },
             ),
           ),
           const SizedBox(height: 16),
 
-          // Stats Grid
-          _buildStatsGrid(ref, _currentIndex),
+          _buildStatsGrid(_selectedWeekMonday),
           const SizedBox(height: 16),
 
-          // Comparison Text
-          _buildComparisonText(ref, _currentIndex),
+          _buildComparisonText(_selectedWeekMonday),
           const SizedBox(height: 16),
 
-          // Drink Type Breakdown
-          _buildDrinkTypeBreakdown(ref, _currentIndex),
+          _buildDrinkTypeBreakdown(_selectedWeekMonday),
         ],
       ),
     );
   }
 
-  String _getWeekLabel(int offset) {
-    if (offset == 0) {
-      return '이번 주';
-    }
-    if (offset == 1) {
-      return '지난 주';
-    }
-    return '$offset주 전';
-  }
-
-  Widget _buildStatsGrid(WidgetRef ref, int offset) {
-    final statsAsync = ref.watch(weeklyStatsOffsetProvider(offset));
+  Widget _buildStatsGrid(DateTime monday) {
+    final statsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
 
     return statsAsync.when(
       data: (stats) {
@@ -198,22 +231,20 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
     );
   }
 
-  Widget _buildComparisonText(WidgetRef ref, int offset) {
-    // Need current and previous week stats
-    final currentStatsAsync = ref.watch(weeklyStatsOffsetProvider(offset));
-    final prevStatsAsync = ref.watch(weeklyStatsOffsetProvider(offset + 1));
+  Widget _buildComparisonText(DateTime monday) {
+    final prevMonday = monday.subtract(const Duration(days: 7));
+    final currentStatsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
+    final prevStatsAsync = ref.watch(weeklyStatsByMondayProvider(prevMonday));
 
     if (currentStatsAsync.isLoading || prevStatsAsync.isLoading) {
       return const SizedBox.shrink();
     }
-
     if (currentStatsAsync.hasError || prevStatsAsync.hasError) {
       return const SizedBox.shrink();
     }
 
     final currentStats = currentStatsAsync.value!;
     final prevStats = prevStatsAsync.value!;
-
     final diff = currentStats.totalAlcoholMl - prevStats.totalAlcoholMl;
     final isMore = diff > 0;
     final diffAbs = diff.abs().toInt();
@@ -239,20 +270,16 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
     );
   }
 
-  Widget _buildDrinkTypeBreakdown(WidgetRef ref, int offset) {
-    final statsAsync = ref.watch(weeklyStatsOffsetProvider(offset));
+  Widget _buildDrinkTypeBreakdown(DateTime monday) {
+    final statsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
 
     return statsAsync.when(
       data: (stats) {
         final drinkTypes = stats.drinkTypeStats;
-        // Sort by amount descending
         drinkTypes.sort((a, b) => b.totalAmountMl.compareTo(a.totalAmountMl));
 
-        // Take top 3 and fill with default if needed
         final displayItems = <DrinkTypeStat>[];
         displayItems.addAll(drinkTypes.take(3));
-
-        // Fill with default empty items if less than 3
         while (displayItems.length < 3) {
           displayItems.add(
             const DrinkTypeStat(
@@ -266,8 +293,8 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
 
         final maxAmount =
             displayItems.isNotEmpty && displayItems.first.totalAmountMl > 0
-            ? displayItems.first.totalAmountMl
-            : 1.0; // Avoid division by zero
+                ? displayItems.first.totalAmountMl
+                : 1.0;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,20 +341,175 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   }
 }
 
+// ── Week Dropdown ─────────────────────────────────────────────
+
+class _WeekDropdown extends StatefulWidget {
+  const _WeekDropdown({
+    required this.weeks,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final List<DateTime> weeks;
+  final int selectedIndex;
+  final void Function(int index) onSelected;
+
+  @override
+  State<_WeekDropdown> createState() => _WeekDropdownState();
+}
+
+class _WeekDropdownState extends State<_WeekDropdown> {
+  final GlobalKey _key = GlobalKey();
+  OverlayEntry? _overlay;
+
+  void _showMenu() {
+    if (_overlay != null) {
+      return;
+    }
+
+    final renderBox =
+        _key.currentContext!.findRenderObject() as RenderBox;
+    final pos = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+    final screenSize = MediaQuery.of(context).size;
+
+    _overlay = OverlayEntry(
+      builder: (ctx) => GestureDetector(
+        onTap: _removeMenu,
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
+            Positioned(
+              right: screenSize.width - (pos.dx + size.width),
+              top: pos.dy + size.height + 8,
+              width: 120,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                      offset: Offset.zero,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Material(
+                    color: Colors.white,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: widget.weeks.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (i > 0)
+                              Divider(height: 1, color: Colors.grey[200]),
+                            InkWell(
+                              onTap: () {
+                                _removeMenu();
+                                widget.onSelected(i);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 14,
+                                ),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    '${i + 1}주차',
+                                    style: const TextStyle(fontSize: 15),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlay!);
+  }
+
+  void _removeMenu() {
+    _overlay?.remove();
+    _overlay = null;
+  }
+
+  @override
+  void dispose() {
+    _removeMenu();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.weeks.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Text('데이터 없음', style: TextStyle(fontSize: 12)),
+      );
+    }
+
+    final label = widget.selectedIndex >= 0
+        ? '${widget.selectedIndex + 1}주차'
+        : '${widget.weeks.length}주차';
+
+    return GestureDetector(
+      key: _key,
+      onTap: _showMenu,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 12)),
+            const SizedBox(width: 2),
+            const Icon(Icons.keyboard_arrow_down, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Chart Page ────────────────────────────────────────────────
+
 class _WeeklyChartPage extends ConsumerWidget {
   const _WeeklyChartPage({
-    required this.offset,
+    required this.monday,
     this.onBarTouch,
     this.selectedIndex,
   });
 
-  final int offset;
+  final DateTime monday;
   final Function(DailySakuData?, int?)? onBarTouch;
   final int? selectedIndex;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(weeklyStatsOffsetProvider(offset));
+    final statsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
 
     return statsAsync.when(
       data: (stats) {
@@ -343,15 +525,14 @@ class _WeeklyChartPage extends ConsumerWidget {
               maxY: maxVal,
               barTouchData: BarTouchData(
                 touchCallback: (FlTouchEvent event, barTouchResponse) {
-                  // Only handle tap events (click/touch release)
                   if (event is FlTapUpEvent) {
                     if (barTouchResponse == null ||
                         barTouchResponse.spot == null) {
                       return;
                     }
-                    final index = barTouchResponse.spot!.touchedBarGroupIndex;
+                    final index =
+                        barTouchResponse.spot!.touchedBarGroupIndex;
                     if (index >= 0 && index < stats.dailyData.length) {
-                      // Toggle: if same index clicked, deselect. Otherwise select new
                       if (selectedIndex == index) {
                         onBarTouch?.call(null, null);
                       } else {
@@ -382,7 +563,7 @@ class _WeeklyChartPage extends ConsumerWidget {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
-                      final dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+                      const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
                       if (value.toInt() < dayNames.length) {
                         return Padding(
                           padding: const EdgeInsets.only(top: 8.0),
@@ -458,7 +639,6 @@ class _WeeklyChartPage extends ConsumerWidget {
   ) {
     return List.generate(7, (index) {
       if (index < dailyData.length) {
-        // Use totalAlcoholMl instead of drunkLevel
         final value = dailyData[index].totalAlcoholMl;
         final isSelected = selectedIndex == index;
 
@@ -468,17 +648,15 @@ class _WeeklyChartPage extends ConsumerWidget {
             BarChartRodData(
               toY: value,
               color: isSelected
-                  ? _getBarColor(
-                      dailyData[index].drunkLevel,
-                    ).withValues(alpha: 1.0)
-                  : _getBarColor(
-                      dailyData[index].drunkLevel,
-                    ).withValues(alpha: 0.6),
+                  ? _getBarColor(dailyData[index].drunkLevel)
+                      .withValues(alpha: 1.0)
+                  : _getBarColor(dailyData[index].drunkLevel)
+                      .withValues(alpha: 0.6),
               width: 24,
-              borderRadius: BorderRadius.circular(4), // Reduced border radius
+              borderRadius: BorderRadius.circular(4),
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
-                toY: maxY, // Max height background
+                toY: maxY,
                 color: Colors.transparent,
               ),
             ),
@@ -491,14 +669,16 @@ class _WeeklyChartPage extends ConsumerWidget {
 
   Color _getBarColor(int level) {
     if (level <= 30) {
-      return const Color(0xFFFF0000); // Red
+      return const Color(0xFFFF0000);
     }
     if (level <= 60) {
-      return const Color(0xFFFFD54F); // Yellow
+      return const Color(0xFFFFD54F);
     }
-    return const Color(0xFF52E370); // Green
+    return const Color(0xFF52E370);
   }
 }
+
+// ── Stat Box ──────────────────────────────────────────────────
 
 class _StatBox extends StatelessWidget {
   const _StatBox({
@@ -569,6 +749,8 @@ class _StatBox extends StatelessWidget {
   }
 }
 
+// ── Drink Type Row ────────────────────────────────────────────
+
 class _DrinkTypeRow extends StatelessWidget {
   const _DrinkTypeRow({
     required this.rank,
@@ -588,7 +770,6 @@ class _DrinkTypeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Rank
         SizedBox(
           width: 24,
           child: Text(
@@ -600,7 +781,6 @@ class _DrinkTypeRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        // Icon
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -610,7 +790,6 @@ class _DrinkTypeRow extends StatelessWidget {
           child: Image.asset(iconPath, width: 20, height: 20),
         ),
         const SizedBox(width: 12),
-        // Details
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,7 +810,7 @@ class _DrinkTypeRow extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: amount / maxAmount,
                   backgroundColor: Colors.grey[200],
-                  color: Colors.grey[400], // Design shows grey bar
+                  color: Colors.grey[400],
                   minHeight: 6,
                 ),
               ),

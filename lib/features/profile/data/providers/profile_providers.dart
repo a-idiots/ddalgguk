@@ -105,6 +105,16 @@ final weeklyStatsProvider = FutureProvider<WeeklyStats>((ref) async {
   return service.calculateWeeklyStats();
 });
 
+/// Weekly stats provider for a specific week by its Monday date
+final weeklyStatsByMondayProvider = FutureProvider.family<WeeklyStats, DateTime>((
+  ref,
+  monday,
+) {
+  ref.watch(drinkingRecordsLastUpdatedProvider);
+  final service = ref.watch(profileStatsServiceProvider);
+  return service.calculateWeeklyStats(monday);
+});
+
 /// Weekly stats provider with offset (0 = this week, 1 = last week, etc.)
 /// Week starts on Monday and ends on Sunday
 final weeklyStatsOffsetProvider = FutureProvider.family<WeeklyStats, int>((
