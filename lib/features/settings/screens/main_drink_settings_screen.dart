@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/features/settings/widgets/add_custom_drink_card.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -118,14 +116,6 @@ class _MainDrinkSettingsScreenState
       final selectedList = _selectedIds.toList();
       final service = ref.read(drinkSettingsServiceProvider);
       await service.saveMainDrinkIds(selectedList);
-
-      // Firestore에도 저장해 친구 프로필에서 읽을 수 있게 함
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        await FirebaseFirestore.instance.collection('users').doc(uid).update({
-          'mainDrinkIds': selectedList,
-        });
-      }
 
       if (mounted) {
         Navigator.pop(context);
