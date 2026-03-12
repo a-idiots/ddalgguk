@@ -123,6 +123,9 @@ class DdalggukApp extends ConsumerWidget {
           seedColor: AppColors.primaryPink,
           primary: AppColors.primaryPink,
         ),
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: Colors.grey,
+        ),
       ),
       routerConfig: router,
     );
