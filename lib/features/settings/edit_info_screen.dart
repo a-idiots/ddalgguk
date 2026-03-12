@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/settings/widgets/save_button.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
@@ -13,6 +16,24 @@ import 'package:ddalgguk/core/services/analytics_service.dart';
 class EditInfoScreen extends ConsumerWidget {
   const EditInfoScreen({super.key});
 
+  void _invalidateUserProviders(WidgetRef ref) {
+    // Reset the timestamp that all per-user data providers watch —
+    // this cascades a re-fetch to weeklyStats, currentProfileStats,
+    // alcoholGuideline, prevMonthAvg, monthRecords, etc.
+    ref.invalidate(drinkingRecordsLastUpdatedProvider);
+    // Invalidate other non-autoDispose user-data providers explicitly
+    ref.invalidate(weeklyStatsProvider);
+    ref.invalidate(weeklyStatsOffsetProvider);
+    ref.invalidate(weeklyStatsByMondayProvider);
+    ref.invalidate(currentProfileStatsProvider);
+    ref.invalidate(alcoholGuidelineDataProvider);
+    ref.invalidate(prevMonthAvgSpendingProvider);
+    ref.invalidate(userBadgesProvider);
+    ref.invalidate(userPhysicalInfoProvider);
+    ref.invalidate(proProvider);
+    ref.invalidate(authStateProvider);
+  }
+
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showLogoutDialog(context);
 
@@ -20,7 +41,7 @@ class EditInfoScreen extends ConsumerWidget {
       try {
         final authRepository = ref.read(authRepositoryProvider);
         await authRepository.signOut();
-        ref.invalidate(authStateProvider);
+        _invalidateUserProviders(ref);
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).clearSnackBars();
@@ -43,7 +64,7 @@ class EditInfoScreen extends ConsumerWidget {
         final authRepository = ref.read(authRepositoryProvider);
         await authRepository.deleteAccount();
         await AnalyticsService.instance.logDeleteAccount();
-        ref.invalidate(authStateProvider);
+        _invalidateUserProviders(ref);
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).clearSnackBars();

@@ -242,8 +242,8 @@ class AuthRepository {
       // Sign out from Firebase
       await _firebaseAuthService.signOut();
 
-      // Clear secure storage
-      await _storageService.deleteAllSecureData();
+      // Clear all local storage (secure storage + shared preferences)
+      await _storageService.clearAll();
     } catch (e) {
       debugPrint('Sign out error: $e');
       rethrow;
@@ -751,8 +751,8 @@ class AuthRepository {
       // Delete Firebase Auth account
       await _firebaseAuthService.deleteAccount();
 
-      // Clear secure storage
-      await _storageService.deleteAllSecureData();
+      // Clear all local storage (secure storage + shared preferences)
+      await _storageService.clearAll();
     } catch (e) {
       debugPrint('Delete account error: $e');
       rethrow;
