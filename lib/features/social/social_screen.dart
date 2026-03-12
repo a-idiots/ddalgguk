@@ -1,8 +1,10 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/ranking/data/providers/my_records_providers.dart';
 import 'package:ddalgguk/features/ranking/widgets/my_records_tab.dart';
 import 'package:ddalgguk/features/ranking/widgets/ranking_tab.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/daily_status_dialog.dart';
 import 'package:ddalgguk/features/social/widgets/dialogs/friend_profile_dialog.dart';
@@ -26,6 +28,7 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
   late final TabController _tabController;
 
   static const int _myRecordsTabIndex = 2;
+  static const int _rankingTabIndex = 1;
 
   @override
   void initState() {
@@ -46,7 +49,21 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
     if (!_tabController.indexIsChanging) {
       return;
     }
-    if (_tabController.index == _myRecordsTabIndex) {
+    final targetTab = _tabController.index;
+    if (targetTab == _rankingTabIndex || targetTab == _myRecordsTabIndex) {
+      final isPro = ref.read(proProvider).valueOrNull ?? false;
+      if (!isPro) {
+        final previousTab = _tabController.previousIndex;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _tabController.animateTo(previousTab, duration: Duration.zero);
+            showProPlanPopup(context, 3);
+          }
+        });
+        return;
+      }
+    }
+    if (targetTab == _myRecordsTabIndex) {
       // 나의 기록 탭 진입 시 항상 새로 로드
       final year = ref.read(myRecordsYearProvider);
       ref.invalidate(myYearlyRecordsProvider(year));

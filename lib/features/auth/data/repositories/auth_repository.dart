@@ -628,8 +628,7 @@ class AuthRepository {
       }
 
       final now = DateTime.now();
-      final monthKey =
-          '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      final monthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
 
       final updates = <String, dynamic>{};
       if (budget != null) {
@@ -646,8 +645,9 @@ class AuthRepository {
 
         final currentUser = await getCurrentUser();
         if (currentUser != null) {
-          final updatedGoals =
-              Map<String, MonthlyGoal>.from(currentUser.monthlyGoals);
+          final updatedGoals = Map<String, MonthlyGoal>.from(
+            currentUser.monthlyGoals,
+          );
           final existing = updatedGoals[monthKey];
           updatedGoals[monthKey] = MonthlyGoal(
             budget: budget ?? existing?.budget,
@@ -698,7 +698,9 @@ class AuthRepository {
     await _usersCollection.doc(uid).update(updates);
 
     // 캐시 갱신
-    final updatedGoals = Map<String, MonthlyGoal>.from(currentUser.monthlyGoals);
+    final updatedGoals = Map<String, MonthlyGoal>.from(
+      currentUser.monthlyGoals,
+    );
     for (final key in monthKeys) {
       updatedGoals[key] = MonthlyGoal(budget: budget, alcohol: alcohol);
     }

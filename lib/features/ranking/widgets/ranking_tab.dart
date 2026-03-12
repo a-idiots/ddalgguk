@@ -48,7 +48,6 @@ class _RankingTabState extends ConsumerState<RankingTab> {
     return ranks;
   }
 
-
   @override
   Widget build(BuildContext context) {
     final rankingAsync = _isWeekly
@@ -70,7 +69,11 @@ class _RankingTabState extends ConsumerState<RankingTab> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       '랭킹을 불러오지 못했습니다\n$e',
@@ -105,14 +108,22 @@ class _RankingTabState extends ConsumerState<RankingTab> {
         child: Row(
           children: [
             Expanded(
-              child: _buildPill(label: 'week', selected: _isWeekly, onTap: () {
-                setState(() => _isWeekly = true);
-              }),
+              child: _buildPill(
+                label: 'week',
+                selected: _isWeekly,
+                onTap: () {
+                  setState(() => _isWeekly = true);
+                },
+              ),
             ),
             Expanded(
-              child: _buildPill(label: 'month', selected: !_isWeekly, onTap: () {
-                setState(() => _isWeekly = false);
-              }),
+              child: _buildPill(
+                label: 'month',
+                selected: !_isWeekly,
+                onTap: () {
+                  setState(() => _isWeekly = false);
+                },
+              ),
             ),
           ],
         ),
@@ -169,7 +180,8 @@ class _RankingTabState extends ConsumerState<RankingTab> {
             SizedBox(
               height: 300,
               child: Center(
-                child: Text('랭킹에 표시할 유저가 없습니다.\n나의 기록을 추가해보세요!',
+                child: Text(
+                  '랭킹에 표시할 유저가 없습니다.\n나의 기록을 추가해보세요!',
                   style: const TextStyle(color: Colors.grey),
                 ),
               ),
@@ -231,10 +243,7 @@ class _RankingTabState extends ConsumerState<RankingTab> {
           const SizedBox(height: 6),
           Text(
             '딸꾹 유저 총 음주량 ${totalGrams.toStringAsFixed(1)}g',
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -261,8 +270,7 @@ class _RankingTabState extends ConsumerState<RankingTab> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight:
-                      rank <= 3 ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: rank <= 3 ? FontWeight.bold : FontWeight.normal,
                   color: rank <= 3 ? Colors.black : Colors.grey.shade600,
                 ),
               ),

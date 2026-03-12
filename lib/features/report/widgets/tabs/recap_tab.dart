@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/report/data/providers/report_providers.dart'; // Import analytics provider
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
@@ -36,6 +38,11 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   }();
 
   void _prevMonth() {
+    final isPro = ref.read(proProvider).valueOrNull ?? false;
+    if (!isPro) {
+      showProPlanPopup(context, 4);
+      return;
+    }
     setState(() {
       _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
     });

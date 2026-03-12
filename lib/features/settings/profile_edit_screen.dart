@@ -48,8 +48,15 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   ];
 
   static const _alcoholIconNames = [
-    '소주', '맥주', '칵테일', '와인', '막걸리',
-    '위스키', '하이볼', '사케', '보드카',
+    '소주',
+    '맥주',
+    '칵테일',
+    '와인',
+    '막걸리',
+    '위스키',
+    '하이볼',
+    '사케',
+    '보드카',
   ];
 
   // 기본 프로필 SVG (uid 해시 → 4색 중 하나)
@@ -150,59 +157,58 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (ctx) => Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildOptionTile(
-                    icon: Icons.photo_library_outlined,
-                    label: '직접 업로드하기',
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _pickFromGallery();
-                    },
-                  ),
-                  _buildOptionTile(
-                    icon: Icons.emoji_food_beverage_outlined,
-                    label: '딸꾹 아이콘에서 선택하기',
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _showProfilePhotoSelector();
-                    },
-                  ),
-                  _buildOptionTile(
-                    icon: Icons.person_outline,
-                    label: '기본 프로필 이용하기',
-                    onTap: () {
-                      setState(() {
-                        _selectedProfilePhoto = 0;
-                        _pendingPhotoBytes = null;
-                        _pendingPhotoFile = null;
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                ],
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              _buildOptionTile(
+                icon: Icons.photo_library_outlined,
+                label: '직접 업로드하기',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickFromGallery();
+                },
+              ),
+              _buildOptionTile(
+                icon: Icons.emoji_food_beverage_outlined,
+                label: '딸꾹 아이콘에서 선택하기',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showProfilePhotoSelector();
+                },
+              ),
+              _buildOptionTile(
+                icon: Icons.person_outline,
+                label: '기본 프로필 이용하기',
+                onTap: () {
+                  setState(() {
+                    _selectedProfilePhoto = 0;
+                    _pendingPhotoBytes = null;
+                    _pendingPhotoFile = null;
+                  });
+                  Navigator.pop(ctx);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -258,147 +264,146 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (ctx) => StatefulBuilder(
-            builder: (ctx, setModalState) {
-              return Container(
-                height: MediaQuery.of(context).size.height * 0.78,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.78,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '프로필 사진 선택',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 사쿠 섹션 (index 1~10)
-                            _sectionLabel('사쿠'),
-                            const SizedBox(height: 12),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 4,
-                                    childAspectRatio: 1,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                  ),
-                              itemCount: 10,
-                              itemBuilder: (context, idx) {
-                                final photoIndex = idx + 1; // 1~10
-                                final isSelected =
-                                    _selectedProfilePhoto == photoIndex;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedProfilePhoto = photoIndex;
-                                      _pendingPhotoBytes = null;
-                                      _pendingPhotoFile = null;
-                                    });
-                                    setModalState(() {});
-                                    Navigator.pop(ctx);
-                                  },
-                                  child: _iconCell(
-                                    isSelected: isSelected,
-                                    child: SakuCharacter(
-                                      size: 60,
-                                      drunkLevel: photoIndex * 10,
+                const SizedBox(height: 16),
+                const Text(
+                  '프로필 사진 선택',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 사쿠 섹션 (index 1~10)
+                        _sectionLabel('사쿠'),
+                        const SizedBox(height: 12),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                childAspectRatio: 1,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
+                          itemCount: 10,
+                          itemBuilder: (context, idx) {
+                            final photoIndex = idx + 1; // 1~10
+                            final isSelected =
+                                _selectedProfilePhoto == photoIndex;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedProfilePhoto = photoIndex;
+                                  _pendingPhotoBytes = null;
+                                  _pendingPhotoFile = null;
+                                });
+                                setModalState(() {});
+                                Navigator.pop(ctx);
+                              },
+                              child: _iconCell(
+                                isSelected: isSelected,
+                                child: SakuCharacter(
+                                  size: 60,
+                                  drunkLevel: photoIndex * 10,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        // 주종 섹션 (index 11~19)
+                        _sectionLabel('주종'),
+                        const SizedBox(height: 12),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                childAspectRatio: 0.85,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
+                          itemCount: _alcoholIcons.length,
+                          itemBuilder: (context, idx) {
+                            final photoIndex = 11 + idx;
+                            final isSelected =
+                                _selectedProfilePhoto == photoIndex;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedProfilePhoto = photoIndex;
+                                  _pendingPhotoBytes = null;
+                                  _pendingPhotoFile = null;
+                                });
+                                setModalState(() {});
+                                Navigator.pop(ctx);
+                              },
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: _iconCell(
+                                      isSelected: isSelected,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Image.asset(
+                                          _alcoholIcons[idx],
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 24),
-                            // 주종 섹션 (index 11~19)
-                            _sectionLabel('주종'),
-                            const SizedBox(height: 12),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 4,
-                                    childAspectRatio: 0.85,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _alcoholIconNames[idx],
+                                    style: TextStyle(
+                                      fontFamily: 'Pretendard',
+                                      fontSize: 11,
+                                      color: Colors.grey[600],
+                                    ),
                                   ),
-                              itemCount: _alcoholIcons.length,
-                              itemBuilder: (context, idx) {
-                                final photoIndex = 11 + idx;
-                                final isSelected =
-                                    _selectedProfilePhoto == photoIndex;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedProfilePhoto = photoIndex;
-                                      _pendingPhotoBytes = null;
-                                      _pendingPhotoFile = null;
-                                    });
-                                    setModalState(() {});
-                                    Navigator.pop(ctx);
-                                  },
-                                  child: Column(
-                                    children: [
-                                      Expanded(
-                                        child: _iconCell(
-                                          isSelected: isSelected,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8),
-                                            child: Image.asset(
-                                              _alcoholIcons[idx],
-                                              fit: BoxFit.contain,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _alcoholIconNames[idx],
-                                        style: TextStyle(
-                                          fontFamily: 'Pretendard',
-                                          fontSize: 11,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              );
-            },
-          ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -472,10 +477,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         await service.uploadPhotoFromFile(uid, _pendingPhotoFile!);
       }
 
-      await ref.read(authRepositoryProvider).updateUserProfile(
-        name: name,
-        profilePhoto: _selectedProfilePhoto,
-      );
+      await ref
+          .read(authRepositoryProvider)
+          .updateUserProfile(name: name, profilePhoto: _selectedProfilePhoto);
 
       ref.invalidate(authStateProvider);
       ref.invalidate(currentUserProvider);

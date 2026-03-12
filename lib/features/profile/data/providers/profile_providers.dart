@@ -107,14 +107,12 @@ final weeklyStatsProvider = FutureProvider<WeeklyStats>((ref) async {
 });
 
 /// Weekly stats provider for a specific week by its Monday date
-final weeklyStatsByMondayProvider = FutureProvider.family<WeeklyStats, DateTime>((
-  ref,
-  monday,
-) {
-  ref.watch(drinkingRecordsLastUpdatedProvider);
-  final service = ref.watch(profileStatsServiceProvider);
-  return service.calculateWeeklyStats(monday);
-});
+final weeklyStatsByMondayProvider =
+    FutureProvider.family<WeeklyStats, DateTime>((ref, monday) {
+      ref.watch(drinkingRecordsLastUpdatedProvider);
+      final service = ref.watch(profileStatsServiceProvider);
+      return service.calculateWeeklyStats(monday);
+    });
 
 /// Weekly stats provider with offset (0 = this week, 1 = last week, etc.)
 /// Week starts on Monday and ends on Sunday
@@ -221,17 +219,17 @@ final currentMonthAlcoholBottlesProvider = Provider<AsyncValue<double>>((ref) {
 /// Family version of currentMonthAlcoholBottlesProvider
 final monthlyAlcoholBottlesProvider =
     Provider.family<AsyncValue<double>, DateTime>((ref, date) {
-  final recordsAsync = ref.watch(monthRecordsProvider(date));
-  return recordsAsync.whenData((records) {
-    double totalMl = 0;
-    for (final record in records) {
-      for (final drink in record.drinkAmount) {
-        totalMl += drink.amount;
-      }
-    }
-    return totalMl / 360.0;
-  });
-});
+      final recordsAsync = ref.watch(monthRecordsProvider(date));
+      return recordsAsync.whenData((records) {
+        double totalMl = 0;
+        for (final record in records) {
+          for (final drink in record.drinkAmount) {
+            totalMl += drink.amount;
+          }
+        }
+        return totalMl / 360.0;
+      });
+    });
 
 /// Previous month average spending per drinking session
 /// Default 30,000원 if no records with cost exist
@@ -347,8 +345,9 @@ double _sumGrams(List<DrinkingRecord> records) {
 
 /// Provides today-or-yesterday alcohol consumption for the guideline widget.
 /// Fetches today first; falls back to yesterday if today has no drinking records.
-final alcoholGuidelineDataProvider =
-    FutureProvider<AlcoholGuidelineData>((ref) async {
+final alcoholGuidelineDataProvider = FutureProvider<AlcoholGuidelineData>((
+  ref,
+) async {
   ref.watch(drinkingRecordsLastUpdatedProvider);
 
   final service = ref.watch(drinkingRecordServiceProvider);
@@ -358,8 +357,9 @@ final alcoholGuidelineDataProvider =
 
   // Today
   final todayAll = await service.getRecordsByDate(today);
-  final todayDrinking =
-      todayAll.where((r) => r.drinkAmount.any((d) => d.amount > 0)).toList();
+  final todayDrinking = todayAll
+      .where((r) => r.drinkAmount.any((d) => d.amount > 0))
+      .toList();
   if (todayDrinking.isNotEmpty) {
     return AlcoholGuidelineData(
       hasRecord: true,

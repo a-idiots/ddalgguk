@@ -77,8 +77,8 @@ final myRecordsYearProvider = StateProvider<int>((ref) => DateTime.now().year);
 // ---------------------------------------------------------------------------
 
 /// 특정 연도의 12개월 기록 목록
-final myYearlyRecordsProvider =
-    FutureProvider.family.autoDispose<List<MonthRecord>, int>((ref, year) async {
+final myYearlyRecordsProvider = FutureProvider.family
+    .autoDispose<List<MonthRecord>, int>((ref, year) async {
       final user = await ref.read(currentUserProvider.future);
       if (user == null) {
         return List.generate(12, (i) => MonthRecord(year: year, month: i + 1));
@@ -105,10 +105,9 @@ final myYearlyRecordsProvider =
 
         final monthKey = service.monthKeyForDate(DateTime(year, month));
         final amount = await service.getUserMonthlyAmount(uid, monthKey);
-        final rank =
-            (amount != null && amount > 0)
-                ? await service.getMonthlyRankForUser(uid, monthKey)
-                : null;
+        final rank = (amount != null && amount > 0)
+            ? await service.getMonthlyRankForUser(uid, monthKey)
+            : null;
 
         results.add(
           MonthRecord(year: year, month: month, amount: amount, rank: rank),
@@ -118,54 +117,48 @@ final myYearlyRecordsProvider =
     });
 
 /// 특정 연/월의 주차별 기록 목록
-final myMonthWeeklyRecordsProvider =
-    FutureProvider.family
-        .autoDispose<List<WeekRecord>, (int, int)>((ref, params) async {
-          final (year, month) = params;
-          final user = await ref.read(currentUserProvider.future);
-          if (user == null) {
-            return [];
-          }
+final myMonthWeeklyRecordsProvider = FutureProvider.family
+    .autoDispose<List<WeekRecord>, (int, int)>((ref, params) async {
+      final (year, month) = params;
+      final user = await ref.read(currentUserProvider.future);
+      if (user == null) {
+        return [];
+      }
 
-          final uid = user.uid;
-          final service = ref.read(rankingServiceProvider);
-          final now = DateTime.now();
-          final currentWeekKey = service.weekKeyForDate(now);
+      final uid = user.uid;
+      final service = ref.read(rankingServiceProvider);
+      final now = DateTime.now();
+      final currentWeekKey = service.weekKeyForDate(now);
 
-          final weekKeys = service.weekKeysForMonth(year, month);
-          final results = <WeekRecord>[];
+      final weekKeys = service.weekKeysForMonth(year, month);
+      final results = <WeekRecord>[];
 
-          for (int i = 0; i < weekKeys.length; i++) {
-            final weekKey = weekKeys[i];
-            // 문자열 비교: "2026_W10" 형식이므로 lexicographic 정렬 == 시간 순
-            final isFuture = weekKey.compareTo(currentWeekKey) > 0;
+      for (int i = 0; i < weekKeys.length; i++) {
+        final weekKey = weekKeys[i];
+        // 문자열 비교: "2026_W10" 형식이므로 lexicographic 정렬 == 시간 순
+        final isFuture = weekKey.compareTo(currentWeekKey) > 0;
 
-            if (isFuture) {
-              results.add(
-                WeekRecord(
-                  weekKey: weekKey,
-                  weekOfMonth: i + 1,
-                  isFuture: true,
-                ),
-              );
-              continue;
-            }
+        if (isFuture) {
+          results.add(
+            WeekRecord(weekKey: weekKey, weekOfMonth: i + 1, isFuture: true),
+          );
+          continue;
+        }
 
-            final amount = await service.getUserWeeklyAmount(uid, weekKey);
-            final rank =
-                (amount != null && amount > 0)
-                    ? await service.getWeeklyRankForUser(uid, weekKey)
-                    : null;
+        final amount = await service.getUserWeeklyAmount(uid, weekKey);
+        final rank = (amount != null && amount > 0)
+            ? await service.getWeeklyRankForUser(uid, weekKey)
+            : null;
 
-            results.add(
-              WeekRecord(
-                weekKey: weekKey,
-                weekOfMonth: i + 1,
-                isFuture: false,
-                amount: amount,
-                rank: rank,
-              ),
-            );
-          }
-          return results;
-        });
+        results.add(
+          WeekRecord(
+            weekKey: weekKey,
+            weekOfMonth: i + 1,
+            isFuture: false,
+            amount: amount,
+            rank: rank,
+          ),
+        );
+      }
+      return results;
+    });

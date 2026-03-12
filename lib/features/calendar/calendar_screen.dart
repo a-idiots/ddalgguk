@@ -642,7 +642,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           '잔',
                         );
 
-                        if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
+                        if (bottleMultiplier > 0 &&
+                            drink.amount >= bottleMultiplier) {
                           unit = '병';
                           amount = drink.amount / bottleMultiplier;
                         } else if (drink.amount >= glassMultiplier) {
@@ -814,8 +815,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       return;
     }
 
-    final renderBox =
-        _fabKey.currentContext!.findRenderObject()! as RenderBox;
+    final renderBox = _fabKey.currentContext!.findRenderObject()! as RenderBox;
     final fabPos = renderBox.localToGlobal(Offset.zero);
     final fabSize = renderBox.size;
     final screenSize = MediaQuery.of(context).size;
@@ -1039,10 +1039,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           ),
                           child: const Text(
                             '삭제',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            ),
+                            style: TextStyle(color: Colors.white, fontSize: 15),
                           ),
                         ),
                       ),
@@ -1106,4 +1103,3 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }
   }
 }
-

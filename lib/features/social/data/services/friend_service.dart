@@ -1057,7 +1057,9 @@ class FriendService {
         return defaultIds;
       }
 
-      final ids = (raw as List<dynamic>).map((e) => (e as num).toInt()).toList();
+      final ids = (raw as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList();
       return ids.isEmpty ? defaultIds : ids;
     } catch (e) {
       debugPrint('Error getting main drink types for user $userId: $e');

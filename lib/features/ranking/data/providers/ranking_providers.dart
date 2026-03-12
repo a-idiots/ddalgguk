@@ -51,8 +51,9 @@ final weeklyRankingProvider =
 
 final monthlyRankingProvider =
     FutureProvider.autoDispose<List<RankingEntryWithUser>>((ref) async {
-      final entries =
-          await ref.read(rankingServiceProvider).getMonthlyRanking();
+      final entries = await ref
+          .read(rankingServiceProvider)
+          .getMonthlyRanking();
       return _joinWithUserData(entries);
     });
 
@@ -88,10 +89,9 @@ Future<List<RankingEntryWithUser>> _joinWithUserData(
     }
 
     final rawLevels = data['weeklyDrunkLevels'];
-    final weeklyDrunkLevels =
-        rawLevels is List
-            ? rawLevels.map((e) => (e as num).toInt()).toList()
-            : null;
+    final weeklyDrunkLevels = rawLevels is List
+        ? rawLevels.map((e) => (e as num).toInt()).toList()
+        : null;
 
     // addFriendPermission도 users 문서에서 읽음 (null = 기본 true)
     final addFriendPermission = data['addFriendPermission'] as bool? ?? true;
@@ -104,8 +104,9 @@ Future<List<RankingEntryWithUser>> _joinWithUserData(
         name: data['name'] as String? ?? '',
         customId: data['id'] as String?,
         profilePhoto: (data['profilePhoto'] as num? ?? 0).toInt(),
-        weeklyDrunkLevels:
-            weeklyDrunkLevels?.length == 7 ? weeklyDrunkLevels : null,
+        weeklyDrunkLevels: weeklyDrunkLevels?.length == 7
+            ? weeklyDrunkLevels
+            : null,
         currentDrunkLevel: (data['currentDrunkLevel'] as num? ?? 0).toInt(),
       ),
     );

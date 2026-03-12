@@ -100,10 +100,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
             const SizedBox(height: 6),
             Text(
               '24시간 후 자동으로 사라집니다.',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -121,10 +118,7 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
                 ),
                 counterText:
                     '${_controller.text.length}/${DailyStatus.maxLength}',
-                counterStyle: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[500],
-                ),
+                counterStyle: TextStyle(fontSize: 13, color: Colors.grey[500]),
               ),
               onChanged: (_) => setState(() {}),
             ),

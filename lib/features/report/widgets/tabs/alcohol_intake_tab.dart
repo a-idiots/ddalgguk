@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 
 class AlcoholIntakeTab extends ConsumerStatefulWidget {
   const AlcoholIntakeTab({super.key});
@@ -42,6 +44,11 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   }
 
   void _prevMonth() {
+    final isPro = ref.read(proProvider).valueOrNull ?? false;
+    if (!isPro) {
+      showProPlanPopup(context, 4);
+      return;
+    }
     final newMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
     final weeks = _weeksInMonth(newMonth.year, newMonth.month);
     setState(() {
@@ -114,8 +121,16 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
               weeks: weeks,
               selectedIndex: weekIndex,
               onSelected: (index) {
+                final selectedMonday = weeks[index];
+                if (selectedMonday != _thisWeekMonday()) {
+                  final isPro = ref.read(proProvider).valueOrNull ?? false;
+                  if (!isPro) {
+                    showProPlanPopup(context, 4);
+                    return;
+                  }
+                }
                 setState(() {
-                  _selectedWeekMonday = weeks[index];
+                  _selectedWeekMonday = selectedMonday;
                   _selectedData = null;
                   _selectedIndex = null;
                 });
@@ -293,8 +308,8 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
 
         final maxAmount =
             displayItems.isNotEmpty && displayItems.first.totalAmountMl > 0
-                ? displayItems.first.totalAmountMl
-                : 1.0;
+            ? displayItems.first.totalAmountMl
+            : 1.0;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,8 +382,7 @@ class _WeekDropdownState extends State<_WeekDropdown> {
       return;
     }
 
-    final renderBox =
-        _key.currentContext!.findRenderObject() as RenderBox;
+    final renderBox = _key.currentContext!.findRenderObject() as RenderBox;
     final pos = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
     final screenSize = MediaQuery.of(context).size;
@@ -530,8 +544,7 @@ class _WeeklyChartPage extends ConsumerWidget {
                         barTouchResponse.spot == null) {
                       return;
                     }
-                    final index =
-                        barTouchResponse.spot!.touchedBarGroupIndex;
+                    final index = barTouchResponse.spot!.touchedBarGroupIndex;
                     if (index >= 0 && index < stats.dailyData.length) {
                       if (selectedIndex == index) {
                         onBarTouch?.call(null, null);
@@ -648,10 +661,12 @@ class _WeeklyChartPage extends ConsumerWidget {
             BarChartRodData(
               toY: value,
               color: isSelected
-                  ? _getBarColor(dailyData[index].drunkLevel)
-                      .withValues(alpha: 1.0)
-                  : _getBarColor(dailyData[index].drunkLevel)
-                      .withValues(alpha: 0.6),
+                  ? _getBarColor(
+                      dailyData[index].drunkLevel,
+                    ).withValues(alpha: 1.0)
+                  : _getBarColor(
+                      dailyData[index].drunkLevel,
+                    ).withValues(alpha: 0.6),
               width: 24,
               borderRadius: BorderRadius.circular(4),
               backDrawRodData: BackgroundBarChartRodData(

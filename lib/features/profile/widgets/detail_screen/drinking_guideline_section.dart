@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Top-level section widget
@@ -15,6 +17,7 @@ class DrinkingGuidelineSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final guidelineAsync = ref.watch(alcoholGuidelineDataProvider);
     final userAsync = ref.watch(currentUserProvider);
+    final isPro = ref.watch(proProvider).valueOrNull ?? false;
 
     final nickname = userAsync.valueOrNull?.name ?? '';
     final gender = userAsync.valueOrNull?.gender ?? 'male';
@@ -25,6 +28,7 @@ class DrinkingGuidelineSection extends ConsumerWidget {
         nickname: nickname,
         gender: gender,
         data: data,
+        isPro: isPro,
       ),
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
@@ -41,11 +45,13 @@ class _GuidelineCard extends StatelessWidget {
     required this.nickname,
     required this.gender,
     required this.data,
+    required this.isPro,
   });
 
   final String nickname;
   final String gender;
   final AlcoholGuidelineData data;
+  final bool isPro;
 
   (String, Color) _classify(double grams) {
     final isFemale = gender == 'female';
@@ -95,6 +101,7 @@ class _GuidelineCard extends StatelessWidget {
               nickname: nickname,
               data: data,
               classify: _classify,
+              isPro: isPro,
             )
           : _EmptyContent(nickname: nickname),
     );
@@ -110,11 +117,13 @@ class _RecordContent extends StatelessWidget {
     required this.nickname,
     required this.data,
     required this.classify,
+    required this.isPro,
   });
 
   final String nickname;
   final AlcoholGuidelineData data;
   final (String, Color) Function(double) classify;
+  final bool isPro;
 
   void _showDialog(BuildContext context) {
     showDialog<void>(
@@ -131,21 +140,36 @@ class _RecordContent extends StatelessWidget {
 
     return Column(
       children: [
-        Text.rich(
-          TextSpan(
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              height: 1.4,
+        if (isPro)
+          Text.rich(
+            TextSpan(
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                height: 1.4,
+              ),
+              children: [
+                TextSpan(text: '$nickname님은 $whenLabel\n'),
+                TextSpan(
+                  text: message,
+                  style: TextStyle(color: color),
+                ),
+                const TextSpan(text: '했어요!'),
+              ],
             ),
-            children: [
-              TextSpan(text: '$nickname님은 $whenLabel\n'),
-              TextSpan(text: message, style: TextStyle(color: color)),
-              const TextSpan(text: '했어요!'),
-            ],
+            textAlign: TextAlign.center,
+          )
+        else
+          const Text(
+            '프로 플랜으로 업그레이드해서\n음주 가이드라인을 확인해보세요.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              height: 1.5,
+              color: Colors.black87,
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
         const SizedBox(height: 16),
         // Day pill
         Container(
@@ -165,12 +189,14 @@ class _RecordContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '총 ${data.totalAlcoholGrams.toStringAsFixed(1)}g',
+          isPro ? '총 ${data.totalAlcoholGrams.toStringAsFixed(1)}g' : '??.? g',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         GestureDetector(
-          onTap: () => _showDialog(context),
+          onTap: isPro
+              ? () => _showDialog(context)
+              : () => showProPlanPopup(context, 2),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -254,92 +280,84 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
       backgroundColor: Colors.white,
       insetPadding: const EdgeInsets.symmetric(horizontal: 36, vertical: 80),
       child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // X button row
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.close, size: 20),
-                onPressed: () => Navigator.pop(context),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // X button row
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          // Title – full width, properly centered
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Text(
+              '음주 가이드라인',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // Day pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              dayLabel,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            // Title – full width, properly centered
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Text(
-                '음주 가이드라인',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
+          ),
+          const SizedBox(height: 16),
+          // Info box
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _InfoBox(data: widget.data),
+          ),
+          const SizedBox(height: 16),
+          // Tab bar
+          TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.black,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicator: const UnderlineTabIndicator(
+              borderSide: BorderSide(width: 2, color: Colors.black),
+              borderRadius: BorderRadius.zero,
             ),
-                // Day pill
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    dayLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Info box
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _InfoBox(data: widget.data),
-                ),
-                const SizedBox(height: 16),
-                // Tab bar
-                TabBar(
-                  controller: _tabController,
-                  indicatorColor: Colors.black,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  indicator: const UnderlineTabIndicator(
-                    borderSide: BorderSide(width: 2, color: Colors.black),
-                    borderRadius: BorderRadius.zero,
-                  ),
-                  labelPadding: EdgeInsets.zero,
-                  labelColor: Colors.black,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 13,
-                  ),
-                  tabs: const [
-                    Tab(height: 30, text: '음주 위험도 분류 기준'),
-                    Tab(height: 30, text: '순수 알코올 양 계산'),
-                  ],
-                ),
-                // Tab content
-                SizedBox(
-                  height: 300,
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: const [
-                      _GuidelineTab(),
-                      _CalculationTab(),
-                    ],
-                  ),
-                ),
-          ],
-        ),
+            tabAlignment: TabAlignment.center,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.grey,
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 13,
+            ),
+            tabs: const [
+              Tab(height: 30, text: '음주 위험도 분류 기준'),
+              Tab(height: 30, text: '순수 알코올 양 계산'),
+            ],
+          ),
+          // Tab content
+          SizedBox(
+            height: 300,
+            child: TabBarView(
+              controller: _tabController,
+              children: const [_GuidelineTab(), _CalculationTab()],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -392,10 +410,7 @@ class _InfoBox extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             '총 ${data.totalAlcoholGrams.toStringAsFixed(1)}g',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -588,11 +603,11 @@ class _CalculationTab extends StatelessWidget {
 
   // (drinkType id, portion label, ml, abv)
   static const List<(int, String, double, double)> _refDrinks = [
-    (1, '1잔', 50.0, 0.165),   // 소주
-    (2, '1잔', 300.0, 0.05),   // 맥주
-    (4, '1잔', 150.0, 0.12),   // 와인
-    (5, '1잔', 200.0, 0.06),   // 막걸리
-    (6, '1잔', 30.0, 0.40),    // 위스키
+    (1, '1잔', 50.0, 0.165), // 소주
+    (2, '1잔', 300.0, 0.05), // 맥주
+    (4, '1잔', 150.0, 0.12), // 와인
+    (5, '1잔', 200.0, 0.06), // 막걸리
+    (6, '1잔', 30.0, 0.40), // 위스키
   ];
 
   @override
@@ -605,8 +620,7 @@ class _CalculationTab extends StatelessWidget {
           // Formula box
           Container(
             width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(16),
@@ -615,20 +629,14 @@ class _CalculationTab extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
-                  '섭취량(ml)',
-                  style: TextStyle(fontSize: 14),
-                ),
+                const Text('섭취량(ml)', style: TextStyle(fontSize: 14)),
                 const SizedBox(width: 10),
                 const Text('X', style: TextStyle(fontSize: 14)),
                 const SizedBox(width: 10),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      '알코올 도수',
-                      style: TextStyle(fontSize: 13),
-                    ),
+                    const Text('알코올 도수', style: TextStyle(fontSize: 13)),
                     Container(
                       width: 64,
                       height: 1,
@@ -643,10 +651,7 @@ class _CalculationTab extends StatelessWidget {
                 const SizedBox(width: 10),
                 const Text(
                   '0.8',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
               ],
             ),

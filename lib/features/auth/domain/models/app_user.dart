@@ -106,10 +106,8 @@ class AppUser {
           : null,
       monthlyGoals: json['monthlyGoals'] != null
           ? (json['monthlyGoals'] as Map<String, dynamic>).map(
-              (k, v) => MapEntry(
-                k,
-                MonthlyGoal.fromJson(v as Map<String, dynamic>),
-              ),
+              (k, v) =>
+                  MapEntry(k, MonthlyGoal.fromJson(v as Map<String, dynamic>)),
             )
           : const {},
       rankingPermission: json['rankingPermission'] as bool?,

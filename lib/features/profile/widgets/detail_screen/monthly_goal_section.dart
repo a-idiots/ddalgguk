@@ -7,6 +7,7 @@ import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/screens/goal_detail_screen.dart';
 import 'package:ddalgguk/features/profile/widgets/dialogs/goal_edit_sheet.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 
 class MonthlyGoalSection extends ConsumerWidget {
   const MonthlyGoalSection({super.key, required this.theme});
@@ -31,8 +32,9 @@ class MonthlyGoalSection extends ConsumerWidget {
       data: (user) {
         final budget = user?.monthlyGoalBudget;
         final alcoholGoal = user?.monthlyGoalAlcohol;
-        final hasGoal = budget != null || alcoholGoal != null;
         final isPro = proAsync.valueOrNull ?? false;
+        // Non-pro users always see the empty state
+        final hasGoal = isPro && (budget != null || alcoholGoal != null);
 
         final currentSpending = spendingAsync.valueOrNull ?? 0;
         final currentAlcohol = alcoholAsync.valueOrNull ?? 0.0;
@@ -55,63 +57,66 @@ class MonthlyGoalSection extends ConsumerWidget {
               ),
             ],
             // 카드
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header row
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '$monthNum월달 음주 잔고',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.arrow_forward, size: 22),
-                          color: Colors.grey[500],
-                          onPressed: () => _onEditTapped(
-                            context,
-                            ref,
-                            isPro,
-                            budget,
-                            alcoholGoal,
-                          ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ],
+            GestureDetector(
+              onTap: !isPro ? () => showProPlanPopup(context, 0) : null,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  // Content
-                  if (!hasGoal)
-                    _EmptyGoalContent()
-                  else
-                    _GoalProgressContent(
-                      monthNum: monthNum,
-                      budget: budget,
-                      alcoholGoal: alcoholGoal,
-                      currentSpending: currentSpending,
-                      currentAlcohol: currentAlcohol,
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$monthNum월달 음주 잔고',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward, size: 22),
+                            color: Colors.grey[500],
+                            onPressed: () => _onEditTapped(
+                              context,
+                              ref,
+                              isPro,
+                              budget,
+                              alcoholGoal,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
                     ),
-                ],
+                    // Content
+                    if (!hasGoal)
+                      _EmptyGoalContent()
+                    else
+                      _GoalProgressContent(
+                        monthNum: monthNum,
+                        budget: budget,
+                        alcoholGoal: alcoholGoal,
+                        currentSpending: currentSpending,
+                        currentAlcohol: currentAlcohol,
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -138,11 +143,9 @@ class MonthlyGoalSection extends ConsumerWidget {
     final hasGoal = budget != null || alcoholGoal != null;
     if (hasGoal) {
       // 이미 목표가 설정됨 → 상세 페이지로 이동
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const GoalDetailScreen(),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const GoalDetailScreen()));
     } else {
       // 목표 미설정 → 바로 입력 시트 표시
       final monthNum = DateTime.now().month;
@@ -156,23 +159,7 @@ class MonthlyGoalSection extends ConsumerWidget {
   }
 
   void _showProDialog(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'DDALGGUK PRO',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text('음주 목표 설정은 PRO 기능이에요.\n구독 또는 1회 결제로 이용할 수 있어요.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('확인', style: TextStyle(color: Color(0xFFF0A9A9))),
-          ),
-        ],
-      ),
-    );
+    showProPlanPopup(context, 0);
   }
 }
 
@@ -296,8 +283,8 @@ class _GoalProgressContent extends StatelessWidget {
               ratio: currentSpending > budget!
                   ? 1.0
                   : budget! > 0
-                      ? (currentSpending / budget!).clamp(0.0, 1.0)
-                      : 0.0,
+                  ? (currentSpending / budget!).clamp(0.0, 1.0)
+                  : 0.0,
               markerLabel: _formatCurrency(currentSpending),
               barColor: const Color(0xFFF7B6B6),
               isOverGoal: currentSpending > budget!,
@@ -310,8 +297,8 @@ class _GoalProgressContent extends StatelessWidget {
               ratio: currentAlcohol > alcoholGoal!
                   ? 1.0
                   : alcoholGoal! > 0
-                      ? (currentAlcohol / alcoholGoal!).clamp(0.0, 1.0)
-                      : 0.0,
+                  ? (currentAlcohol / alcoholGoal!).clamp(0.0, 1.0)
+                  : 0.0,
               markerLabel: '${_formatBottle(currentAlcohol)}병',
               barColor: const Color(0xFFADE4C3),
               isOverGoal: currentAlcohol > alcoholGoal!,
@@ -398,13 +385,7 @@ class _SummaryRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
         const Spacer(),
         Text(
           value,

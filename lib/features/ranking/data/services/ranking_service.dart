@@ -70,8 +70,11 @@ class RankingService {
   /// 문서 없음 → null (기록 없음), 0.0 이상 → 기록 있음.
   Future<double?> getUserMonthlyAmount(String uid, String monthKey) async {
     try {
-      final doc =
-          await _rankings.doc(uid).collection('monthly').doc(monthKey).get();
+      final doc = await _rankings
+          .doc(uid)
+          .collection('monthly')
+          .doc(monthKey)
+          .get();
       if (!doc.exists) {
         return null;
       }
@@ -86,8 +89,11 @@ class RankingService {
   /// 문서 없음 → null (기록 없음), 0.0 이상 → 기록 있음.
   Future<double?> getUserWeeklyAmount(String uid, String weekKey) async {
     try {
-      final doc =
-          await _rankings.doc(uid).collection('weekly').doc(weekKey).get();
+      final doc = await _rankings
+          .doc(uid)
+          .collection('weekly')
+          .doc(weekKey)
+          .get();
       if (!doc.exists) {
         return null;
       }
@@ -105,11 +111,10 @@ class RankingService {
   Future<int?> getMonthlyRankForUser(String uid, String monthKey) async {
     try {
       // orderBy 제거 → 복합 인덱스 불필요, 클라이언트 정렬
-      final snapshot =
-          await _firestore
-              .collectionGroup('monthly')
-              .where('periodKey', isEqualTo: monthKey)
-              .get();
+      final snapshot = await _firestore
+          .collectionGroup('monthly')
+          .where('periodKey', isEqualTo: monthKey)
+          .get();
 
       final docs = snapshot.docs.toList()
         ..sort((a, b) {
@@ -150,11 +155,10 @@ class RankingService {
   Future<int?> getWeeklyRankForUser(String uid, String weekKey) async {
     try {
       // orderBy 제거 → 복합 인덱스 불필요, 클라이언트 정렬
-      final snapshot =
-          await _firestore
-              .collectionGroup('weekly')
-              .where('periodKey', isEqualTo: weekKey)
-              .get();
+      final snapshot = await _firestore
+          .collectionGroup('weekly')
+          .where('periodKey', isEqualTo: weekKey)
+          .get();
 
       final docs = snapshot.docs.toList()
         ..sort((a, b) {
@@ -208,48 +212,52 @@ class RankingService {
       return;
     }
 
-    final weekKey  = _weekKeyForDate(recordDate);
+    final weekKey = _weekKeyForDate(recordDate);
     final monthKey = _monthKeyForDate(recordDate);
-    final docRef   = _rankings.doc(uid);
+    final docRef = _rankings.doc(uid);
 
     try {
-      final weeklyRef  = docRef.collection('weekly').doc(weekKey);
+      final weeklyRef = docRef.collection('weekly').doc(weekKey);
       final monthlyRef = docRef.collection('monthly').doc(monthKey);
 
       if (delta > 0) {
         // 양수: 문서가 없으면 생성, 있으면 증가
         await Future.wait([
-          weeklyRef.set(
-            {'amount': FieldValue.increment(delta), 'periodKey': weekKey,  'uid': uid},
-            SetOptions(merge: true),
-          ),
-          monthlyRef.set(
-            {'amount': FieldValue.increment(delta), 'periodKey': monthKey, 'uid': uid},
-            SetOptions(merge: true),
-          ),
+          weeklyRef.set({
+            'amount': FieldValue.increment(delta),
+            'periodKey': weekKey,
+            'uid': uid,
+          }, SetOptions(merge: true)),
+          monthlyRef.set({
+            'amount': FieldValue.increment(delta),
+            'periodKey': monthKey,
+            'uid': uid,
+          }, SetOptions(merge: true)),
         ]);
       } else {
         // 음수: 문서가 존재할 때만 감소, 0 미만으로 내려가지 않도록 클램핑
         await _firestore.runTransaction<void>((tx) async {
-          final weeklyDoc  = await tx.get(weeklyRef);
+          final weeklyDoc = await tx.get(weeklyRef);
           final monthlyDoc = await tx.get(monthlyRef);
 
           if (weeklyDoc.exists) {
-            final cur = (weeklyDoc.data()!['amount'] as num?)?.toDouble() ?? 0.0;
+            final cur =
+                (weeklyDoc.data()!['amount'] as num?)?.toDouble() ?? 0.0;
             tx.update(weeklyRef, {'amount': math.max(0.0, cur + delta)});
           }
           if (monthlyDoc.exists) {
-            final cur = (monthlyDoc.data()!['amount'] as num?)?.toDouble() ?? 0.0;
+            final cur =
+                (monthlyDoc.data()!['amount'] as num?)?.toDouble() ?? 0.0;
             tx.update(monthlyRef, {'amount': math.max(0.0, cur + delta)});
           }
         });
       }
 
       // 루트 문서(현재 주/월 빠른 조회용) 업데이트
-      final currentWeekKey  = _currentWeekKey();
+      final currentWeekKey = _currentWeekKey();
       final currentMonthKey = _currentMonthKey();
-      final isCurrentWeek   = weekKey == currentWeekKey;
-      final isCurrentMonth  = monthKey == currentMonthKey;
+      final isCurrentWeek = weekKey == currentWeekKey;
+      final isCurrentMonth = monthKey == currentMonthKey;
 
       if (!isCurrentWeek && !isCurrentMonth) {
         return;
@@ -261,7 +269,7 @@ class RankingService {
           return;
         }
 
-        final data    = snapshot.data()!;
+        final data = snapshot.data()!;
         final updates = <String, dynamic>{};
 
         if (isCurrentWeek) {
@@ -298,38 +306,32 @@ class RankingService {
       return;
     }
 
-    final weekKey  = _weekKeyForDate(recordDate);
+    final weekKey = _weekKeyForDate(recordDate);
     final monthKey = _monthKeyForDate(recordDate);
-    final docRef   = _rankings.doc(uid);
+    final docRef = _rankings.doc(uid);
 
     try {
-      final weeklyRef  = docRef.collection('weekly').doc(weekKey);
+      final weeklyRef = docRef.collection('weekly').doc(weekKey);
       final monthlyRef = docRef.collection('monthly').doc(monthKey);
 
       // periodKey / uid 를 함께 저장해 컬렉션 그룹 쿼리(등수 계산) 지원
       await Future.wait([
-        weeklyRef.set(
-          {
-            'amount': FieldValue.increment(alcoholMl),
-            'periodKey': weekKey,
-            'uid': uid,
-          },
-          SetOptions(merge: true),
-        ),
-        monthlyRef.set(
-          {
-            'amount': FieldValue.increment(alcoholMl),
-            'periodKey': monthKey,
-            'uid': uid,
-          },
-          SetOptions(merge: true),
-        ),
+        weeklyRef.set({
+          'amount': FieldValue.increment(alcoholMl),
+          'periodKey': weekKey,
+          'uid': uid,
+        }, SetOptions(merge: true)),
+        monthlyRef.set({
+          'amount': FieldValue.increment(alcoholMl),
+          'periodKey': monthKey,
+          'uid': uid,
+        }, SetOptions(merge: true)),
       ]);
 
-      final currentWeekKey  = _currentWeekKey();
+      final currentWeekKey = _currentWeekKey();
       final currentMonthKey = _currentMonthKey();
-      final isCurrentWeek   = weekKey == currentWeekKey;
-      final isCurrentMonth  = monthKey == currentMonthKey;
+      final isCurrentWeek = weekKey == currentWeekKey;
+      final isCurrentMonth = monthKey == currentMonthKey;
 
       if (!isCurrentWeek && !isCurrentMonth) {
         return;
@@ -340,34 +342,32 @@ class RankingService {
 
         if (!snapshot.exists) {
           transaction.set(docRef, {
-            'weeklyAmount':        isCurrentWeek  ? alcoholMl : 0.0,
-            'weeklyKey':           currentWeekKey,
-            'monthlyAmount':       isCurrentMonth ? alcoholMl : 0.0,
-            'monthlyKey':          currentMonthKey,
-            'rankingPermission':   true,
+            'weeklyAmount': isCurrentWeek ? alcoholMl : 0.0,
+            'weeklyKey': currentWeekKey,
+            'monthlyAmount': isCurrentMonth ? alcoholMl : 0.0,
+            'monthlyKey': currentMonthKey,
+            'rankingPermission': true,
             'addFriendPermission': true,
           });
           return;
         }
 
-        final data    = snapshot.data()!;
+        final data = snapshot.data()!;
         final updates = <String, dynamic>{};
 
         if (isCurrentWeek) {
           final storedWeekKey = data['weeklyKey'] as String? ?? '';
-          updates['weeklyAmount'] =
-              storedWeekKey == currentWeekKey
-                  ? (data['weeklyAmount'] as num? ?? 0).toDouble() + alcoholMl
-                  : alcoholMl; // 새 주차 -> 리셋
+          updates['weeklyAmount'] = storedWeekKey == currentWeekKey
+              ? (data['weeklyAmount'] as num? ?? 0).toDouble() + alcoholMl
+              : alcoholMl; // 새 주차 -> 리셋
           updates['weeklyKey'] = currentWeekKey;
         }
 
         if (isCurrentMonth) {
           final storedMonthKey = data['monthlyKey'] as String? ?? '';
-          updates['monthlyAmount'] =
-              storedMonthKey == currentMonthKey
-                  ? (data['monthlyAmount'] as num? ?? 0).toDouble() + alcoholMl
-                  : alcoholMl; // 새 달 -> 리셋
+          updates['monthlyAmount'] = storedMonthKey == currentMonthKey
+              ? (data['monthlyAmount'] as num? ?? 0).toDouble() + alcoholMl
+              : alcoholMl; // 새 달 -> 리셋
           updates['monthlyKey'] = currentMonthKey;
         }
 
@@ -385,13 +385,12 @@ class RankingService {
   /// 이번 주 랭킹 조회 (rankingPermission == true 유저만, weeklyAmount 내림차순)
   Future<List<RankingEntry>> getWeeklyRanking({int limit = 20}) async {
     try {
-      final snapshot =
-          await _rankings
-              .where('rankingPermission', isEqualTo: true)
-              .where('weeklyKey', isEqualTo: _currentWeekKey())
-              .orderBy('weeklyAmount', descending: true)
-              .limit(limit)
-              .get();
+      final snapshot = await _rankings
+          .where('rankingPermission', isEqualTo: true)
+          .where('weeklyKey', isEqualTo: _currentWeekKey())
+          .orderBy('weeklyAmount', descending: true)
+          .limit(limit)
+          .get();
 
       return snapshot.docs.map((doc) {
         final data = doc.data();
@@ -410,13 +409,12 @@ class RankingService {
   /// 이번 달 랭킹 조회 (rankingPermission == true 유저만, monthlyAmount 내림차순)
   Future<List<RankingEntry>> getMonthlyRanking({int limit = 20}) async {
     try {
-      final snapshot =
-          await _rankings
-              .where('rankingPermission', isEqualTo: true)
-              .where('monthlyKey', isEqualTo: _currentMonthKey())
-              .orderBy('monthlyAmount', descending: true)
-              .limit(limit)
-              .get();
+      final snapshot = await _rankings
+          .where('rankingPermission', isEqualTo: true)
+          .where('monthlyKey', isEqualTo: _currentMonthKey())
+          .orderBy('monthlyAmount', descending: true)
+          .limit(limit)
+          .get();
 
       return snapshot.docs.map((doc) {
         final data = doc.data();
@@ -465,7 +463,7 @@ class RankingService {
   // 비공개 헬퍼
   // ---------------------------------------------------------------------------
 
-  String _currentWeekKey()  => _weekKeyForDate(DateTime.now());
+  String _currentWeekKey() => _weekKeyForDate(DateTime.now());
   String _currentMonthKey() => _monthKeyForDate(DateTime.now());
 
   /// 주어진 날짜의 ISO 8601 주차 키를 반환한다.
@@ -475,7 +473,7 @@ class RankingService {
   /// - 1주차: 해당 연도의 첫 번째 목요일이 포함된 주
   String _weekKeyForDate(DateTime date) {
     // 이번 주 월요일 (weekday: 1=월 … 7=일)
-    final monday  = date.subtract(Duration(days: date.weekday - 1));
+    final monday = date.subtract(Duration(days: date.weekday - 1));
     // 이번 주 목요일 (ISO 연도는 목요일의 연도로 결정)
     final thursday = monday.add(const Duration(days: 3));
 

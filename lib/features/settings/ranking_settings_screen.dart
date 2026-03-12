@@ -45,11 +45,6 @@ class RankingSettingsScreen extends ConsumerWidget {
             title: '랭킹탭 노출',
             description: '과음관리구역에 내 정보가 표시됩니다',
           ),
-          const _RankingToggleTile(
-            field: _RankingField.addFriendPermission,
-            title: '랭킹을 통한 친구 신청 가능',
-            description: '랭킹에서 나를 통해 다른 유저가 친구 신청을 할 수 있습니다',
-          ),
           const SettingsSectionDivider(),
           const SizedBox(height: 16),
           Padding(
@@ -70,7 +65,7 @@ class RankingSettingsScreen extends ConsumerWidget {
   }
 }
 
-enum _RankingField { rankingPermission, addFriendPermission }
+enum _RankingField { rankingPermission }
 
 class _RankingToggleTile extends ConsumerStatefulWidget {
   const _RankingToggleTile({
@@ -94,12 +89,7 @@ class _RankingToggleTileState extends ConsumerState<_RankingToggleTile> {
     if (user == null) {
       return true;
     }
-    switch (widget.field) {
-      case _RankingField.rankingPermission:
-        return user.rankingPermission ?? true;
-      case _RankingField.addFriendPermission:
-        return user.addFriendPermission ?? true;
-    }
+    return user.rankingPermission ?? true;
   }
 
   @override
@@ -160,19 +150,9 @@ class _RankingToggleTileState extends ConsumerState<_RankingToggleTile> {
                       try {
                         final repo = ref.read(authRepositoryProvider);
                         final newValue = !isEnabled;
-                        final rankingPerm =
-                            widget.field == _RankingField.rankingPermission
-                                ? newValue
-                                : null;
-                        final friendPerm =
-                            widget.field == _RankingField.addFriendPermission
-                                ? newValue
-                                : null;
-
                         // users/{uid} 업데이트 (클라이언트 필터용)
                         await repo.updateRankingPermissions(
-                          rankingPermission: rankingPerm,
-                          addFriendPermission: friendPerm,
+                          rankingPermission: newValue,
                         );
 
                         // rankings/{uid} 업데이트 (DB 쿼리 필터용)
@@ -182,8 +162,7 @@ class _RankingToggleTileState extends ConsumerState<_RankingToggleTile> {
                               .read(rankingServiceProvider)
                               .updatePermissions(
                                 uid,
-                                rankingPermission: rankingPerm,
-                                addFriendPermission: friendPerm,
+                                rankingPermission: newValue,
                               );
                         }
 

@@ -9,7 +9,6 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 class RankingProfileDialog extends ConsumerStatefulWidget {
   const RankingProfileDialog({super.key, required this.entry});
 
@@ -176,8 +175,7 @@ class _RankingProfileDialogState extends ConsumerState<RankingProfileDialog> {
         profileStats != null && profileStats.currentAlcoholInBody > 0;
     final theme = AppColors.getTheme(hasDrunkLevel ? 1 : 0);
 
-    final currentUserUid =
-        ref.read(currentUserProvider).valueOrNull?.uid;
+    final currentUserUid = ref.read(currentUserProvider).valueOrNull?.uid;
     final isSelf = currentUserUid == widget.entry.uid;
     final canAddFriend =
         !isSelf && widget.entry.addFriendPermission && !_requestSent;

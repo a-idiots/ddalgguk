@@ -12,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // 선택된 친구 신청 대상 (메시지 컨트롤러 포함)
 class _SelectedUser {
   _SelectedUser({required this.user})
-      : messageController = TextEditingController();
+    : messageController = TextEditingController();
 
   final AppUser user;
   final TextEditingController messageController;
@@ -208,10 +208,9 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   }
 
   Future<void> _sendRequest(_SelectedUser selected) async {
-    final message =
-        selected.messageController.text.trim().isEmpty
-            ? '우리 친구해요!'
-            : selected.messageController.text.trim();
+    final message = selected.messageController.text.trim().isEmpty
+        ? '우리 친구해요!'
+        : selected.messageController.text.trim();
 
     if (message.length > FriendRequest.maxMessageLength) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -325,10 +324,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                       ),
                       Text(
                         '@${selected.user.id ?? ''}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -350,14 +346,22 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                                   color: AppColors.primaryPink,
                                 ),
                               )
-                            : Icon(Icons.send, color: Colors.grey[500], size: 22),
+                            : Icon(
+                                Icons.send,
+                                color: Colors.grey[500],
+                                size: 22,
+                              ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () => _removeUser(selected),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                        child: Icon(Icons.close, size: 18, color: Colors.grey[400]),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Colors.grey[400],
+                        ),
                       ),
                     ),
                   ],

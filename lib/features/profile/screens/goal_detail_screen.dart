@@ -83,10 +83,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _GoalTab(),
-          const _AchievementTab(),
-        ],
+        children: [_GoalTab(), const _AchievementTab()],
       ),
     );
   }
@@ -159,23 +156,22 @@ class _GoalTabContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final budgetOver = budget != null && currentSpending > budget!;
-    final alcoholOver =
-        alcoholGoal != null && currentAlcohol > alcoholGoal!;
+    final alcoholOver = alcoholGoal != null && currentAlcohol > alcoholGoal!;
 
     // 예산 계산
-    final budgetRemaining =
-        budget != null ? (budget! - currentSpending) : 0;
-    final budgetOverAmount =
-        budget != null ? (currentSpending - budget!).clamp(0, currentSpending) : 0;
+    final budgetRemaining = budget != null ? (budget! - currentSpending) : 0;
+    final budgetOverAmount = budget != null
+        ? (currentSpending - budget!).clamp(0, currentSpending)
+        : 0;
     final sessionsLeft = budget != null
-        ? (budgetRemaining / avgDrinkSpending)
-            .floor()
-            .clamp(0, double.maxFinite.toInt())
+        ? (budgetRemaining / avgDrinkSpending).floor().clamp(
+            0,
+            double.maxFinite.toInt(),
+          )
         : 0;
 
     // 음주량 계산 (1/10단위 정수 연산)
-    final goalTenths =
-        alcoholGoal != null ? (alcoholGoal! * 10).round() : 0;
+    final goalTenths = alcoholGoal != null ? (alcoholGoal! * 10).round() : 0;
     final currentTenths = (currentAlcohol * 10).round();
     final diffTenths = goalTenths - currentTenths; // 양수 = 남음, 음수 = 초과
 
@@ -274,10 +270,7 @@ class _GoalTabContent extends StatelessWidget {
                 ),
                 child: const Text(
                   '수정하기',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -332,10 +325,7 @@ class _GoalSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 4),
         Text(
@@ -520,9 +510,7 @@ class _LegendRow extends StatelessWidget {
             height: 12,
             decoration: BoxDecoration(
               color: item.filled ? Colors.grey[400] : null,
-              border: item.filled
-                  ? null
-                  : Border.all(color: Colors.grey[400]!),
+              border: item.filled ? null : Border.all(color: Colors.grey[400]!),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -567,13 +555,13 @@ class _AchievementTabState extends ConsumerState<_AchievementTab> {
     final now = DateTime.now();
 
     // Filter to months in the selected year that have a goal set
-    final monthsWithGoals = List.generate(
-      _year == now.year ? now.month : 12,
-      (i) => i + 1,
-    ).where((m) {
-      final key = '$_year-${m.toString().padLeft(2, '0')}';
-      return allGoals.containsKey(key);
-    }).toList();
+    final monthsWithGoals =
+        List.generate(_year == now.year ? now.month : 12, (i) => i + 1).where((
+          m,
+        ) {
+          final key = '$_year-${m.toString().padLeft(2, '0')}';
+          return allGoals.containsKey(key);
+        }).toList();
 
     return Column(
       children: [
@@ -628,10 +616,7 @@ class _AchievementTabState extends ConsumerState<_AchievementTab> {
                   const SizedBox(height: 12),
                   Text(
                     '설정하신 목표가 없어요.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -736,10 +721,7 @@ class _MonthRow extends ConsumerWidget {
             width: 30,
             child: Text(
               '$month월',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ),
           const Spacer(),
@@ -784,8 +766,7 @@ class _MonthRow extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color:
-                                alcoholOver ? Colors.red[400] : Colors.black,
+                            color: alcoholOver ? Colors.red[400] : Colors.black,
                           ),
                         ),
                         TextSpan(

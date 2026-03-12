@@ -4,6 +4,7 @@ import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/features/settings/widgets/add_custom_drink_card.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,35 +70,7 @@ class _MainDrinkSettingsScreenState
   bool get _isPro => ref.read(proProvider).valueOrNull ?? false;
 
   void _showProDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'DDALGGUK PRO',
-          style: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: const Text(
-          '메인 기록 주종 커스터마이징은 PRO 기능이에요.\n구독 또는 1회 결제로 이용할 수 있어요.',
-          style: TextStyle(fontFamily: 'Pretendard'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              '확인',
-              style: TextStyle(
-                fontFamily: 'Pretendard',
-                color: Color(0xFFF0A9A9),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    showProPlanPopup(context, 1);
   }
 
   void _handleDrinkTap(int id) {

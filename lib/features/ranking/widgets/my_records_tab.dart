@@ -244,8 +244,7 @@ class _WeeklyPopup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recordsAsync =
-        ref.watch(myMonthWeeklyRecordsProvider((year, month)));
+    final recordsAsync = ref.watch(myMonthWeeklyRecordsProvider((year, month)));
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -287,9 +286,7 @@ class _WeeklyPopup extends ConsumerWidget {
               data: (records) => _WeekGrid(records: records),
               loading: () => const Padding(
                 padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(
-                  color: AppColors.primaryPink,
-                ),
+                child: CircularProgressIndicator(color: AppColors.primaryPink),
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(16),

@@ -62,10 +62,7 @@ class _GoalEditSheetState extends ConsumerState<GoalEditSheet> {
     setState(() => _isSaving = true);
     try {
       final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.updateMonthlyGoal(
-        budget: budget,
-        alcohol: alcohol,
-      );
+      await authRepository.updateMonthlyGoal(budget: budget, alcohol: alcohol);
       if (mounted) {
         Navigator.of(context).pop(true);
       }

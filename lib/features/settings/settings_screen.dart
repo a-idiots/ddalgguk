@@ -32,10 +32,7 @@ class SettingsScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('실패: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('실패: $e'), backgroundColor: Colors.red),
         );
       }
     }

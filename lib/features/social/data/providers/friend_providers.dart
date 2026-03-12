@@ -128,8 +128,8 @@ final hasFriendRequestsProvider = Provider.autoDispose<bool>((ref) {
 });
 
 /// 친구의 메인 기록 주종 Top 5 provider
-final friendTopDrinkTypesProvider =
-    FutureProvider.autoDispose.family<List<int>, String>((ref, userId) async {
+final friendTopDrinkTypesProvider = FutureProvider.autoDispose
+    .family<List<int>, String>((ref, userId) async {
       final friendService = ref.watch(friendServiceProvider);
       return friendService.getFriendTopDrinkTypes(userId);
     });

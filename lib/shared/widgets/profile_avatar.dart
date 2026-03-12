@@ -26,28 +26,24 @@ class ProfileAvatar extends ConsumerWidget {
   final double size;
 
   // 기본 프로필 배경 색상 4종 (f2bfbf, cfa8a8, f59696, ffbcbc)
-  static const _basicProfileColors = [
-    'F2BFBF',
-    'CFA8A8',
-    'F59696',
-    'FFBCBC',
-  ];
+  static const _basicProfileColors = ['F2BFBF', 'CFA8A8', 'F59696', 'FFBCBC'];
 
   // 주종 아이콘 경로 (인덱스 11~19)
   static const _alcoholIcons = [
-    'assets/imgs/alcohol_icons/soju.png',     // 11
-    'assets/imgs/alcohol_icons/beer.png',     // 12
+    'assets/imgs/alcohol_icons/soju.png', // 11
+    'assets/imgs/alcohol_icons/beer.png', // 12
     'assets/imgs/alcohol_icons/cocktail.png', // 13
-    'assets/imgs/alcohol_icons/wine.png',     // 14
+    'assets/imgs/alcohol_icons/wine.png', // 14
     'assets/imgs/alcohol_icons/makgulli.png', // 15
-    'assets/imgs/alcohol_icons/whiskey.png',  // 16
+    'assets/imgs/alcohol_icons/whiskey.png', // 16
     'assets/imgs/alcohol_icons/highball.png', // 17
-    'assets/imgs/alcohol_icons/sake.png',     // 18
-    'assets/imgs/alcohol_icons/vodka.png',    // 19
+    'assets/imgs/alcohol_icons/sake.png', // 18
+    'assets/imgs/alcohol_icons/vodka.png', // 19
   ];
 
   // 기본 프로필 SVG 템플릿 (배경색 BGCOLOR 치환)
-  static const _basicProfileSvgTemplate = '<svg width="33" height="33" '
+  static const _basicProfileSvgTemplate =
+      '<svg width="33" height="33" '
       'viewBox="0 0 33 33" fill="none" '
       'xmlns="http://www.w3.org/2000/svg">'
       '<path d="M33 16.5C33 7.3873 25.6127 0 16.5 0C7.3873 0 0 7.3873 0 16.5'
@@ -158,15 +154,15 @@ class ProfileAvatar extends ConsumerWidget {
 /// profilePhoto 값에 해당하는 주종 아이콘 경로 반환 (null이면 주종 아이콘 아님)
 String? getAlcoholProfileIconPath(int profilePhoto) {
   const alcoholIcons = [
-    'assets/imgs/alcohol_icons/soju.png',     // 11
-    'assets/imgs/alcohol_icons/beer.png',     // 12
+    'assets/imgs/alcohol_icons/soju.png', // 11
+    'assets/imgs/alcohol_icons/beer.png', // 12
     'assets/imgs/alcohol_icons/cocktail.png', // 13
-    'assets/imgs/alcohol_icons/wine.png',     // 14
+    'assets/imgs/alcohol_icons/wine.png', // 14
     'assets/imgs/alcohol_icons/makgulli.png', // 15
-    'assets/imgs/alcohol_icons/whiskey.png',  // 16
+    'assets/imgs/alcohol_icons/whiskey.png', // 16
     'assets/imgs/alcohol_icons/highball.png', // 17
-    'assets/imgs/alcohol_icons/sake.png',     // 18
-    'assets/imgs/alcohol_icons/vodka.png',    // 19
+    'assets/imgs/alcohol_icons/sake.png', // 18
+    'assets/imgs/alcohol_icons/vodka.png', // 19
   ];
   final index = profilePhoto - 11;
   if (index >= 0 && index < alcoholIcons.length) {
