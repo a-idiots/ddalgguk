@@ -215,38 +215,70 @@ void showContactDialog(BuildContext context) {
 Future<bool?> showLogoutDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (context) => SakuInfoDialog(
-      content: const Text(
-        '정말 로그아웃 하시겠습니까?',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'Pretendard',
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Colors.black87,
-        ),
-      ),
-      bottomButtons: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-          ),
-          child: const Text(
-            '로그아웃',
+    builder: (context) => _CleanDialog(
+      title: '로그아웃',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '정말 로그아웃 하시겠습니까?',
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
           ),
-        ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black54,
+                    side: const BorderSide(color: Colors.black26),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '로그아웃',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     ),
   );
@@ -256,7 +288,8 @@ Future<bool?> showLogoutDialog(BuildContext context) {
 Future<bool?> showAccountDeletionDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (context) => SakuInfoDialog(
+    builder: (context) => _CleanDialog(
+      title: '회원 탈퇴',
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -265,8 +298,8 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
           ),
@@ -276,35 +309,61 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
               color: Colors.grey[600],
               height: 1.5,
             ),
           ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black54,
+                    side: const BorderSide(color: Colors.black26),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '탈퇴하기',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
-      ),
-      bottomButtons: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-          ),
-          child: const Text(
-            '탈퇴하기',
-            style: TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     ),
   );
