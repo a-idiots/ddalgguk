@@ -107,6 +107,19 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                 ),
               ),
             ),
+            // Pro logo pinned near top
+            const SizedBox(height: 40),
+            Image.asset(
+              'assets/imgs/pro_plan/pro_logo.png',
+              height: 90,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '딸꾹 프로 기능을 이용해보세요!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+            const SizedBox(height: 1),
             // Vertically centered content
             Expanded(
               child: Center(
@@ -114,17 +127,6 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Pro logo
-                      Image.asset(
-                        'assets/imgs/pro_plan/pro_logo.png',
-                        height: 90,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '딸꾹 프로 기능을 이용해보세요!',
-                        style: TextStyle(fontSize: 14, color: Colors.black54),
-                      ),
-                      const SizedBox(height: 20),
                       // Feature image carousel (fixed height)
                       SizedBox(
                         height: 300,
@@ -161,7 +163,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 30),
                       // Payment options
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -170,7 +172,8 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                             _PaymentCard(
                               title: '일회성 결제',
                               subtitle: '한번의 결제로 프로 기능을 영원히!',
-                              price: '29,900원',
+                              originalPrice: '49,000원',
+                              price: '24,900원',
                               isHighlighted: true,
                               isLoading: _isLoading,
                               onTap: () =>
@@ -179,8 +182,9 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                             const SizedBox(height: 12),
                             _PaymentCard(
                               title: '연간 결제',
-                              subtitle: '900원/월',
-                              price: '9,900원',
+                              subtitle: '월 1,240원',
+                              originalPrice: '29,000원',
+                              price: '14,900원',
                               isHighlighted: false,
                               isLoading: _isLoading,
                               onTap: () =>
@@ -205,6 +209,7 @@ class _PaymentCard extends StatelessWidget {
   const _PaymentCard({
     required this.title,
     required this.subtitle,
+    required this.originalPrice,
     required this.price,
     required this.isHighlighted,
     required this.isLoading,
@@ -213,6 +218,7 @@ class _PaymentCard extends StatelessWidget {
 
   final String title;
   final String subtitle;
+  final String originalPrice;
   final String price;
   final bool isHighlighted;
   final bool isLoading;
@@ -262,13 +268,27 @@ class _PaymentCard extends StatelessWidget {
                 ),
               )
             else
-              Text(
-                price,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFF08080),
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    originalPrice,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black38,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: Colors.black38,
+                    ),
+                  ),
+                  Text(
+                    price,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFF08080),
+                    ),
+                  ),
+                ],
               ),
           ],
         ),
