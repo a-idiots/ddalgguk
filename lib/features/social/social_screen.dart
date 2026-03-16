@@ -250,12 +250,6 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/imgs/socials/empty_postbox.png',
-                  width: 120,
-                  height: 120,
-                ),
-                const SizedBox(height: 24),
                 const Text(
                   '아직 친구가 없습니다',
                   style: TextStyle(
