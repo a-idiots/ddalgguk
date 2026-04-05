@@ -25,6 +25,19 @@ class IapService {
       onDone: () => _subscription?.cancel(),
       onError: (dynamic e) => debugPrint('IAP stream error: $e'),
     );
+    // 앱 시작 시 기존 구매 복원하여 pro 상태 동기화
+    _restoreOnLaunch();
+  }
+
+  Future<void> _restoreOnLaunch() async {
+    try {
+      final available = await InAppPurchase.instance.isAvailable();
+      if (available) {
+        await InAppPurchase.instance.restorePurchases();
+      }
+    } catch (e) {
+      debugPrint('IAP restore on launch error: $e');
+    }
   }
 
   void dispose() => _subscription?.cancel();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/services/iap_service.dart';
 
 // Feature indices (used as `triggerFeatureIndex`):
@@ -88,8 +89,49 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
     }
   }
 
+  Future<void> _handleRestore() async {
+    if (_isLoading) {
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await ref.read(iapServiceProvider).restorePurchases();
+      if (!mounted) {
+        return;
+      }
+      // 복원 결과는 purchaseStream을 통해 proProvider에 반영됨
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (!mounted) {
+        return;
+      }
+      final isPro = ref.read(proProvider).valueOrNull ?? false;
+      if (isPro) {
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('복원할 구매 내역이 없습니다.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 구매 성공 시 자동으로 팝업 닫기
+    ref.listen<AsyncValue<bool>>(proProvider, (prev, next) {
+      if (next.valueOrNull == true && prev?.valueOrNull != true) {
+        Navigator.of(context).pop();
+      }
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAEAEA),
       body: SafeArea(
@@ -183,6 +225,19 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               isHighlighted: false,
                               isLoading: _isLoading,
                               onTap: () => _handlePurchase(kProAnnualProductId),
+                            ),
+                            const SizedBox(height: 16),
+                            GestureDetector(
+                              onTap: _isLoading ? null : _handleRestore,
+                              child: Text(
+                                '구매 복원',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Colors.grey[600],
+                                ),
+                              ),
                             ),
                           ],
                         ),

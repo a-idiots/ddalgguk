@@ -55,12 +55,8 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
       final isPro = ref.read(proProvider).valueOrNull ?? false;
       if (!isPro) {
         final previousTab = _tabController.previousIndex;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _tabController.animateTo(previousTab, duration: Duration.zero);
-            showProPlanPopup(context, 3);
-          }
-        });
+        _tabController.index = previousTab;
+        showProPlanPopup(context, 3);
         return;
       }
     }
