@@ -1,6 +1,7 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/ranking/data/providers/my_records_providers.dart';
+import 'package:ddalgguk/features/ranking/data/providers/ranking_providers.dart';
 import 'package:ddalgguk/features/ranking/widgets/my_records_tab.dart';
 import 'package:ddalgguk/features/ranking/widgets/ranking_tab.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
@@ -62,6 +63,11 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
         });
         return;
       }
+    }
+    if (targetTab == _rankingTabIndex) {
+      // 랭킹 탭 진입 시 항상 새로 로드
+      ref.invalidate(weeklyRankingProvider);
+      ref.invalidate(monthlyRankingProvider);
     }
     if (targetTab == _myRecordsTabIndex) {
       // 나의 기록 탭 진입 시 항상 새로 로드

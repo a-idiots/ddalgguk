@@ -382,11 +382,10 @@ class RankingService {
     }
   }
 
-  /// 이번 주 랭킹 조회 (rankingPermission == true 유저만, weeklyAmount 내림차순)
+  /// 이번 주 랭킹 조회 (전체 유저, weeklyAmount 내림차순)
   Future<List<RankingEntry>> getWeeklyRanking({int limit = 20}) async {
     try {
       final snapshot = await _rankings
-          .where('rankingPermission', isEqualTo: true)
           .where('weeklyKey', isEqualTo: _currentWeekKey())
           .orderBy('weeklyAmount', descending: true)
           .limit(limit)
@@ -406,11 +405,10 @@ class RankingService {
     }
   }
 
-  /// 이번 달 랭킹 조회 (rankingPermission == true 유저만, monthlyAmount 내림차순)
+  /// 이번 달 랭킹 조회 (전체 유저, monthlyAmount 내림차순)
   Future<List<RankingEntry>> getMonthlyRanking({int limit = 20}) async {
     try {
       final snapshot = await _rankings
-          .where('rankingPermission', isEqualTo: true)
           .where('monthlyKey', isEqualTo: _currentMonthKey())
           .orderBy('monthlyAmount', descending: true)
           .limit(limit)

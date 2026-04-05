@@ -14,6 +14,7 @@ class RankingEntryWithUser {
     required this.profilePhoto,
     this.weeklyDrunkLevels,
     required this.currentDrunkLevel,
+    this.isAnonymous = false,
   });
 
   final String uid;
@@ -31,6 +32,9 @@ class RankingEntryWithUser {
   final List<int>? weeklyDrunkLevels;
   final int currentDrunkLevel;
 
+  /// 랭킹 노출 설정이 꺼진 유저 (익명 처리)
+  final bool isAnonymous;
+
   /// UI 표시용 알코올량 (g = ml × 에탄올 밀도 0.789)
   double get displayGrams => amount * 0.789;
 }
@@ -44,13 +48,13 @@ final rankingServiceProvider = Provider<RankingService>(
 );
 
 final weeklyRankingProvider =
-    FutureProvider.autoDispose<List<RankingEntryWithUser>>((ref) async {
+    FutureProvider<List<RankingEntryWithUser>>((ref) async {
       final entries = await ref.read(rankingServiceProvider).getWeeklyRanking();
       return _joinWithUserData(entries);
     });
 
 final monthlyRankingProvider =
-    FutureProvider.autoDispose<List<RankingEntryWithUser>>((ref) async {
+    FutureProvider<List<RankingEntryWithUser>>((ref) async {
       final entries = await ref
           .read(rankingServiceProvider)
           .getMonthlyRanking();
@@ -81,12 +85,9 @@ Future<List<RankingEntryWithUser>> _joinWithUserData(
       continue; // 삭제된 계정 건너뜀
     }
 
-    // users 문서의 rankingPermission이 명시적으로 false인 경우만 제외
-    // (null = 필드 없음 = 기본 true로 취급)
-    final rankingPermission = data['rankingPermission'] as bool?;
-    if (rankingPermission == false) {
-      continue;
-    }
+    // rankingPermission이 false면 익명 처리 (null = 기본 true)
+    final rankingPermission = data['rankingPermission'] as bool? ?? true;
+    final isAnonymous = !rankingPermission;
 
     final rawLevels = data['weeklyDrunkLevels'];
     final weeklyDrunkLevels = rawLevels is List
@@ -100,14 +101,17 @@ Future<List<RankingEntryWithUser>> _joinWithUserData(
       RankingEntryWithUser(
         uid: entry.uid,
         amount: entry.amount,
-        addFriendPermission: addFriendPermission,
-        name: data['name'] as String? ?? '',
-        customId: data['id'] as String?,
+        addFriendPermission: isAnonymous ? false : addFriendPermission,
+        name: isAnonymous ? '익명의 유저' : (data['name'] as String? ?? ''),
+        customId: isAnonymous ? null : (data['id'] as String?),
         profilePhoto: (data['profilePhoto'] as num? ?? 0).toInt(),
-        weeklyDrunkLevels: weeklyDrunkLevels?.length == 7
-            ? weeklyDrunkLevels
-            : null,
-        currentDrunkLevel: (data['currentDrunkLevel'] as num? ?? 0).toInt(),
+        weeklyDrunkLevels: isAnonymous
+            ? null
+            : (weeklyDrunkLevels?.length == 7 ? weeklyDrunkLevels : null),
+        currentDrunkLevel: isAnonymous
+            ? 0
+            : (data['currentDrunkLevel'] as num? ?? 0).toInt(),
+        isAnonymous: isAnonymous,
       ),
     );
   }

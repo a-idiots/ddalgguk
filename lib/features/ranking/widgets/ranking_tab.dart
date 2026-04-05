@@ -25,7 +25,7 @@ class _RankingTabState extends ConsumerState<RankingTab>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
+      if (!_tabController.indexIsChanging && mounted) {
         setState(() {});
       }
     });
@@ -247,10 +247,12 @@ class _RankingTabState extends ConsumerState<RankingTab>
 
   Widget _buildRow(RankingEntryWithUser entry, int rank) {
     return InkWell(
-      onTap: () => showBottomHandleDialogue(
-        context: context,
-        child: RankingProfileDialog(entry: entry),
-      ),
+      onTap: entry.isAnonymous
+          ? null
+          : () => showBottomHandleDialogue(
+              context: context,
+              child: RankingProfileDialog(entry: entry),
+            ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
