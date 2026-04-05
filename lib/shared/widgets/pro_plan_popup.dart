@@ -65,7 +65,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
   Future<void> _handlePurchase(String productId) async {
     if (_isLoading) {
       return;
-      }
+    }
     setState(() {
       _isLoading = true;
     });
@@ -109,10 +109,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
             ),
             // Pro logo pinned near top
             const SizedBox(height: 40),
-            Image.asset(
-              'assets/imgs/pro_plan/pro_logo.png',
-              height: 90,
-            ),
+            Image.asset('assets/imgs/pro_plan/pro_logo.png', height: 90),
             const SizedBox(height: 6),
             const Text(
               '딸꾹 프로 기능을 이용해보세요!',
@@ -136,8 +133,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                           onPageChanged: (i) =>
                               setState(() => _currentPage = i),
                           itemBuilder: (_, i) => Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Image.asset(_images[i], fit: BoxFit.contain),
                           ),
                         ),
@@ -150,8 +146,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                           for (int i = 0; i < _images.length; i++)
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 4),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
                               width: i == _currentPage ? 10 : 8,
                               height: i == _currentPage ? 10 : 8,
                               decoration: BoxDecoration(
@@ -187,8 +182,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               price: '14,900원',
                               isHighlighted: false,
                               isLoading: _isLoading,
-                              onTap: () =>
-                                  _handlePurchase(kProAnnualProductId),
+                              onTap: () => _handlePurchase(kProAnnualProductId),
                             ),
                           ],
                         ),

@@ -102,8 +102,8 @@ class DrinkSettingsService {
         imagePath:
             json['imagePath'] as String? ??
             'assets/imgs/alcohol_icons/soju.png',
-        defaultAlcoholContent:
-            (json['defaultAlcoholContent'] as num).toDouble(),
+        defaultAlcoholContent: (json['defaultAlcoholContent'] as num)
+            .toDouble(),
         defaultUnit: json['defaultUnit'] as String? ?? '잔',
         glassVolume: (json['glassVolume'] as num?)?.toDouble() ?? 50.0,
         bottleVolume: (json['bottleVolume'] as num?)?.toDouble() ?? 360.0,
@@ -162,8 +162,8 @@ class DrinkSettingsService {
         imagePath:
             json['imagePath'] as String? ??
             'assets/imgs/alcohol_icons/soju.png',
-        defaultAlcoholContent:
-            (json['defaultAlcoholContent'] as num).toDouble(),
+        defaultAlcoholContent: (json['defaultAlcoholContent'] as num)
+            .toDouble(),
         defaultUnit: json['defaultUnit'] as String? ?? '잔',
         glassVolume: (json['glassVolume'] as num?)?.toDouble() ?? 50.0,
         bottleVolume: (json['bottleVolume'] as num?)?.toDouble() ?? 360.0,

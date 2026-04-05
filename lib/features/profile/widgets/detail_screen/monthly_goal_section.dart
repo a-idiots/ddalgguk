@@ -548,9 +548,9 @@ class _BarRow extends StatelessWidget {
                             color: isOverGoal
                                 ? Colors.red[700]
                                 : barColor
-                                    .withRed((barColor.r * 0.7).round())
-                                    .withGreen((barColor.g * 0.7).round())
-                                    .withBlue((barColor.b * 0.7).round()),
+                                      .withRed((barColor.r * 0.7).round())
+                                      .withGreen((barColor.g * 0.7).round())
+                                      .withBlue((barColor.b * 0.7).round()),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

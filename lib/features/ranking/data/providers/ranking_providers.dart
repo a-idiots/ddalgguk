@@ -47,19 +47,19 @@ final rankingServiceProvider = Provider<RankingService>(
   (ref) => RankingService(),
 );
 
-final weeklyRankingProvider =
-    FutureProvider<List<RankingEntryWithUser>>((ref) async {
-      final entries = await ref.read(rankingServiceProvider).getWeeklyRanking();
-      return _joinWithUserData(entries);
-    });
+final weeklyRankingProvider = FutureProvider<List<RankingEntryWithUser>>((
+  ref,
+) async {
+  final entries = await ref.read(rankingServiceProvider).getWeeklyRanking();
+  return _joinWithUserData(entries);
+});
 
-final monthlyRankingProvider =
-    FutureProvider<List<RankingEntryWithUser>>((ref) async {
-      final entries = await ref
-          .read(rankingServiceProvider)
-          .getMonthlyRanking();
-      return _joinWithUserData(entries);
-    });
+final monthlyRankingProvider = FutureProvider<List<RankingEntryWithUser>>((
+  ref,
+) async {
+  final entries = await ref.read(rankingServiceProvider).getMonthlyRanking();
+  return _joinWithUserData(entries);
+});
 
 // ---------------------------------------------------------------------------
 // 내부 헬퍼: RankingEntry 목록에 users/{uid} 데이터를 병렬로 조인
