@@ -50,7 +50,7 @@ class RankingSettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              '※ 노출을 끄더라도 랭킹 집계는 계속됩니다.',
+              '※ 노출을 끄면 랭킹 집계에는 포함되지만, 다른 유저에게 내 정보가 가려집니다.',
               style: TextStyle(
                 fontFamily: 'Pretendard',
                 fontSize: 12,
