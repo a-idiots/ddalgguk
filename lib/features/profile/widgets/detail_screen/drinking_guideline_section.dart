@@ -190,7 +190,7 @@ class _RecordContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          isPro ? '총 ${data.totalAlcoholGrams.toStringAsFixed(1)}g' : '??.? g',
+          isPro ? '총 ${data.totalAlcoholGrams.toStringAsFixed(1)}g' : '? g',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
