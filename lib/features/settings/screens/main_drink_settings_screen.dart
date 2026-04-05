@@ -241,9 +241,11 @@ class _MainDrinkSettingsScreenState
               ),
               child: Column(
                 children: [
-                  const Text(
-                    '*최대 5개까지 선택할 수 있습니다.',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  Text(
+                    _isPro
+                        ? '*최대 5개까지 선택할 수 있습니다.'
+                        : '*딸꾹 PRO 에서 메인 기록 주종 변경 및 커스텀 가능합니다.',
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   const SizedBox(height: 20),
                   GridView.builder(
