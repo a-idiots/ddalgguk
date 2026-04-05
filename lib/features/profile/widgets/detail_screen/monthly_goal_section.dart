@@ -106,7 +106,7 @@ class MonthlyGoalSection extends ConsumerWidget {
                     ),
                     // Content
                     if (!hasGoal)
-                      _EmptyGoalContent()
+                      _PlaceholderGoalContent(isPro: isPro)
                     else
                       _GoalProgressContent(
                         monthNum: monthNum,
@@ -163,17 +163,61 @@ class MonthlyGoalSection extends ConsumerWidget {
   }
 }
 
-class _EmptyGoalContent extends StatelessWidget {
+class _PlaceholderGoalContent extends StatelessWidget {
+  const _PlaceholderGoalContent({required this.isPro});
+
+  final bool isPro;
+
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-      child: Center(
-        child: Text(
-          '아직 설정한 목표가 없습니다.',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DisabledBarRow(label: '예산'),
+          const SizedBox(height: 20),
+          _DisabledBarRow(label: '음주량'),
+          const SizedBox(height: 16),
+          Center(
+            child: Text(
+              isPro ? '목표를 설정해보세요' : '프로 플랜에서 목표를 설정할 수 있어요',
+              style: const TextStyle(fontSize: 12, color: Colors.black38),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _DisabledBarRow extends StatelessWidget {
+  const _DisabledBarRow({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black38,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -490,7 +534,9 @@ class _BarRow extends StatelessWidget {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: barColor.withValues(alpha: 0.25),
+                          color: isOverGoal
+                              ? Colors.red[400]!.withValues(alpha: 0.25)
+                              : barColor.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -499,10 +545,12 @@ class _BarRow extends StatelessWidget {
                           softWrap: false,
                           style: TextStyle(
                             fontSize: 11,
-                            color: barColor
-                                .withRed((barColor.r * 0.7).round())
-                                .withGreen((barColor.g * 0.7).round())
-                                .withBlue((barColor.b * 0.7).round()),
+                            color: isOverGoal
+                                ? Colors.red[700]
+                                : barColor
+                                    .withRed((barColor.r * 0.7).round())
+                                    .withGreen((barColor.g * 0.7).round())
+                                    .withBlue((barColor.b * 0.7).round()),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
