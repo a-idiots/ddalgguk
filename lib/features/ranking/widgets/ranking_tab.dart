@@ -14,8 +14,28 @@ class RankingTab extends ConsumerStatefulWidget {
   ConsumerState<RankingTab> createState() => _RankingTabState();
 }
 
-class _RankingTabState extends ConsumerState<RankingTab> {
-  bool _isWeekly = true;
+class _RankingTabState extends ConsumerState<RankingTab>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  bool get _isWeekly => _tabController.index == 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   Future<void> _onRefresh() async {
     if (_isWeekly) {
@@ -50,9 +70,10 @@ class _RankingTabState extends ConsumerState<RankingTab> {
 
   @override
   Widget build(BuildContext context) {
-    final rankingAsync = _isWeekly
-        ? ref.watch(weeklyRankingProvider)
-        : ref.watch(monthlyRankingProvider);
+    // 두 provider를 항상 watch하여 dispose 방지 → 탭 전환 시 로딩 깜빡임 제거
+    final weeklyAsync = ref.watch(weeklyRankingProvider);
+    final monthlyAsync = ref.watch(monthlyRankingProvider);
+    final rankingAsync = _isWeekly ? weeklyAsync : monthlyAsync;
 
     return Column(
       children: [
@@ -95,7 +116,7 @@ class _RankingTabState extends ConsumerState<RankingTab> {
     );
   }
 
-  // Pill 토글
+  // Pill 토글 (TabBar 기반)
 
   Widget _buildPillToggle() {
     return Padding(
@@ -105,64 +126,36 @@ class _RankingTabState extends ConsumerState<RankingTab> {
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildPill(
-                label: 'week',
-                selected: _isWeekly,
-                onTap: () {
-                  setState(() => _isWeekly = true);
-                },
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
-            ),
-            Expanded(
-              child: _buildPill(
-                label: 'month',
-                selected: !_isWeekly,
-                onTap: () {
-                  setState(() => _isWeekly = false);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPill({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.all(3),
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        decoration: selected
-            ? BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              )
-            : const BoxDecoration(color: Colors.transparent),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: selected ? Colors.black : Colors.grey,
-            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            ],
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.grey,
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
             fontSize: 13,
           ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+          ),
+          dividerColor: Colors.transparent,
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          tabs: const [
+            Tab(height: 28, text: 'week'),
+            Tab(height: 28, text: 'month'),
+          ],
         ),
       ),
     );
