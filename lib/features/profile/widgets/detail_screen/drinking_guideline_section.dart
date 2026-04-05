@@ -231,15 +231,53 @@ class _EmptyContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '$nickname님, 캘린더에서 음주 또는 금주 기록을 추가해보세요!',
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w500,
-        height: 1.5,
-        color: Colors.black87,
-      ),
+    return Column(
+      children: [
+        const SizedBox(height: 40),
+        const Text(
+          '음주 가이드라인',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 40),
+        GestureDetector(
+          onTap: () {
+            showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (_) => const _GuidelineDialog(
+                data: AlcoholGuidelineData(
+                  hasRecord: false,
+                  isToday: true,
+                  totalAlcoholGrams: 0,
+                  breakdown: [],
+                ),
+              ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F0F0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              '자세히보기',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
