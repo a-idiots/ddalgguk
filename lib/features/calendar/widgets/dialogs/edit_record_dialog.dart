@@ -3,7 +3,6 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
 import 'package:ddalgguk/features/calendar/widgets/forms/drinking_record_form.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -93,52 +92,43 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
       );
     }
 
-    try {
-      final updatedRecord = DrinkingRecord(
-        id: widget.record.id, // 기존 ID 유지
-        date: widget.record.date, // 날짜는 변경하지 않음
-        sessionNumber: widget.record.sessionNumber, // 회차 유지
-        meetingName: meetingName,
-        drunkLevel: drunkLevel,
-        yearMonth: widget.record.yearMonth, // 기존 yearMonth 유지
-        drinkAmount: drinkAmounts,
-        memo: {'text': memo},
-        cost: cost,
-      );
+    final updatedRecord = DrinkingRecord(
+      id: widget.record.id,
+      date: widget.record.date,
+      sessionNumber: widget.record.sessionNumber,
+      meetingName: meetingName,
+      drunkLevel: drunkLevel,
+      yearMonth: widget.record.yearMonth,
+      drinkAmount: drinkAmounts,
+      memo: {'text': memo},
+      cost: cost,
+    );
 
-      final service = DrinkingRecordService();
+    // Optimistic UI: 즉시 로컬 상태 업데이트 → 다이얼로그 닫기
+    ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+        DateTime.now();
+    widget.onRecordUpdated();
+
+    navigator.pop();
+    scaffoldMessenger.clearSnackBars();
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('기록이 수정되었습니다'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // 백그라운드에서 Firestore write
+    try {
+      final service = ref.read(drinkingRecordServiceProvider);
       await service.updateRecord(updatedRecord);
 
-      // 데이터 변경 알림
       ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
           DateTime.now();
-
-      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-      ref.invalidate(friendsProvider);
-
-      widget.onRecordUpdated();
-
-      if (mounted) {
-        navigator.pop();
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('기록이 수정되었습니다'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
     } catch (e) {
-      if (mounted) {
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('수정 실패: $e'),
-            duration: const Duration(seconds: 3),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      debugPrint('기록 수정 실패: $e');
+      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+          DateTime.now();
     }
   }
 

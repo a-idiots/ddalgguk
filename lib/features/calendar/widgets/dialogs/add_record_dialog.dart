@@ -3,7 +3,6 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
 import 'package:ddalgguk/features/calendar/widgets/forms/drinking_record_form.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
@@ -70,60 +69,50 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       );
     }
 
-    try {
-      final record = DrinkingRecord(
-        id: '', // Firestore에서 자동 생성
-        date: widget.selectedDate,
-        sessionNumber: 0, // 서비스에서 자동 계산
-        meetingName: meetingName,
-        drunkLevel: drunkLevel,
-        // UTC 날짜 성분 직접 추출: DateFormat.format()은 로컬 변환하므로 월 경계에서 오류 발생
-        yearMonth:
-            '${widget.selectedDate.year.toString().padLeft(4, '0')}-'
-            '${widget.selectedDate.month.toString().padLeft(2, '0')}',
-        drinkAmount: drinkAmounts,
-        memo: {'text': memo},
-        cost: cost,
-      );
+    final record = DrinkingRecord(
+      id: '', // Firestore에서 자동 생성
+      date: widget.selectedDate,
+      sessionNumber: widget.sessionNumber,
+      meetingName: meetingName,
+      drunkLevel: drunkLevel,
+      yearMonth:
+          '${widget.selectedDate.year.toString().padLeft(4, '0')}-'
+          '${widget.selectedDate.month.toString().padLeft(2, '0')}',
+      drinkAmount: drinkAmounts,
+      memo: {'text': memo},
+      cost: cost,
+    );
 
+    // Optimistic UI: 즉시 로컬 상태 업데이트 → 다이얼로그 닫기
+    ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+        DateTime.now();
+    widget.onRecordAdded();
+    _isSuccess = true;
+
+    navigator.pop();
+    scaffoldMessenger.clearSnackBars();
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('기록이 추가되었습니다'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // 백그라운드에서 Firestore write + 부수 효과 처리
+    try {
       final service = ref.read(drinkingRecordServiceProvider);
       await service.createRecord(record);
 
-      // 데이터 변경 알림
+      // 서버 기록 완료 후 정확한 데이터로 캘린더 갱신 (sessionNumber 등)
       ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
           DateTime.now();
 
-      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-      ref.invalidate(friendsProvider);
-
-      widget.onRecordAdded();
-
-      _isSuccess = true;
-      await AnalyticsService.instance.logDrinkRecordComplete(type: 'drink');
-
-      if (mounted) {
-        navigator.pop();
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('기록이 추가되었습니다'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      AnalyticsService.instance.logDrinkRecordComplete(type: 'drink');
     } catch (e) {
       debugPrint('기록 추가 실패: $e');
-
-      if (mounted) {
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('추가 실패: $e'),
-            duration: const Duration(seconds: 5),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      // 실패 시 캘린더 새로고침하여 optimistic 상태 되돌리기
+      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+          DateTime.now();
     }
   }
 

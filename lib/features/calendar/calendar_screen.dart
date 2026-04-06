@@ -7,7 +7,6 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
-import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -774,8 +773,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       // 캘린더 새로고침을 위해 provider notify
       ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
           DateTime.now();
-      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-      ref.invalidate(friendsProvider);
 
       // Log sober record completion
       await AnalyticsService.instance.logDrinkRecordComplete(type: 'sober');
@@ -1054,50 +1051,68 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
 
     if (confirmed == true) {
+      // Optimistic UI: 즉시 로컬에서 제거
+      final normalizedDate = _normalizeDate(
+        _recordsMap.entries
+            .expand((e) => e.value)
+            .where((r) => r.id == recordId)
+            .firstOrNull
+            ?.date ?? _selectedDay ?? _focusedDay,
+      );
+      setState(() {
+        final dayRecords = _recordsMap[normalizedDate];
+        if (dayRecords != null) {
+          dayRecords.removeWhere((r) => r.id == recordId);
+          if (dayRecords.isEmpty) {
+            _recordsMap.remove(normalizedDate);
+          }
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('기록이 삭제되었습니다')),
+        );
+      }
+
+      // 백그라운드에서 Firestore 삭제 + sessionNumber 재정렬
       try {
         final service = ref.read(drinkingRecordServiceProvider);
 
-        // 삭제하기 전에 해당 기록의 정보를 가져옴
         final recordToDelete = await service.getRecord(recordId);
         if (recordToDelete == null) {
-          throw Exception('기록을 찾을 수 없습니다');
+          return;
         }
 
         final deletedDate = recordToDelete.date;
         final deletedSessionNumber = recordToDelete.sessionNumber;
 
-        // 기록 삭제
+        // Firestore 삭제
         await service.deleteRecord(recordId);
 
-        // 같은 날짜의 남은 기록들을 가져옴
+        // sessionNumber 재정렬: Firestore 필드만 업데이트 (full updateRecord 체인 안 탐)
         final remainingRecords = await service.getRecordsByDate(deletedDate);
-
-        // 삭제된 차수보다 큰 차수를 가진 기록들의 차수를 1씩 감소
         for (final record in remainingRecords) {
           if (record.sessionNumber > deletedSessionNumber) {
-            final updatedRecord = record.copyWith(
-              sessionNumber: record.sessionNumber - 1,
+            await service.updateSessionNumber(
+              record.id,
+              record.sessionNumber - 1,
             );
-            await service.updateRecord(updatedRecord);
           }
         }
 
-        // 캘린더 새로고침을 위해 provider notify
+        // 서버 완료 후 정확한 데이터로 갱신
         ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
             DateTime.now();
-        // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-        ref.invalidate(friendsProvider);
-
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
-        }
       } catch (e) {
+        debugPrint('기록 삭제 실패: $e');
+        // 실패 시 되돌리기
+        ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+            DateTime.now();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('삭제 실패: $e'), backgroundColor: Colors.red),
+          );
         }
       }
     }
