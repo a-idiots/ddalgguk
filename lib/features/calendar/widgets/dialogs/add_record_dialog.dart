@@ -49,6 +49,11 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
     required int cost,
     required String memo,
   }) async {
+    // 중복 제출 방지
+    if (_isSuccess) {
+      return;
+    }
+
     // Navigator and Messenger capture
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -83,9 +88,13 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
       cost: cost,
     );
 
+    // pop() 전에 필요한 참조를 캡처
+    final service = ref.read(drinkingRecordServiceProvider);
+    final lastUpdatedNotifier =
+        ref.read(drinkingRecordsLastUpdatedProvider.notifier);
+
     // Optimistic UI: 즉시 로컬 상태 업데이트 → 다이얼로그 닫기
-    ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-        DateTime.now();
+    lastUpdatedNotifier.state = DateTime.now();
     widget.onRecordAdded();
     _isSuccess = true;
 
@@ -100,19 +109,16 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
 
     // 백그라운드에서 Firestore write + 부수 효과 처리
     try {
-      final service = ref.read(drinkingRecordServiceProvider);
       await service.createRecord(record);
 
       // 서버 기록 완료 후 정확한 데이터로 캘린더 갱신 (sessionNumber 등)
-      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-          DateTime.now();
+      lastUpdatedNotifier.state = DateTime.now();
 
       AnalyticsService.instance.logDrinkRecordComplete(type: 'drink');
     } catch (e) {
       debugPrint('기록 추가 실패: $e');
       // 실패 시 캘린더 새로고침하여 optimistic 상태 되돌리기
-      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-          DateTime.now();
+      lastUpdatedNotifier.state = DateTime.now();
     }
   }
 

@@ -22,6 +22,7 @@ class EditRecordDialog extends ConsumerStatefulWidget {
 }
 
 class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
+  bool _isSubmitted = false;
   // 초기 데이터
   late final List<CompletedDrinkRecord> _initialRecords;
 
@@ -72,6 +73,12 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
     required int cost,
     required String memo,
   }) async {
+    // 중복 제출 방지
+    if (_isSubmitted) {
+      return;
+    }
+    _isSubmitted = true;
+
     // Navigator and Messenger capture
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -104,9 +111,13 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
       cost: cost,
     );
 
+    // pop() 전에 필요한 참조를 캡처
+    final service = ref.read(drinkingRecordServiceProvider);
+    final lastUpdatedNotifier =
+        ref.read(drinkingRecordsLastUpdatedProvider.notifier);
+
     // Optimistic UI: 즉시 로컬 상태 업데이트 → 다이얼로그 닫기
-    ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-        DateTime.now();
+    lastUpdatedNotifier.state = DateTime.now();
     widget.onRecordUpdated();
 
     navigator.pop();
@@ -120,15 +131,11 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
 
     // 백그라운드에서 Firestore write
     try {
-      final service = ref.read(drinkingRecordServiceProvider);
       await service.updateRecord(updatedRecord);
-
-      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-          DateTime.now();
+      lastUpdatedNotifier.state = DateTime.now();
     } catch (e) {
       debugPrint('기록 수정 실패: $e');
-      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-          DateTime.now();
+      lastUpdatedNotifier.state = DateTime.now();
     }
   }
 
