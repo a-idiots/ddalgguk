@@ -113,8 +113,9 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
 
     // pop() 전에 필요한 참조를 캡처
     final service = ref.read(drinkingRecordServiceProvider);
-    final lastUpdatedNotifier =
-        ref.read(drinkingRecordsLastUpdatedProvider.notifier);
+    final lastUpdatedNotifier = ref.read(
+      drinkingRecordsLastUpdatedProvider.notifier,
+    );
 
     // Optimistic UI: 즉시 로컬 상태 업데이트 → 다이얼로그 닫기
     lastUpdatedNotifier.state = DateTime.now();

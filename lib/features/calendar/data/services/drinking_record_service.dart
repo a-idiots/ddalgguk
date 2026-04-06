@@ -84,13 +84,13 @@ class DrinkingRecordService {
       final recordWithId = recordWithSession.copyWith(id: docRef.id);
       await Future.wait([
         // 1. 내 weeklyDrunkLevels 업데이트
-        _updateMyDrinkingDataForRecord(recordWithId).catchError(
-          (e) => debugPrint('Failed to update drinking data: $e'),
-        ),
+        _updateMyDrinkingDataForRecord(
+          recordWithId,
+        ).catchError((e) => debugPrint('Failed to update drinking data: $e')),
         // 2. 뱃지/로컬 통계
-        _updateLocalStats(record.date).catchError(
-          (e) => debugPrint('Failed to update local stats: $e'),
-        ),
+        _updateLocalStats(
+          record.date,
+        ).catchError((e) => debugPrint('Failed to update local stats: $e')),
         // 3. 랭킹
         if (_currentUserId != null && record.drinkAmount.isNotEmpty)
           () async {
@@ -103,9 +103,9 @@ class DrinkingRecordService {
               totalAlcoholG,
               record.date,
             );
-          }().catchError(
-            (e) => debugPrint('Failed to update ranking: $e'),
-          ),
+          }().catchError((e) {
+            debugPrint('Failed to update ranking: $e');
+          }),
       ]);
 
       return docRef.id;
@@ -231,17 +231,17 @@ class DrinkingRecordService {
       // 부수효과를 병렬 실행 (서로 독립적)
       await Future.wait([
         // 1. 내 weeklyDrunkLevels 업데이트
-        _updateMyDrinkingDataForRecord(record).catchError(
-          (e) => debugPrint('Failed to update drinking data: $e'),
-        ),
+        _updateMyDrinkingDataForRecord(
+          record,
+        ).catchError((e) => debugPrint('Failed to update drinking data: $e')),
         // 2. 뱃지/로컬 통계
-        _updateLocalStats(record.date).catchError(
-          (e) => debugPrint('Failed to update local stats: $e'),
-        ),
+        _updateLocalStats(
+          record.date,
+        ).catchError((e) => debugPrint('Failed to update local stats: $e')),
         // 3. 랭킹 delta (이전 기록과 새 기록의 차이만 반영)
-        _updateRankingDelta(oldRecord, record).catchError(
-          (e) => debugPrint('Failed to update ranking: $e'),
-        ),
+        _updateRankingDelta(oldRecord, record).catchError((e) {
+          debugPrint('Failed to update ranking: $e');
+        }),
       ]);
     } catch (e) {
       debugPrint('Error updating drinking record: $e');
@@ -271,10 +271,8 @@ class DrinkingRecordService {
       return;
     }
 
-    final avgDrunkLevel = records.fold<double>(
-          0.0,
-          (total, r) => total + r.drunkLevel,
-        ) /
+    final avgDrunkLevel =
+        records.fold<double>(0.0, (total, r) => total + r.drunkLevel) /
         records.length;
 
     final isDrinkingRecord = records.any(
@@ -304,8 +302,7 @@ class DrinkingRecordService {
       (acc, d) => acc + d.amount * d.alcoholContent / 100 * 0.8,
     );
 
-    final oldAlcohol =
-        oldRecord != null ? calcAlcohol(oldRecord) : 0.0;
+    final oldAlcohol = oldRecord != null ? calcAlcohol(oldRecord) : 0.0;
     final newAlcohol = calcAlcohol(newRecord);
     final delta = newAlcohol - oldAlcohol;
 
@@ -338,13 +335,13 @@ class DrinkingRecordService {
       // 부수효과를 병렬 실행
       await Future.wait([
         // 1. 내 weeklyDrunkLevels 업데이트
-        _updateMyDrinkingDataAfterDelete(recordToDelete).catchError(
-          (e) => debugPrint('Failed to update drinking data: $e'),
-        ),
+        _updateMyDrinkingDataAfterDelete(
+          recordToDelete,
+        ).catchError((e) => debugPrint('Failed to update drinking data: $e')),
         // 2. 뱃지/로컬 통계
-        _updateLocalStats(recordDate).catchError(
-          (e) => debugPrint('Failed to update local stats: $e'),
-        ),
+        _updateLocalStats(
+          recordDate,
+        ).catchError((e) => debugPrint('Failed to update local stats: $e')),
         // 3. 랭킹 차감
         if (_currentUserId != null && recordToDelete.drinkAmount.isNotEmpty)
           () async {
@@ -359,9 +356,9 @@ class DrinkingRecordService {
                 recordToDelete.date,
               );
             }
-          }().catchError(
-            (e) => debugPrint('Failed to update ranking: $e'),
-          ),
+          }().catchError((e) {
+            debugPrint('Failed to update ranking: $e');
+          }),
       ]);
     } catch (e) {
       debugPrint('Error deleting drinking record: $e');
@@ -404,10 +401,8 @@ class DrinkingRecordService {
       final records = remainingSnap.docs
           .map((doc) => DrinkingRecord.fromFirestore(doc))
           .toList();
-      final avgDrunkLevel = records.fold<double>(
-            0.0,
-            (total, r) => total + r.drunkLevel,
-          ) /
+      final avgDrunkLevel =
+          records.fold<double>(0.0, (total, r) => total + r.drunkLevel) /
           records.length;
 
       final isDrinking = records.any(

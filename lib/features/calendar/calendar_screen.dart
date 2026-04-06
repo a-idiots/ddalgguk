@@ -252,6 +252,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           children: [
             // 캘린더 영역 - 고정 높이로 표시
             Stack(
+              clipBehavior: Clip.none,
               children: [
                 Transform.scale(
                   scale: 0.9,
@@ -1054,10 +1055,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       // Optimistic UI: 즉시 로컬에서 제거
       final normalizedDate = _normalizeDate(
         _recordsMap.entries
-            .expand((e) => e.value)
-            .where((r) => r.id == recordId)
-            .firstOrNull
-            ?.date ?? _selectedDay ?? _focusedDay,
+                .expand((e) => e.value)
+                .where((r) => r.id == recordId)
+                .firstOrNull
+                ?.date ??
+            _selectedDay ??
+            _focusedDay,
       );
       setState(() {
         final dayRecords = _recordsMap[normalizedDate];
@@ -1070,9 +1073,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('기록이 삭제되었습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
       }
 
       // 백그라운드에서 Firestore 삭제 + sessionNumber 재정렬

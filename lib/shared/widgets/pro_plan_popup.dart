@@ -110,9 +110,9 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
       if (isPro) {
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('복원할 구매 내역이 없습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('복원할 구매 내역이 없습니다.')));
       }
     } finally {
       if (mounted) {
