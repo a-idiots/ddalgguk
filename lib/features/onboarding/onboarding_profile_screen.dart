@@ -11,6 +11,7 @@ import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 
 /// Main onboarding profile screen with PageView
 class OnboardingProfileScreen extends ConsumerStatefulWidget {
@@ -161,10 +162,14 @@ class _OnboardingProfileScreenState
       // Clear saved state
       await _clearSavedState();
 
-      // Navigate to home
-      // The router will check cache and see hasCompletedProfileSetup: true
+      // Navigate to home, then show pro plan popup
       if (mounted) {
         context.go(Routes.home);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            showProPlanPopup(context, 0);
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
