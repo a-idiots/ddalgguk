@@ -43,7 +43,7 @@ class RankingSettingsScreen extends ConsumerWidget {
           const _RankingToggleTile(
             field: _RankingField.rankingPermission,
             title: '랭킹탭 노출',
-            description: '과음관리구역에 내 정보가 표시됩니다',
+            description: '과음관리구역에 내 정보가 표시됩니다.',
           ),
           const SettingsSectionDivider(),
           const SizedBox(height: 16),
