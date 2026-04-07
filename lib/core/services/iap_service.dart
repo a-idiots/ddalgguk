@@ -8,8 +8,8 @@ import 'package:ddalgguk/core/providers/pro_provider.dart';
 
 // ── Product IDs ────────────────────────────────────────────────────────────
 // Register these exact IDs in App Store Connect and Google Play Console.
-const kProLifetimeProductId = 'com.aidiot.ddalgguk.pro_lifetime';
-const kProAnnualProductId = 'com.aidiot.ddalgguk.pro_annual';
+const kProLifetimeProductId = 'lifetime_v1';
+const kProAnnualProductId = 'yearly_v1';
 
 // ── Service ────────────────────────────────────────────────────────────────
 
@@ -29,11 +29,21 @@ class IapService {
     _restoreOnLaunch();
   }
 
+  bool _foundValidPurchase = false;
+
   Future<void> _restoreOnLaunch() async {
     try {
       final available = await InAppPurchase.instance.isAvailable();
-      if (available) {
-        await InAppPurchase.instance.restorePurchases();
+      if (!available) {
+        return;
+      }
+      _foundValidPurchase = false;
+      await InAppPurchase.instance.restorePurchases();
+      // purchaseStream으로 결과가 오기까지 대기
+      await Future<void>.delayed(const Duration(seconds: 3));
+      // 유효한 구매가 없으면 (구독 만료 등) pro 해제
+      if (!_foundValidPurchase) {
+        await _ref.read(proProvider.notifier).setValue(false);
       }
     } catch (e) {
       debugPrint('IAP restore on launch error: $e');
@@ -49,6 +59,7 @@ class IapService {
         case PurchaseStatus.restored:
           if (p.productID == kProLifetimeProductId ||
               p.productID == kProAnnualProductId) {
+            _foundValidPurchase = true;
             await _ref.read(proProvider.notifier).setValue(true);
           }
           if (p.pendingCompletePurchase) {

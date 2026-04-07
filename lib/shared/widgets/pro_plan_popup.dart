@@ -209,8 +209,8 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                             _PaymentCard(
                               title: '일회성 결제',
                               subtitle: '한번의 결제로 프로 기능을 영원히!',
-                              originalPrice: '49,000원',
-                              price: '24,900원',
+                              originalPrice: '29,900원',
+                              price: '19,900원',
                               isHighlighted: true,
                               isLoading: _isLoading,
                               onTap: () =>
@@ -219,9 +219,9 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                             const SizedBox(height: 12),
                             _PaymentCard(
                               title: '연간 결제',
-                              subtitle: '월 1,240원',
-                              originalPrice: '29,000원',
-                              price: '14,900원',
+                              subtitle: '월 825원',
+                              originalPrice: '14,900원',
+                              price: '9,900원',
                               isHighlighted: false,
                               isLoading: _isLoading,
                               onTap: () => _handlePurchase(kProAnnualProductId),
