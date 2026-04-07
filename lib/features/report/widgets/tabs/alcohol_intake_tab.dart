@@ -203,7 +203,10 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   }
 
   Widget _buildStatsGrid(DateTime monday) {
-    final statsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
+    final statsRaw = ref.watch(weeklyStatsByMondayProvider(monday));
+    final statsAsync = statsRaw.isLoading && statsRaw.hasValue
+        ? AsyncValue.data(statsRaw.value!)
+        : statsRaw;
 
     return statsAsync.when(
       data: (stats) {
@@ -286,7 +289,10 @@ class _AlcoholIntakeTabState extends ConsumerState<AlcoholIntakeTab> {
   }
 
   Widget _buildDrinkTypeBreakdown(DateTime monday) {
-    final statsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
+    final statsRaw = ref.watch(weeklyStatsByMondayProvider(monday));
+    final statsAsync = statsRaw.isLoading && statsRaw.hasValue
+        ? AsyncValue.data(statsRaw.value!)
+        : statsRaw;
 
     return statsAsync.when(
       data: (stats) {
@@ -523,7 +529,10 @@ class _WeeklyChartPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(weeklyStatsByMondayProvider(monday));
+    final statsRaw = ref.watch(weeklyStatsByMondayProvider(monday));
+    final statsAsync = statsRaw.isLoading && statsRaw.hasValue
+        ? AsyncValue.data(statsRaw.value!)
+        : statsRaw;
 
     return statsAsync.when(
       data: (stats) {

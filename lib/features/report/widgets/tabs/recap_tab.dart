@@ -37,6 +37,9 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     return DateTime(now.year, now.month);
   }();
 
+  // 이전 데이터를 캐시하여 로딩 중 흰 화면 방지
+  List<DrinkingRecord>? _cachedRecords;
+
   void _prevMonth() {
     final isPro = ref.read(proProvider).valueOrNull ?? false;
     if (!isPro) {
@@ -191,9 +194,17 @@ class _RecapTabState extends ConsumerState<RecapTab> {
         _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     final currentUserAsync = ref.watch(currentUserProvider);
-    final monthRecordsAsync = ref.watch(
+    final monthRecordsRaw = ref.watch(
       analyticsMonthRecordsProvider(normalizedDate),
     );
+    // 새 데이터 도착 시 캐시 업데이트
+    if (monthRecordsRaw.hasValue) {
+      _cachedRecords = monthRecordsRaw.value;
+    }
+    // 로딩 중 캐시된 데이터로 대체하여 흰 화면 방지
+    final monthRecordsAsync = monthRecordsRaw.isLoading && _cachedRecords != null
+        ? AsyncValue.data(_cachedRecords!)
+        : monthRecordsRaw;
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
