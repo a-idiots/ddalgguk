@@ -1117,43 +1117,58 @@ class FriendService {
 
     try {
       // Firestore의 범위 쿼리를 사용하여 prefix 검색
-      // prefix로 시작하는 모든 문서를 찾기 위해 '>=' 와 '<' 사용
+      // id와 name 두 필드에 대해 병렬로 검색
       final String endPrefix =
           prefix.substring(0, prefix.length - 1) +
           String.fromCharCode(prefix.codeUnitAt(prefix.length - 1) + 1);
 
-      final snapshot = await _firestore
-          .collection('users')
-          .where('id', isGreaterThanOrEqualTo: prefix)
-          .where('id', isLessThan: endPrefix)
-          .orderBy('id')
-          .limit(limit)
-          .get();
+      final results = await Future.wait([
+        // 아이디 검색
+        _firestore
+            .collection('users')
+            .where('id', isGreaterThanOrEqualTo: prefix)
+            .where('id', isLessThan: endPrefix)
+            .orderBy('id')
+            .limit(limit)
+            .get(),
+        // 닉네임 검색
+        _firestore
+            .collection('users')
+            .where('name', isGreaterThanOrEqualTo: prefix)
+            .where('name', isLessThan: endPrefix)
+            .orderBy('name')
+            .limit(limit)
+            .get(),
+      ]);
 
+      // 결과 합치기 (중복 제거)
+      final seen = <String>{};
       final users = <AppUser>[];
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        // 현재 사용자는 제외
-        if (doc.id == _currentUserId) {
-          continue;
-        }
 
-        users.add(
-          AppUser(
-            uid: doc.id,
-            name: data['name'] as String?,
-            profilePhoto: data['profilePhoto'] as int? ?? 0,
-            provider:
-                LoginProvider.fromString(data['provider'] as String?) ??
-                LoginProvider.google,
-            hasCompletedProfileSetup:
-                data['hasCompletedProfileSetup'] as bool? ?? false,
-            id: data['id'] as String?,
-          ),
-        );
+      for (final snapshot in results) {
+        for (final doc in snapshot.docs) {
+          if (doc.id == _currentUserId || seen.contains(doc.id)) {
+            continue;
+          }
+          seen.add(doc.id);
+          final data = doc.data();
+          users.add(
+            AppUser(
+              uid: doc.id,
+              name: data['name'] as String?,
+              profilePhoto: data['profilePhoto'] as int? ?? 0,
+              provider:
+                  LoginProvider.fromString(data['provider'] as String?) ??
+                  LoginProvider.google,
+              hasCompletedProfileSetup:
+                  data['hasCompletedProfileSetup'] as bool? ?? false,
+              id: data['id'] as String?,
+            ),
+          );
+        }
       }
 
-      return users;
+      return users.take(limit).toList();
     } catch (e) {
       debugPrint('Error searching users by prefix: $e');
       return [];
