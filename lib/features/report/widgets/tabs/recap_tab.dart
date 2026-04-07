@@ -202,7 +202,8 @@ class _RecapTabState extends ConsumerState<RecapTab> {
       _cachedRecords = monthRecordsRaw.value;
     }
     // 로딩 중 캐시된 데이터로 대체하여 흰 화면 방지
-    final monthRecordsAsync = monthRecordsRaw.isLoading && _cachedRecords != null
+    final monthRecordsAsync =
+        monthRecordsRaw.isLoading && _cachedRecords != null
         ? AsyncValue.data(_cachedRecords!)
         : monthRecordsRaw;
 
