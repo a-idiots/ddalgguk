@@ -9,7 +9,7 @@ import 'package:ddalgguk/core/providers/pro_provider.dart';
 // ── Product IDs ────────────────────────────────────────────────────────────
 // Register these exact IDs in App Store Connect and Google Play Console.
 const kProLifetimeProductId = 'lifetime_v1';
-const kProAnnualProductId = 'yearly_v1';
+const kProAnnualProductId = 'yearly_v2';
 
 // ── Service ────────────────────────────────────────────────────────────────
 
