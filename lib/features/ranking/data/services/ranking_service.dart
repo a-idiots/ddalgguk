@@ -235,7 +235,7 @@ class RankingService {
           }, SetOptions(merge: true)),
         ]);
       } else {
-        // 음수: 문서가 존재할 때만 감소, 0 미만으로 내려가지 않도록 클램핑
+        // 음수: 문서가 존재할 때만 감소, 0 이하가 되면 문서 삭제 (랭킹에서 제거)
         await _firestore.runTransaction<void>((tx) async {
           final weeklyDoc = await tx.get(weeklyRef);
           final monthlyDoc = await tx.get(monthlyRef);
@@ -243,12 +243,22 @@ class RankingService {
           if (weeklyDoc.exists) {
             final cur =
                 (weeklyDoc.data()!['amount'] as num?)?.toDouble() ?? 0.0;
-            tx.update(weeklyRef, {'amount': math.max(0.0, cur + delta)});
+            final newAmount = cur + delta;
+            if (newAmount <= 0.0) {
+              tx.delete(weeklyRef);
+            } else {
+              tx.update(weeklyRef, {'amount': newAmount});
+            }
           }
           if (monthlyDoc.exists) {
             final cur =
                 (monthlyDoc.data()!['amount'] as num?)?.toDouble() ?? 0.0;
-            tx.update(monthlyRef, {'amount': math.max(0.0, cur + delta)});
+            final newAmount = cur + delta;
+            if (newAmount <= 0.0) {
+              tx.delete(monthlyRef);
+            } else {
+              tx.update(monthlyRef, {'amount': newAmount});
+            }
           }
         });
       }
@@ -391,14 +401,18 @@ class RankingService {
           .limit(limit)
           .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return RankingEntry(
-          uid: doc.id,
-          amount: (data['weeklyAmount'] as num).toDouble(),
-          addFriendPermission: data['addFriendPermission'] as bool? ?? false,
-        );
-      }).toList();
+      return snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            return RankingEntry(
+              uid: doc.id,
+              amount: (data['weeklyAmount'] as num).toDouble(),
+              addFriendPermission:
+                  data['addFriendPermission'] as bool? ?? false,
+            );
+          })
+          .where((e) => e.amount > 0)
+          .toList();
     } catch (e) {
       debugPrint('RankingService.getWeeklyRanking error: $e');
       rethrow;
@@ -414,14 +428,18 @@ class RankingService {
           .limit(limit)
           .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return RankingEntry(
-          uid: doc.id,
-          amount: (data['monthlyAmount'] as num).toDouble(),
-          addFriendPermission: data['addFriendPermission'] as bool? ?? false,
-        );
-      }).toList();
+      return snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            return RankingEntry(
+              uid: doc.id,
+              amount: (data['monthlyAmount'] as num).toDouble(),
+              addFriendPermission:
+                  data['addFriendPermission'] as bool? ?? false,
+            );
+          })
+          .where((e) => e.amount > 0)
+          .toList();
     } catch (e) {
       debugPrint('RankingService.getMonthlyRanking error: $e');
       rethrow;
