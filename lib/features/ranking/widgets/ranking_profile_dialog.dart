@@ -227,12 +227,10 @@ class _RankingProfileDialogState extends ConsumerState<RankingProfileDialog> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.black,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            shape: const StadiumBorder(),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
+                              horizontal: 20,
+                              vertical: 10,
                             ),
                           ),
                           child: const Text(
