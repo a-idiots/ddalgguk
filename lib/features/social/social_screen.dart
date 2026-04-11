@@ -141,7 +141,17 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
             tabAlignment: TabAlignment.start,
             padding: const EdgeInsets.only(left: 4),
             tabs: const [
-              Tab(height: 36, text: '나의 친구'),
+              Tab(
+                height: 36,
+                child: Text(
+                  '나의 친구',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
               Tab(
                 height: 36,
                 child: Text(
@@ -153,7 +163,17 @@ class _SocialScreenState extends ConsumerState<SocialScreen>
                   ),
                 ),
               ),
-              Tab(height: 36, text: '나의 기록'),
+              Tab(
+                height: 36,
+                child: Text(
+                  '나의 기록',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
             ],
             labelColor: Colors.black87,
             unselectedLabelColor: Colors.grey,
