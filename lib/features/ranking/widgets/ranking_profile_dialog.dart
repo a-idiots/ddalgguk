@@ -123,7 +123,6 @@ class _RankingProfileDialogState extends ConsumerState<RankingProfileDialog> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 4),
                     Container(
                       height: 4,
                       decoration: BoxDecoration(
