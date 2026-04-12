@@ -189,46 +189,6 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
             ),
           ),
 
-          // Pro 홍보 문구 (Pro가 아닐 때만 표시)
-          if (!(ref.watch(proProvider).valueOrNull ?? false)) ...[
-            const SizedBox(height: 10),
-            Text.rich(
-              TextSpan(
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 11,
-                  color: Colors.grey[500],
-                ),
-                children: [
-                  const TextSpan(text: '기본 주종 외의 주종 아이콘은 '),
-                  const TextSpan(
-                    text: '딸꾹 Pro',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const TextSpan(text: '를 구독해서 이용해보세요!  '),
-                  WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
-                    child: GestureDetector(
-                      onTap: () {
-                        // TODO: navigate to Pro purchase screen
-                      },
-                      child: const Text(
-                        '더 알아보기',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 11,
-                          color: Color(0xFFF0A9A9),
-                          decoration: TextDecoration.underline,
-                          decorationColor: Color(0xFFF0A9A9),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ],
       ),
     );
@@ -356,23 +316,19 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
       onTap: () async {
         if (isOtherButton) {
           final isPro = ref.read(proProvider).valueOrNull ?? false;
-          if (isPro) {
-            if (!context.mounted) {
-              return;
-            }
-            final selectedId = await showDialog<int>(
-              context: context,
-              builder: (context) =>
-                  OtherDrinkSelectionDialog(excludeIds: _mainDrinkIds),
-            );
-            if (selectedId != null) {
-              setState(() {
-                _updateDrinkData(selectedId);
-              });
-            }
-          } else {
+          if (!context.mounted) {
+            return;
+          }
+          final selectedId = await showDialog<int>(
+            context: context,
+            builder: (context) => OtherDrinkSelectionDialog(
+              excludeIds: _mainDrinkIds,
+              isPro: isPro,
+            ),
+          );
+          if (selectedId != null) {
             setState(() {
-              _updateDrinkData(-1);
+              _updateDrinkData(selectedId);
             });
           }
         } else {

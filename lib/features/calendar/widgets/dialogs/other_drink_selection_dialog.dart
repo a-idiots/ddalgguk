@@ -4,10 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OtherDrinkSelectionDialog extends ConsumerStatefulWidget {
-  const OtherDrinkSelectionDialog({super.key, this.excludeIds = const []});
+  const OtherDrinkSelectionDialog({
+    super.key,
+    this.excludeIds = const [],
+    this.isPro = true,
+  });
 
   /// 메인 기록 주종으로 이미 표시되는 ID — 이 목록에서 제외됨
   final List<int> excludeIds;
+
+  /// 프로 유저 여부 — false이면 기타(id=-1)만 선택 가능, 나머지는 반투명 처리
+  final bool isPro;
 
   @override
   ConsumerState<OtherDrinkSelectionDialog> createState() =>
@@ -95,45 +102,64 @@ class _OtherDrinkSelectionDialogState
                       itemCount: _allDrinks.length,
                       itemBuilder: (context, index) {
                         final drink = _allDrinks[index];
+                        final isEnabled =
+                            widget.isPro || drink.id == -1;
                         return GestureDetector(
-                          onTap: () => Navigator.pop(context, drink.id),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  shape: BoxShape.circle,
+                          onTap: isEnabled
+                              ? () => Navigator.pop(context, drink.id)
+                              : null,
+                          child: Opacity(
+                            opacity: isEnabled ? 1.0 : 0.3,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Image.asset(
+                                    drink.imagePath,
+                                    errorBuilder:
+                                        (context, error, stackTrace) {
+                                      return Image.asset(
+                                        'assets/imgs/alcohol_icons/undecided.png',
+                                      );
+                                    },
+                                  ),
                                 ),
-                                padding: const EdgeInsets.all(8),
-                                child: Image.asset(
-                                  drink.imagePath,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(
-                                      'assets/imgs/alcohol_icons/undecided.png',
-                                    );
-                                  },
+                                const SizedBox(height: 8),
+                                Text(
+                                  drink.name,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                drink.name,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },
                     ),
             ),
+            if (!widget.isPro) ...[
+              const SizedBox(height: 16),
+              Text(
+                '딸꾹 PRO에서 모든 주종 아이콘을 이용할 수 있어요!',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),
