@@ -102,8 +102,7 @@ class _OtherDrinkSelectionDialogState
                       itemCount: _allDrinks.length,
                       itemBuilder: (context, index) {
                         final drink = _allDrinks[index];
-                        final isEnabled =
-                            widget.isPro || drink.id == -1;
+                        final isEnabled = widget.isPro || drink.id == -1;
                         return GestureDetector(
                           onTap: isEnabled
                               ? () => Navigator.pop(context, drink.id)
@@ -122,8 +121,7 @@ class _OtherDrinkSelectionDialogState
                                   padding: const EdgeInsets.all(8),
                                   child: Image.asset(
                                     drink.imagePath,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
+                                    errorBuilder: (context, error, stackTrace) {
                                       return Image.asset(
                                         'assets/imgs/alcohol_icons/undecided.png',
                                       );
@@ -153,10 +151,7 @@ class _OtherDrinkSelectionDialogState
               const SizedBox(height: 16),
               Text(
                 '딸꾹 PRO에서 모든 주종 아이콘을 이용할 수 있어요!',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 textAlign: TextAlign.center,
               ),
             ],

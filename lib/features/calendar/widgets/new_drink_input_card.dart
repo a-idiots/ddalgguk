@@ -188,7 +188,6 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
               child: const Text('추가하기', style: TextStyle(fontSize: 16)),
             ),
           ),
-
         ],
       ),
     );
