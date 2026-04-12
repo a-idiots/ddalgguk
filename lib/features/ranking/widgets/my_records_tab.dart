@@ -100,6 +100,7 @@ class _MonthGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      clipBehavior: Clip.none,
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -169,15 +170,20 @@ class _MonthCard extends StatelessWidget {
 
     // 이번 달: 얕은 elevation 카드
     if (isCurrent) {
-      content = Material(
-        elevation: 4,
-        shadowColor: Colors.black26,
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-          child: content,
+      content = Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              spreadRadius: 1,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
+        child: content,
       );
     }
 
