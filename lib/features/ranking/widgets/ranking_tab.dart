@@ -251,6 +251,7 @@ class _RankingTabState extends ConsumerState<RankingTab>
           ? null
           : () => showBottomHandleDialogue(
               context: context,
+              fitContent: true,
               child: RankingProfileDialog(entry: entry),
             ),
       child: Padding(

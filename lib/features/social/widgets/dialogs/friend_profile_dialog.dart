@@ -321,7 +321,7 @@ class FriendProfileDialog extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               // 알콜 분해 정보 - provider에서 가져온 정확한 통계 사용
-              if (profileStats != null && profileStats.currentAlcoholInBody > 0)
+              if (profileStats != null)
                 AlcoholBreakdownSection(
                   stats: profileStats,
                   theme: theme,
