@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
-import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
@@ -14,29 +13,6 @@ import 'package:ddalgguk/shared/widgets/page_header.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
-  Future<void> _backfillGoals(BuildContext context, WidgetRef ref) async {
-    final now = DateTime.now();
-    final monthKeys = List.generate(
-      now.month,
-      (i) => '${now.year}-${(i + 1).toString().padLeft(2, '0')}',
-    );
-
-    try {
-      await ref.read(authRepositoryProvider).backfillMonthlyGoals(monthKeys);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${monthKeys.join(', ')} 소급 적용 완료')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('실패: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -260,44 +236,6 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '문의하기',
             onTap: () => showContactDialog(context),
-          ),
-          const SettingsSectionDivider(),
-
-          // Debug Section
-          const SettingsSectionHeader(title: '디버그'),
-          ref
-              .watch(proProvider)
-              .when(
-                data: (isPro) => SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  title: const Text(
-                    'DDALGGUK PRO (디버그)',
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  subtitle: Text(
-                    isPro ? 'PRO 기능 활성화됨' : 'PRO 기능 비활성화됨',
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 12,
-                    ),
-                  ),
-                  value: isPro,
-                  activeThumbColor: const Color(0xFFF0A9A9),
-                  activeTrackColor: const Color(
-                    0xFFF0A9A9,
-                  ).withValues(alpha: 0.4),
-                  onChanged: (_) => ref.read(proProvider.notifier).toggle(),
-                ),
-                loading: () => const SizedBox(height: 48),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-          SettingsListTile(
-            title: '[DEV] 월 목표 소급 적용',
-            onTap: () => _backfillGoals(context, ref),
           ),
         ],
       ),
