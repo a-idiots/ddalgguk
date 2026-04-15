@@ -31,7 +31,10 @@ class V2WelcomePopup extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 50),
       child: Stack(
         children: [
-          Image.asset('assets/imgs/popup/alert_popup.png', fit: BoxFit.contain),
+          Image.asset(
+            'assets/imgs/popup/alert_popup.png',
+            fit: BoxFit.contain,
+          ),
           Positioned(
             top: 0,
             right: 0,
