@@ -155,7 +155,7 @@ class _RecordContent extends StatelessWidget {
                   text: message,
                   style: TextStyle(color: color),
                 ),
-                const TextSpan(text: '했어요!'),
+                TextSpan(text: data.isToday ? '하고 있어요!' : '했어요!'),
               ],
             ),
             textAlign: TextAlign.center,
