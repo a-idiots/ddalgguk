@@ -164,24 +164,23 @@ struct GoalWidgetView: View {
     let entry: GoalEntry
 
     var body: some View {
-        let content = VStack(alignment: .leading, spacing: 10) {
+        let content = VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 Text("\(entry.monthNum)월달 음주 잔고")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(Palette.textPrimary)
                 Spacer()
                 Image(systemName: "arrow.forward")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Palette.textSecondary)
             }
 
             if !entry.hasGoal {
                 emptyState
+                Spacer(minLength: 0)
             } else {
                 goalBody
             }
-
-            Spacer(minLength: 0)
         }
         .padding(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -240,7 +239,10 @@ struct GoalWidgetView: View {
                     isOverGoal: entry.currentAlcohol > entry.alcoholGoal,
                     barColor: Palette.alcoholBar
                 )
+                .padding(.top, 4)
             }
+
+            Spacer(minLength: 0)
 
             Divider().background(Palette.dividerGray)
 
