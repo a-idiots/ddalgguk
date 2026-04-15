@@ -165,7 +165,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
               ),
             ),
             // Pro logo pinned near top
-            const SizedBox(height: 40),
+            const SizedBox(height: 0),
             Image.asset('assets/imgs/pro_plan/pro_logo.png', height: 90),
             const SizedBox(height: 6),
             const Text(
@@ -173,10 +173,11 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
-            const SizedBox(height: 1),
-            // Vertically centered content
+            const SizedBox(height: 20),
+            // Top-aligned content so the subscribe button + links have room below.
             Expanded(
-              child: Center(
+              child: Align(
+                alignment: Alignment.topCenter,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
