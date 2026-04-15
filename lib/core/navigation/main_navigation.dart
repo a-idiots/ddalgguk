@@ -55,9 +55,9 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
       if (!mounted) {
         return;
       }
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const GoalDetailScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const GoalDetailScreen()));
     });
   }
 

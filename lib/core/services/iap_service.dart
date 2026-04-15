@@ -94,7 +94,8 @@ class IapService {
     try {
       await InAppPurchase.instance.buyNonConsumable(purchaseParam: param);
     } on PlatformException catch (e) {
-      if (e.code == 'userCancelled' || e.code == 'storekit2_purchase_cancelled') {
+      if (e.code == 'userCancelled' ||
+          e.code == 'storekit2_purchase_cancelled') {
         return null;
       }
       return '결제를 시작할 수 없습니다.\n(${e.message ?? e.code})';
