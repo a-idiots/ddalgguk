@@ -80,6 +80,7 @@ dependencies:
   image_picker: ^1.1.2
   image: ^4.3.0
   in_app_purchase: ^3.2.0
+  home_widget: ^0.7.0
 
 dev_dependencies:
   flutter_test:

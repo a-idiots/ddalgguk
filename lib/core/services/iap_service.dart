@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -90,7 +91,14 @@ class IapService {
     }
 
     final param = PurchaseParam(productDetails: response.productDetails.first);
-    await InAppPurchase.instance.buyNonConsumable(purchaseParam: param);
+    try {
+      await InAppPurchase.instance.buyNonConsumable(purchaseParam: param);
+    } on PlatformException catch (e) {
+      if (e.code == 'userCancelled' || e.code == 'storekit2_purchase_cancelled') {
+        return null;
+      }
+      return '결제를 시작할 수 없습니다.\n(${e.message ?? e.code})';
+    }
     return null;
   }
 
