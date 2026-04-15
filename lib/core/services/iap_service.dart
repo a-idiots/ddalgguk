@@ -31,6 +31,7 @@ class IapService {
   }
 
   bool _foundValidPurchase = false;
+  Completer<void>? _restoreCompleter;
 
   Future<void> _restoreOnLaunch() async {
     try {
@@ -39,10 +40,16 @@ class IapService {
         return;
       }
       _foundValidPurchase = false;
+      _restoreCompleter = Completer<void>();
       await InAppPurchase.instance.restorePurchases();
-      // purchaseStream으로 결과가 오기까지 대기
-      await Future<void>.delayed(const Duration(seconds: 3));
-      // 유효한 구매가 없으면 (구독 만료 등) pro 해제
+      // 스트림이 복원 배치를 전달할 때까지 대기 — 최대 15초.
+      // (고정 3초는 느린 네트워크/App Store 지연 시 유료 사용자를
+      // 잠깐 Pro=false로 잘못 내려버려 심사 리젝 위험이 있어 제거함.)
+      await Future.any<void>([
+        _restoreCompleter!.future,
+        Future<void>.delayed(const Duration(seconds: 15)),
+      ]);
+      _restoreCompleter = null;
       if (!_foundValidPurchase) {
         await _ref.read(proProvider.notifier).setValue(false);
       }
@@ -71,8 +78,13 @@ class IapService {
         case PurchaseStatus.canceled:
           debugPrint('IAP purchase canceled');
         case PurchaseStatus.pending:
-          break;
+          debugPrint('IAP purchase pending: ${p.productID}');
       }
+    }
+    // 복원 스트림 배치가 한 번이라도 전달되면 즉시 완료 처리.
+    final c = _restoreCompleter;
+    if (c != null && !c.isCompleted) {
+      c.complete();
     }
   }
 

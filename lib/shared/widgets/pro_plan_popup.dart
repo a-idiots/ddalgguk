@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/services/iap_service.dart';
+
+const _kTermsUrl =
+    'https://melodic-music-7c1.notion.site/2cd5a6752e1b80889671e04b2283c00d';
+const _kPrivacyUrl =
+    'https://melodic-music-7c1.notion.site/2cb5a6752e1b80eeb44dc1763020d324';
+
+Future<void> _launchUrl(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
 
 // Feature indices (used as `triggerFeatureIndex`):
 //   0 = goal setting      (set_goal.png)
@@ -219,7 +232,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                             const SizedBox(height: 12),
                             _PaymentCard(
                               title: '연간 결제',
-                              subtitle: '월 825원',
+                              subtitle: '월 825원 (자동갱신)',
                               originalPrice: '14,900원',
                               price: '9,900원',
                               isHighlighted: false,
@@ -227,17 +240,8 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               onTap: () => _handlePurchase(kProAnnualProductId),
                             ),
                             const SizedBox(height: 16),
-                            GestureDetector(
-                              onTap: _isLoading ? null : _handleRestore,
-                              child: Text(
-                                '구매 복원',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: Colors.grey[600],
-                                ),
-                              ),
+                            _BottomLinks(
+                              onRestore: _isLoading ? null : _handleRestore,
                             ),
                           ],
                         ),
@@ -342,6 +346,45 @@ class _PaymentCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BottomLinks extends StatelessWidget {
+  const _BottomLinks({required this.onRestore});
+
+  final VoidCallback? onRestore;
+
+  @override
+  Widget build(BuildContext context) {
+    final linkStyle = TextStyle(
+      fontSize: 13,
+      color: Colors.grey[600],
+      decoration: TextDecoration.underline,
+      decorationColor: Colors.grey[600],
+    );
+    final separator = Text(
+      '  ·  ',
+      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: onRestore,
+          child: Text('구매 복원', style: linkStyle),
+        ),
+        separator,
+        GestureDetector(
+          onTap: () => _launchUrl(_kPrivacyUrl),
+          child: Text('개인정보처리방침', style: linkStyle),
+        ),
+        separator,
+        GestureDetector(
+          onTap: () => _launchUrl(_kTermsUrl),
+          child: Text('이용약관', style: linkStyle),
+        ),
+      ],
     );
   }
 }
