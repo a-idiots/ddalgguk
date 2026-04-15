@@ -9,6 +9,7 @@ import 'package:ddalgguk/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/profile/data/providers/widget_deeplink_provider.dart';
 import 'package:ddalgguk/features/profile/screens/goal_detail_screen.dart';
+import 'package:ddalgguk/shared/widgets/v2_welcome_popup.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -19,6 +20,17 @@ class MainNavigation extends ConsumerStatefulWidget {
 
 class _MainNavigationState extends ConsumerState<MainNavigation> {
   int _currentIndex = 2;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      V2WelcomePopup.maybeShow(context);
+    });
+  }
 
   final List<Widget> _screens = const [
     ProfileScreen(),
