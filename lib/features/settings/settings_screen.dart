@@ -10,6 +10,8 @@ import 'package:ddalgguk/features/settings/ranking_settings_screen.dart';
 import 'package:ddalgguk/features/settings/screens/main_drink_settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -17,6 +19,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
+    final isPro = ref.watch(proProvider).valueOrNull ?? false;
 
     return Scaffold(
       appBar: const TabPageHeader(title: 'Settings'),
@@ -107,6 +110,25 @@ class SettingsScreen extends ConsumerWidget {
             error: (_, __) => const SizedBox.shrink(),
           ),
           const SettingsSectionDivider(),
+
+          if (!isPro) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => showProPlanPopup(context, 0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/imgs/popup/setting_pro.png',
+                    fit: BoxFit.fitWidth,
+                    width: double.infinity,
+                  ),
+                ),
+              ),
+            ),
+            const SettingsSectionDivider(),
+          ],
 
           // Account Settings Section
           const SettingsSectionHeader(title: '계정 설정'),
