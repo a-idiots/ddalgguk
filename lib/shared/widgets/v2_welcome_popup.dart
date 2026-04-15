@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
+
+// 결제 팝업에서 첫 페이지로 보여줄 기능 인덱스 — `custom_drinks.png` (index 1).
+// 목록은 pro_plan_popup.dart의 `_featureImages`와 동일 순서.
+const _kPaywallInitialFeatureIndex = 1;
+
 const _kV2PopupShownKey = 'v2_welcome_popup_shown';
 
 class V2WelcomePopup extends StatelessWidget {
@@ -31,9 +37,16 @@ class V2WelcomePopup extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 50),
       child: Stack(
         children: [
-          Image.asset(
-            'assets/imgs/popup/alert_popup.png',
-            fit: BoxFit.contain,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Navigator.of(context).pop();
+              showProPlanPopup(context, _kPaywallInitialFeatureIndex);
+            },
+            child: Image.asset(
+              'assets/imgs/popup/alert_popup.png',
+              fit: BoxFit.contain,
+            ),
           ),
           Positioned(
             top: 0,
