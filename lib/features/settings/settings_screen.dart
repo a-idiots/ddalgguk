@@ -74,10 +74,29 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    ProfileAvatar(
-                      profilePhoto: user.profilePhoto,
-                      uid: user.uid,
-                      size: 64,
+                    _ProSecretTapper(
+                      isPro: isPro,
+                      onToggle: () async {
+                        await ref
+                            .read(proProvider.notifier)
+                            .setValue(!isPro);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).clearSnackBars();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Pro 상태: ${!isPro ? "ON" : "OFF"}',
+                              ),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                      child: ProfileAvatar(
+                        profilePhoto: user.profilePhoto,
+                        uid: user.uid,
+                        size: 64,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -306,27 +325,56 @@ class SettingsScreen extends ConsumerWidget {
             title: '회원 탈퇴',
             onTap: () => _handleAccountDeletion(context, ref),
           ),
-
-          // TODO(debug): 제출 전 제거할 것 — Pro 상태 토글용 개발자 메뉴.
-          const SettingsSectionDivider(),
-          const SettingsSectionHeader(title: '[DEBUG] 개발자'),
-          SettingsListTile(
-            title: isPro ? 'Pro 해제 (현재: ON)' : 'Pro 활성 (현재: OFF)',
-            onTap: () async {
-              await ref.read(proProvider.notifier).setValue(!isPro);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Pro 상태: ${!isPro ? "ON" : "OFF"}'),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              }
-            },
-          ),
         ],
       ),
+    );
+  }
+}
+
+/// 프로필 사진을 10회 연속 탭하면 Pro 상태를 토글하는 히든 개발자 토글.
+/// 탭 사이 간격이 1.5초를 초과하면 카운트가 리셋됨.
+class _ProSecretTapper extends StatefulWidget {
+  const _ProSecretTapper({
+    required this.child,
+    required this.onToggle,
+    required this.isPro,
+  });
+
+  final Widget child;
+  final VoidCallback onToggle;
+  final bool isPro;
+
+  @override
+  State<_ProSecretTapper> createState() => _ProSecretTapperState();
+}
+
+class _ProSecretTapperState extends State<_ProSecretTapper> {
+  static const int _requiredTaps = 10;
+  static const Duration _tapTimeout = Duration(milliseconds: 1500);
+  int _tapCount = 0;
+  DateTime? _lastTapAt;
+
+  void _handleTap() {
+    final now = DateTime.now();
+    if (_lastTapAt == null || now.difference(_lastTapAt!) > _tapTimeout) {
+      _tapCount = 1;
+    } else {
+      _tapCount += 1;
+    }
+    _lastTapAt = now;
+    if (_tapCount >= _requiredTaps) {
+      _tapCount = 0;
+      _lastTapAt = null;
+      widget.onToggle();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _handleTap,
+      child: widget.child,
     );
   }
 }
