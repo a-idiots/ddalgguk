@@ -55,6 +55,8 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
   late final List<String> _images;
   int _currentPage = 0;
   bool _isLoading = false;
+  // 기본 선택: 일회성 결제 (기존 강조와 동일).
+  String _selectedProductId = kProLifetimeProductId;
 
   @override
   void initState() {
@@ -224,10 +226,14 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               subtitle: '한번의 결제로 프로 기능을 영원히!',
                               originalPrice: '29,900원',
                               price: '19,900원',
-                              isHighlighted: true,
-                              isLoading: _isLoading,
-                              onTap: () =>
-                                  _handlePurchase(kProLifetimeProductId),
+                              isSelected:
+                                  _selectedProductId == kProLifetimeProductId,
+                              onTap: _isLoading
+                                  ? null
+                                  : () => setState(
+                                        () => _selectedProductId =
+                                            kProLifetimeProductId,
+                                      ),
                             ),
                             const SizedBox(height: 12),
                             _PaymentCard(
@@ -235,11 +241,57 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               subtitle: '월 825원 (자동갱신)',
                               originalPrice: '14,900원',
                               price: '9,900원',
-                              isHighlighted: false,
-                              isLoading: _isLoading,
-                              onTap: () => _handlePurchase(kProAnnualProductId),
+                              isSelected:
+                                  _selectedProductId == kProAnnualProductId,
+                              onTap: _isLoading
+                                  ? null
+                                  : () => setState(
+                                        () => _selectedProductId =
+                                            kProAnnualProductId,
+                                      ),
                             ),
                             const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : () =>
+                                          _handlePurchase(_selectedProductId),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFF08080),
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: const Color(
+                                    0xFFF08080,
+                                  ).withValues(alpha: 0.5),
+                                  disabledForegroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        '딸꾹PRO 구독하기',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
                             _BottomLinks(
                               onRestore: _isLoading ? null : _handleRestore,
                             ),
@@ -264,8 +316,7 @@ class _PaymentCard extends StatelessWidget {
     required this.subtitle,
     required this.originalPrice,
     required this.price,
-    required this.isHighlighted,
-    required this.isLoading,
+    required this.isSelected,
     required this.onTap,
   });
 
@@ -273,25 +324,45 @@ class _PaymentCard extends StatelessWidget {
   final String subtitle;
   final String originalPrice;
   final String price;
-  final bool isHighlighted;
-  final bool isLoading;
-  final VoidCallback onTap;
+  final bool isSelected;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    const accent = Color(0xFFF08080);
     return GestureDetector(
-      onTap: isLoading ? null : onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: isHighlighted
-              ? Border.all(color: const Color(0xFFF08080), width: 1.5)
-              : null,
+          border: Border.all(
+            color: isSelected ? accent : Colors.black12,
+            width: isSelected ? 1.5 : 1,
+          ),
         ),
         child: Row(
           children: [
+            // Radio indicator — 왼쪽, 세로 중앙.
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? accent : Colors.white,
+                border: Border.all(
+                  color: isSelected ? accent : Colors.black26,
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,38 +382,28 @@ class _PaymentCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (isLoading)
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFFF08080),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  originalPrice,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black38,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: Colors.black38,
+                  ),
                 ),
-              )
-            else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    originalPrice,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black38,
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: Colors.black38,
-                    ),
+                Text(
+                  price,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
                   ),
-                  Text(
-                    price,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFF08080),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

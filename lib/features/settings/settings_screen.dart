@@ -306,6 +306,25 @@ class SettingsScreen extends ConsumerWidget {
             title: '회원 탈퇴',
             onTap: () => _handleAccountDeletion(context, ref),
           ),
+
+          // TODO(debug): 제출 전 제거할 것 — Pro 상태 토글용 개발자 메뉴.
+          const SettingsSectionDivider(),
+          const SettingsSectionHeader(title: '[DEBUG] 개발자'),
+          SettingsListTile(
+            title: isPro ? 'Pro 해제 (현재: ON)' : 'Pro 활성 (현재: OFF)',
+            onTap: () async {
+              await ref.read(proProvider.notifier).setValue(!isPro);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Pro 상태: ${!isPro ? "ON" : "OFF"}'),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
     );
