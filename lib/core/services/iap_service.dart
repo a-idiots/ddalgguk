@@ -70,15 +70,17 @@ class IapService {
             _foundValidPurchase = true;
             await _ref.read(proProvider.notifier).setValue(true);
           }
-          if (p.pendingCompletePurchase) {
-            await InAppPurchase.instance.completePurchase(p);
-          }
         case PurchaseStatus.error:
           debugPrint('IAP purchase error: ${p.error}');
         case PurchaseStatus.canceled:
           debugPrint('IAP purchase canceled');
         case PurchaseStatus.pending:
           debugPrint('IAP purchase pending: ${p.productID}');
+      }
+      // 비완료 상태를 제외한 모든 트랜잭션은 반드시 마무리 — 그렇지 않으면
+      // iOS 큐에 stuck 상태로 남아 향후 구매가 실패할 수 있음 (Apple 권장).
+      if (p.status != PurchaseStatus.pending && p.pendingCompletePurchase) {
+        await InAppPurchase.instance.completePurchase(p);
       }
     }
     // 복원 스트림 배치가 한 번이라도 전달되면 즉시 완료 처리.
