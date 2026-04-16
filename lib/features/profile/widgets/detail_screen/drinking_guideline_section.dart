@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
+
+// Apple Guideline 1.4.1: 의료·건강 정보에 출처 링크 필수.
+const _kGuidelineSourcesUrl =
+    'https://melodic-music-7c1.notion.site/3445a6752e1b8069b336ce8496b80e24';
+
+Future<void> _launchSourcesUrl() async {
+  final uri = Uri.parse(_kGuidelineSourcesUrl);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Top-level section widget
@@ -393,6 +405,34 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
             child: TabBarView(
               controller: _tabController,
               children: const [_GuidelineTab(), _CalculationTab()],
+            ),
+          ),
+          // 출처 링크 — Apple Guideline 1.4.1 준수.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 2, 20, 14),
+            child: GestureDetector(
+              onTap: _launchSourcesUrl,
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '출처 및 참고 자료',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
