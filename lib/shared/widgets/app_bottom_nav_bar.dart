@@ -17,8 +17,8 @@ class AppBottomNavBar extends StatelessWidget {
     return Container(
       color: backgroundColor ?? Colors.white,
       child: Container(
-        height: 80, // Fixed height to prevent layout shifts
-        padding: const EdgeInsets.only(top: 6, bottom: 24, left: 4, right: 4),
+        height: 90, // Fixed height to prevent layout shifts
+        padding: const EdgeInsets.only(top: 8, bottom: 28, left: 5, right: 5),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.only(
@@ -34,75 +34,45 @@ class AppBottomNavBar extends StatelessWidget {
             ),
           ],
         ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final itemWidth = constraints.maxWidth / 5;
-            final itemHeight = constraints.maxHeight;
-
-            return Stack(
-              children: [
-                // Sliding Highlight Pill
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOut,
-                  left: currentIndex * itemWidth,
-                  top: 0,
-                  width: itemWidth,
-                  height: itemHeight,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2F2F2F),
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                  ),
-                ),
-                // Navigation Items
-                Row(
-                  children: [
-                    _buildNavItem(0, Icons.person, '마이페이지', itemWidth),
-                    _buildNavItem(1, Icons.people, '친구', itemWidth),
-                    _buildNavItem(2, Icons.calendar_today, '캘린더', itemWidth),
-                    _buildNavItem(3, Icons.bar_chart, '리포트', itemWidth),
-                    _buildNavItem(4, Icons.settings, '설정', itemWidth),
-                  ],
-                ),
-              ],
-            );
-          },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavItem(0, Icons.person, '마이페이지'),
+            _buildNavItem(1, Icons.people, '친구'),
+            _buildNavItem(2, Icons.calendar_today, '캘린더'),
+            _buildNavItem(3, Icons.bar_chart, '리포트'),
+            _buildNavItem(4, Icons.settings, '설정'),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, double width) {
+  Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = currentIndex == index;
+    final color = isSelected ? Colors.black : Colors.grey[400];
 
-    // Colors
-    final color = isSelected ? const Color(0xFFF27B7B) : Colors.grey[400];
-
-    return SizedBox(
-      width: width,
-      child: GestureDetector(
-        onTap: () => onTap(index),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: icon == Icons.calendar_today ? 20 : 24,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
               color: color,
-              size: icon == Icons.calendar_today ? 20 : 24,
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 8,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

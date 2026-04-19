@@ -18,6 +18,7 @@ class FriendCard extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: true,
+      useSafeArea: false,
       builder: (context) => GestureDetector(
         onTap: () => Navigator.of(context).pop(),
         child: Material(

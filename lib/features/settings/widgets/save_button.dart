@@ -22,7 +22,7 @@ class SaveButton extends StatelessWidget {
         child: const Text(
           '저장하기',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),

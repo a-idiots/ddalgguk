@@ -11,6 +11,7 @@ import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 
 /// Main onboarding profile screen with PageView
 class OnboardingProfileScreen extends ConsumerStatefulWidget {
@@ -31,7 +32,6 @@ class _OnboardingProfileScreenState
   String? _name;
   String? _id;
   bool? _goal;
-  int? _favoriteDrink;
   double? _maxAlcohol;
   int? _weeklyDrinkingFrequency;
   String? _gender;
@@ -121,7 +121,6 @@ class _OnboardingProfileScreenState
 
   Future<void> _handleComplete({
     required bool goal,
-    required int favoriteDrink,
     required double maxAlcohol,
     required int weeklyDrinkingFrequency,
   }) async {
@@ -132,7 +131,6 @@ class _OnboardingProfileScreenState
     setState(() {
       _isLoading = true;
       _goal = goal;
-      _favoriteDrink = favoriteDrink;
       _maxAlcohol = maxAlcohol;
       _weeklyDrinkingFrequency = weeklyDrinkingFrequency;
     });
@@ -145,7 +143,7 @@ class _OnboardingProfileScreenState
         id: _id!,
         name: _name!,
         goal: goal,
-        favoriteDrink: favoriteDrink,
+        favoriteDrink: 0,
         maxAlcohol: maxAlcohol,
         weeklyDrinkingFrequency: weeklyDrinkingFrequency,
         gender: _gender,
@@ -164,10 +162,14 @@ class _OnboardingProfileScreenState
       // Clear saved state
       await _clearSavedState();
 
-      // Navigate to home
-      // The router will check cache and see hasCompletedProfileSetup: true
+      // Navigate to home, then show pro plan popup
       if (mounted) {
         context.go(Routes.home);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            showProPlanPopup(context, 0);
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -201,12 +203,8 @@ class _OnboardingProfileScreenState
     _saveState();
   }
 
-  void _handleDrinkingHabitsSubmit({
-    required int favoriteDrink,
-    required double maxAlcohol,
-  }) {
+  void _handleDrinkingHabitsSubmit({required double maxAlcohol}) {
     setState(() {
-      _favoriteDrink = favoriteDrink;
       _maxAlcohol = maxAlcohol;
     });
     _pageController.animateToPage(
@@ -315,7 +313,6 @@ class _OnboardingProfileScreenState
                     // Page 3: Drinking Habits
                     DrinkingHabitsPage(
                       onComplete: _handleDrinkingHabitsSubmit,
-                      initialFavoriteDrink: _favoriteDrink,
                       initialMaxAlcohol: _maxAlcohol,
                     ),
                     // Page 4: Unified Profile Setup
@@ -348,7 +345,6 @@ class _OnboardingProfileScreenState
                       onComplete: () {
                         debugPrint('Checking completion conditions:');
                         debugPrint('Goal: $_goal');
-                        debugPrint('FavoriteDrink: $_favoriteDrink');
                         debugPrint('MaxAlcohol: $_maxAlcohol');
                         debugPrint(
                           'WeeklyFrequency: $_weeklyDrinkingFrequency',
@@ -359,7 +355,6 @@ class _OnboardingProfileScreenState
                         debugPrint('Weight: $_weight');
 
                         if (_goal != null &&
-                            _favoriteDrink != null &&
                             _maxAlcohol != null &&
                             _weeklyDrinkingFrequency != null &&
                             _gender != null &&
@@ -368,7 +363,6 @@ class _OnboardingProfileScreenState
                             _weight != null) {
                           _handleComplete(
                             goal: _goal!,
-                            favoriteDrink: _favoriteDrink!,
                             maxAlcohol: _maxAlcohol!,
                             weeklyDrinkingFrequency: _weeklyDrinkingFrequency!,
                           );

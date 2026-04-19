@@ -50,46 +50,31 @@ class AlcoholBreakdownSection extends StatelessWidget {
             if (extraComment)
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: 12,
+                  vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.transparent, // No background
-                  borderRadius: BorderRadius.circular(30), // More rounded
-                  border: Border.all(color: Colors.grey[300]!, width: 1),
+                  color: const Color(0xFFEEEEEE),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Message icon
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: theme.secondaryColor, // Theme color background
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons
-                            .sentiment_very_satisfied_rounded, // Changed icon to match image roughly
-                        color: Colors.white,
-                        size: 20,
+                    const Padding(
+                      padding: EdgeInsets.only(top: 1),
+                      child: Icon(
+                        Icons.info_outline,
+                        color: Colors.black54,
+                        size: 14,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Message text
-                    Expanded(
+                    const SizedBox(width: 8),
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '간 회복은 훨씬 오래 걸려요!',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.black87,
-                            ),
-                          ),
                           Text(
-                            '72시간 이상 금주하면 간 효소 정상화에 도움이 돼요.',
+                            '실제 법정에서 사용하는 위드마크 공식을 이용해 계산한 혈중 알콜 농도에요. 키, 체중, 성별 등을 반영해 매 시간 업데이트됩니다.',
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.black87,

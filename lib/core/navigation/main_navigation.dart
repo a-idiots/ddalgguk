@@ -7,6 +7,9 @@ import 'package:ddalgguk/features/report/report_screen.dart';
 import 'package:ddalgguk/features/settings/settings_screen.dart';
 import 'package:ddalgguk/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
+import 'package:ddalgguk/features/profile/data/providers/widget_deeplink_provider.dart';
+import 'package:ddalgguk/features/profile/screens/goal_detail_screen.dart';
+import 'package:ddalgguk/shared/widgets/v2_welcome_popup.dart';
 
 class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
@@ -17,6 +20,17 @@ class MainNavigation extends ConsumerStatefulWidget {
 
 class _MainNavigationState extends ConsumerState<MainNavigation> {
   int _currentIndex = 2;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      V2WelcomePopup.maybeShow(context);
+    });
+  }
 
   final List<Widget> _screens = const [
     ProfileScreen(),
@@ -32,8 +46,32 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     });
   }
 
+  void _handleGoalDeepLink() {
+    // Switch to profile tab then push the goal detail screen on top.
+    setState(() {
+      _currentIndex = 0;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const GoalDetailScreen()));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Handle pending widget deep-links (e.g. tap on home-screen goal widget).
+    ref.listen<String?>(widgetDeepLinkProvider, (_, next) {
+      if (next == 'goal') {
+        // Reset first so the same tap doesn't fire twice on rebuild.
+        ref.read(widgetDeepLinkProvider.notifier).state = null;
+        _handleGoalDeepLink();
+      }
+    });
+
     // Calculate background color for navigation bar
     Color? navBackgroundColor;
     if (_currentIndex == 0) {

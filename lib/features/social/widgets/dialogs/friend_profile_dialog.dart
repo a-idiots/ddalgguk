@@ -1,11 +1,11 @@
 import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/features/profile/domain/models/weekly_stats.dart';
-import 'package:ddalgguk/features/profile/widgets/detail_screen/achievements_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/alcohol_breakdown_section.dart';
 import 'package:ddalgguk/features/profile/widgets/detail_screen/weekly_saku_section.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:ddalgguk/features/social/domain/models/friend_with_data.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -97,12 +97,12 @@ class FriendProfileDialog extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         backgroundColor: Colors.grey[200],
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(100),
                         ),
                       ),
                       child: const Text(
                         '취소하기',
-                        style: TextStyle(color: Colors.black87),
+                        style: TextStyle(color: Colors.black87, fontSize: 15),
                       ),
                     ),
                   ),
@@ -112,14 +112,14 @@ class FriendProfileDialog extends ConsumerWidget {
                       onPressed: () => Navigator.of(context).pop(true),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor: AppColors.primaryPink,
+                        backgroundColor: Colors.black87,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(100),
                         ),
                       ),
                       child: const Text(
                         '삭제하기',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white, fontSize: 15),
                       ),
                     ),
                   ),
@@ -159,6 +159,87 @@ class FriendProfileDialog extends ConsumerWidget {
     }
   }
 
+  Widget _buildTopDrinkTypesSection(WidgetRef ref) {
+    final topDrinkTypesAsync = ref.watch(
+      friendTopDrinkTypesProvider(friendData.userId),
+    );
+
+    return topDrinkTypesAsync.when(
+      skipLoadingOnReload: true,
+      data: (topDrinks) {
+        if (topDrinks.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  '메인 기록 주종',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: topDrinks.map((drinkType) {
+                        return Image.asset(
+                          getDrinkIconPath(drinkType),
+                          width: 46,
+                          height: 46,
+                        );
+                      }).toList(),
+                    ),
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: topDrinks.map((drinkType) {
+                        return SizedBox(
+                          width: 46,
+                          child: Text(
+                            getDrinkTypeName(drinkType),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox(
+        height: 90,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyStats = _createWeeklyStats();
@@ -174,90 +255,80 @@ class FriendProfileDialog extends ConsumerWidget {
 
     return Column(
       children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                // 프로필 헤더 + 메뉴
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 8, left: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              friendData.name,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
+        SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              // 프로필 헤더 + 메뉴
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8, left: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            friendData.name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '@${friendData.userData.id ?? ''}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '@${friendData.userData.id ?? ''}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.black87),
-                      surfaceTintColor: Colors.transparent,
-                      color: Colors.grey[200],
-                      onSelected: (value) {
-                        if (value == 'delete') {
-                          _showDeleteConfirmation(context, ref);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Text('친구 삭제'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // 주간 통계
-                // 주간 통계
-                WeeklySakuSection(
-                  weeklyStats: weeklyStats,
-                  theme: theme,
-                  isScrollable: false,
-                ),
-                const SizedBox(height: 16),
-                // 업적
-                AchievementsSection(
-                  theme: theme,
-                  customTitle: '업적',
-                  showMoreButton: false,
-                  onlyPinned: true,
-                  friendUserId: friendData.userId,
-                ),
-                const SizedBox(height: 16),
-                // 알콜 분해 정보 - provider에서 가져온 정확한 통계 사용
-                if (profileStats != null &&
-                    profileStats.currentAlcoholInBody > 0)
-                  AlcoholBreakdownSection(
-                    stats: profileStats,
-                    theme: theme,
-                    extraComment: false,
                   ),
-                const SizedBox(height: 32),
-              ],
-            ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.black87),
+                    surfaceTintColor: Colors.transparent,
+                    color: Colors.grey[200],
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _showDeleteConfirmation(context, ref);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text('친구 삭제'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // 메인 기록 주종
+              _buildTopDrinkTypesSection(ref),
+              const SizedBox(height: 8),
+              // 주간 통계
+              WeeklySakuSection(
+                weeklyStats: weeklyStats,
+                theme: theme,
+                isScrollable: false,
+              ),
+              const SizedBox(height: 16),
+              // 알콜 분해 정보 - provider에서 가져온 정확한 통계 사용
+              if (profileStats != null)
+                AlcoholBreakdownSection(
+                  stats: profileStats,
+                  theme: theme,
+                  extraComment: false,
+                ),
+              const SizedBox(height: 32),
+            ],
           ),
         ),
       ],

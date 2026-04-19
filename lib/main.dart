@@ -122,10 +122,6 @@ class _DdalggukAppState extends ConsumerState<DdalggukApp> {
     if (uri.host == 'goal' || uri.path == '/goal') {
       ref.read(widgetDeepLinkProvider.notifier).state = 'goal';
     }
-    // ddalgguk://profile → 프로필 화면 열기
-    if (uri.host == 'profile' || uri.path == '/profile') {
-      ref.read(widgetDeepLinkProvider.notifier).state = 'profile';
-    }
   }
 
   @override
