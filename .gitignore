@@ -7,6 +7,9 @@
 .buildlog/
 .history
 
+# Scripts (local utility scripts, contains secrets)
+scripts/
+
 # IDE settings
 .idea/
 *.iml
