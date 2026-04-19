@@ -100,10 +100,9 @@ class NotificationConfig {
     NotificationType.recordAlarm: [
       NotificationSchedule(
         type: NotificationType.recordAlarm,
-        hour: 21, // 9 PM
+        hour: 9, // 9 AM
         minute: 0,
-        repeatDaily: false,
-        daysOfWeek: [7], // Sunday only
+        repeatDaily: true, // every day
       ),
     ],
   };
@@ -114,10 +113,9 @@ class NotificationConfig {
     NotificationType.recordAlarm: [
       NotificationSchedule(
         type: NotificationType.recordAlarm,
-        hour: 21, // 9 PM
+        hour: 9, // 9 AM
         minute: 0,
-        repeatDaily: false,
-        daysOfWeek: [5, 7], // Friday and Sunday
+        repeatDaily: true, // every day
       ),
     ],
   };

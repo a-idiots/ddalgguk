@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/auth/domain/models/badge.dart';
+import 'package:ddalgguk/features/auth/domain/models/monthly_goal.dart';
 import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
 
 /// Application user model
@@ -28,6 +29,11 @@ class AppUser {
     this.birthDate,
     this.height,
     this.weight,
+    this.monthlyGoalBudget,
+    this.monthlyGoalAlcohol,
+    this.monthlyGoals = const {},
+    this.rankingPermission,
+    this.addFriendPermission,
   });
 
   /// Create AppUser from Firebase User
@@ -94,6 +100,18 @@ class AppUser {
       weight: json['weight'] != null
           ? (json['weight'] as num).toDouble()
           : null,
+      monthlyGoalBudget: json['monthlyGoalBudget'] as int?,
+      monthlyGoalAlcohol: json['monthlyGoalAlcohol'] != null
+          ? (json['monthlyGoalAlcohol'] as num).toDouble()
+          : null,
+      monthlyGoals: json['monthlyGoals'] != null
+          ? (json['monthlyGoals'] as Map<String, dynamic>).map(
+              (k, v) =>
+                  MapEntry(k, MonthlyGoal.fromJson(v as Map<String, dynamic>)),
+            )
+          : const {},
+      rankingPermission: json['rankingPermission'] as bool?,
+      addFriendPermission: json['addFriendPermission'] as bool?,
     );
   }
 
@@ -133,6 +151,15 @@ class AppUser {
   final DateTime? birthDate;
   final double? height;
   final double? weight;
+
+  // Monthly Goal
+  final int? monthlyGoalBudget; // 월 술자리 예산 (원) - 현재 표시용
+  final double? monthlyGoalAlcohol; // 월 목표 음주량 (병) - 현재 표시용
+  final Map<String, MonthlyGoal> monthlyGoals; // 월별 아카이브 (key: "yyyy-MM")
+
+  // Ranking Permissions (null = 기본값 true로 취급)
+  final bool? rankingPermission; // 과음관리구역에 노출 여부
+  final bool? addFriendPermission; // 랭킹을 통한 친구 신청 허용 여부
 
   /// Parse favoriteDrink from JSON - handles both int and List formats
   static int? _parseFavoriteDrink(dynamic value) {
@@ -175,6 +202,11 @@ class AppUser {
       'birthDate': birthDate?.toIso8601String(),
       'height': height,
       'weight': weight,
+      'monthlyGoalBudget': monthlyGoalBudget,
+      'monthlyGoalAlcohol': monthlyGoalAlcohol,
+      'monthlyGoals': monthlyGoals.map((k, v) => MapEntry(k, v.toJson())),
+      'rankingPermission': rankingPermission,
+      'addFriendPermission': addFriendPermission,
     };
   }
 
@@ -217,6 +249,11 @@ class AppUser {
     DateTime? birthDate,
     double? height,
     double? weight,
+    int? monthlyGoalBudget,
+    double? monthlyGoalAlcohol,
+    Map<String, MonthlyGoal>? monthlyGoals,
+    bool? rankingPermission,
+    bool? addFriendPermission,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -243,6 +280,11 @@ class AppUser {
       birthDate: birthDate ?? this.birthDate,
       height: height ?? this.height,
       weight: weight ?? this.weight,
+      monthlyGoalBudget: monthlyGoalBudget ?? this.monthlyGoalBudget,
+      monthlyGoalAlcohol: monthlyGoalAlcohol ?? this.monthlyGoalAlcohol,
+      monthlyGoals: monthlyGoals ?? this.monthlyGoals,
+      rankingPermission: rankingPermission ?? this.rankingPermission,
+      addFriendPermission: addFriendPermission ?? this.addFriendPermission,
     );
   }
 
@@ -281,7 +323,12 @@ class AppUser {
         other.gender == gender &&
         other.birthDate == birthDate &&
         other.height == height &&
-        other.weight == weight;
+        other.weight == weight &&
+        other.monthlyGoalBudget == monthlyGoalBudget &&
+        other.monthlyGoalAlcohol == monthlyGoalAlcohol &&
+        other.monthlyGoals.toString() == monthlyGoals.toString() &&
+        other.rankingPermission == rankingPermission &&
+        other.addFriendPermission == addFriendPermission;
   }
 
   @override
@@ -309,7 +356,12 @@ class AppUser {
         gender.hashCode ^
         birthDate.hashCode ^
         height.hashCode ^
-        weight.hashCode;
+        weight.hashCode ^
+        monthlyGoalBudget.hashCode ^
+        monthlyGoalAlcohol.hashCode ^
+        monthlyGoals.hashCode ^
+        rankingPermission.hashCode ^
+        addFriendPermission.hashCode;
   }
 
   /// Helper method to compare lists

@@ -4,98 +4,61 @@ import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
 import 'package:ddalgguk/features/settings/edit_info_screen.dart';
-import 'package:ddalgguk/features/settings/notice_screen.dart';
 import 'package:ddalgguk/features/settings/profile_edit_screen.dart';
 import 'package:ddalgguk/features/settings/notification_settings_screen.dart';
-import 'package:ddalgguk/shared/widgets/saku_character.dart';
+import 'package:ddalgguk/features/settings/ranking_settings_screen.dart';
+import 'package:ddalgguk/features/settings/screens/main_drink_settings_screen.dart';
+import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
-  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
-    // Show confirmation dialog
-    final confirmed = await showLogoutDialog(context);
-
-    if (confirmed == true && context.mounted) {
-      try {
-        final authRepository = ref.read(authRepositoryProvider);
-        await authRepository.signOut();
-
-        // Force provider update to trigger router redirect
-        ref.invalidate(authStateProvider);
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('로그아웃 실패: $e'), backgroundColor: Colors.red),
-          );
-        }
-      }
-    }
-  }
 
   Future<void> _handleAccountDeletion(
     BuildContext context,
     WidgetRef ref,
   ) async {
-    // Show confirmation dialog
     final confirmed = await showAccountDeletionDialog(context);
-
-    if (confirmed == true && context.mounted) {
-      try {
-        final authRepository = ref.read(authRepositoryProvider);
-        await authRepository.deleteAccount();
-        await AnalyticsService.instance.logDeleteAccount();
-
-        // Force provider update to trigger router redirect
-        ref.invalidate(authStateProvider);
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('회원 탈퇴 실패: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    try {
+      final authRepository = ref.read(authRepositoryProvider);
+      await authRepository.deleteAccount();
+      await AnalyticsService.instance.logDeleteAccount();
+      ref.invalidate(drinkingRecordsLastUpdatedProvider);
+      ref.invalidate(weeklyStatsProvider);
+      ref.invalidate(weeklyStatsOffsetProvider);
+      ref.invalidate(weeklyStatsByMondayProvider);
+      ref.invalidate(currentProfileStatsProvider);
+      ref.invalidate(alcoholGuidelineDataProvider);
+      ref.invalidate(prevMonthAvgSpendingProvider);
+      ref.invalidate(userBadgesProvider);
+      ref.invalidate(userPhysicalInfoProvider);
+      ref.invalidate(proProvider);
+      ref.invalidate(authStateProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('회원 탈퇴 실패: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
-  }
-
-  Widget _buildProfileAvatar(int profilePhoto) {
-    if (profilePhoto <= 10) {
-      return SakuCharacter(size: 55, drunkLevel: profilePhoto * 10);
-    }
-
-    const alcoholIcons = [
-      'assets/imgs/alcohol_icons/soju.png',
-      'assets/imgs/alcohol_icons/beer.png',
-      'assets/imgs/alcohol_icons/cocktail.png',
-      'assets/imgs/alcohol_icons/wine.png',
-      'assets/imgs/alcohol_icons/makgulli.png',
-    ];
-    final iconIndex = profilePhoto - 11;
-
-    if (iconIndex >= 0 && iconIndex < alcoholIcons.length) {
-      return Center(
-        child: Image.asset(
-          alcoholIcons[iconIndex],
-          width: 50,
-          height: 50,
-          fit: BoxFit.contain,
-        ),
-      );
-    }
-
-    return const SakuCharacter(size: 55);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
+    final isPro = ref.watch(proProvider).valueOrNull ?? false;
 
     return Scaffold(
       appBar: const TabPageHeader(title: 'Settings'),
@@ -111,14 +74,29 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
+                    _ProSecretTapper(
+                      isPro: isPro,
+                      onToggle: () async {
+                        await ref
+                            .read(proProvider.notifier)
+                            .setValue(!isPro);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).clearSnackBars();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Pro 상태: ${!isPro ? "ON" : "OFF"}',
+                              ),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      },
+                      child: ProfileAvatar(
+                        profilePhoto: user.profilePhoto,
+                        uid: user.uid,
+                        size: 64,
                       ),
-                      child: _buildProfileAvatar(user.profilePhoto),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -128,7 +106,7 @@ class SettingsScreen extends ConsumerWidget {
                           Text(
                             user.name ?? 'Unknown User',
                             style: const TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Pretendard',
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
                             ),
@@ -137,14 +115,14 @@ class SettingsScreen extends ConsumerWidget {
                           Text(
                             '@${user.id ?? ''}',
                             style: const TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Pretendard',
                               color: Colors.grey,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    OutlinedButton(
+                    ElevatedButton(
                       onPressed: () async {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
@@ -153,17 +131,21 @@ class SettingsScreen extends ConsumerWidget {
                         );
                         ref.invalidate(currentUserProvider);
                       },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFF0A9A9)),
-                        foregroundColor: const Color(0xFFF0A9A9),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                          horizontal: 20,
+                          vertical: 12,
                         ),
+                        shape: const StadiumBorder(),
                       ),
                       child: const Text(
                         '프로필 편집',
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 12),
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ],
@@ -176,13 +158,35 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   CircleAvatar(radius: 32, child: CircularProgressIndicator()),
                   SizedBox(width: 16),
-                  Text('Loading...', style: TextStyle(fontFamily: 'Inter')),
+                  Text(
+                    'Loading...',
+                    style: TextStyle(fontFamily: 'Pretendard'),
+                  ),
                 ],
               ),
             ),
             error: (_, __) => const SizedBox.shrink(),
           ),
           const SettingsSectionDivider(),
+
+          if (!isPro) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => showProPlanPopup(context, 0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/imgs/popup/setting_pro.png',
+                    fit: BoxFit.fitWidth,
+                    width: double.infinity,
+                  ),
+                ),
+              ),
+            ),
+            const SettingsSectionDivider(),
+          ],
 
           // Account Settings Section
           const SettingsSectionHeader(title: '계정 설정'),
@@ -204,6 +208,103 @@ class SettingsScreen extends ConsumerWidget {
               );
             },
           ),
+          SettingsListTile(
+            title: '랭킹 설정',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const RankingSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          const SettingsSectionDivider(),
+
+          // Drinking Related Settings Section
+          const SettingsSectionHeader(title: '음주 관련 설정'),
+          SettingsListTile(
+            title: '음주 빈도',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const DrinkingFrequencyScreen(),
+                ),
+              );
+            },
+          ),
+          SettingsListTile(
+            title: '주량',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AlcoholToleranceScreen(),
+                ),
+              );
+            },
+          ),
+          SettingsListTile(
+            title: '메인 기록 주종',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const MainDrinkSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          currentUser.when(
+            data: (user) {
+              if (user == null) {
+                return const GoalToggleTile(currentGoal: true, onToggle: null);
+              }
+              return GoalToggleTile(
+                currentGoal: user.goal ?? true,
+                onToggle: (newGoal) async {
+                  try {
+                    final authRepository = ref.read(authRepositoryProvider);
+                    await authRepository.saveProfileData(
+                      id: user.id ?? '',
+                      name: user.name ?? '',
+                      goal: newGoal,
+                      favoriteDrink: user.favoriteDrink ?? 0,
+                      maxAlcohol: user.maxAlcohol ?? 0,
+                      weeklyDrinkingFrequency:
+                          user.weeklyDrinkingFrequency ?? 0,
+                      gender: user.gender,
+                      birthDate: user.birthDate,
+                      height: user.height,
+                      weight: user.weight,
+                    );
+                    ref.invalidate(currentUserProvider);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            newGoal ? '즐거운 음주로 변경되었습니다' : '건강한 절주로 변경되었습니다',
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('변경 실패: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+              );
+            },
+            loading: () =>
+                const GoalToggleTile(currentGoal: true, onToggle: null),
+            error: (_, __) =>
+                const GoalToggleTile(currentGoal: true, onToggle: null),
+          ),
           const SettingsSectionDivider(),
 
           // Usage Guide Section
@@ -216,28 +317,64 @@ class SettingsScreen extends ConsumerWidget {
             title: '문의하기',
             onTap: () => showContactDialog(context),
           ),
-          SettingsListTile(
-            title: '공지사항',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const NoticeScreen()),
-              );
-            },
-          ),
           const SettingsSectionDivider(),
 
-          // Other Section
-          const SettingsSectionHeader(title: '기타'),
-          SettingsListTile(
-            title: '로그아웃',
-            onTap: () => _handleLogout(context, ref),
-          ),
+          // 계정 관리 — Apple Guideline 5.1.1(v): 앱 내 계정 삭제 필수.
+          const SettingsSectionHeader(title: '계정 관리'),
           SettingsListTile(
             title: '회원 탈퇴',
             onTap: () => _handleAccountDeletion(context, ref),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 프로필 사진을 10회 연속 탭하면 Pro 상태를 토글하는 히든 개발자 토글.
+/// 탭 사이 간격이 1.5초를 초과하면 카운트가 리셋됨.
+class _ProSecretTapper extends StatefulWidget {
+  const _ProSecretTapper({
+    required this.child,
+    required this.onToggle,
+    required this.isPro,
+  });
+
+  final Widget child;
+  final VoidCallback onToggle;
+  final bool isPro;
+
+  @override
+  State<_ProSecretTapper> createState() => _ProSecretTapperState();
+}
+
+class _ProSecretTapperState extends State<_ProSecretTapper> {
+  static const int _requiredTaps = 10;
+  static const Duration _tapTimeout = Duration(milliseconds: 1500);
+  int _tapCount = 0;
+  DateTime? _lastTapAt;
+
+  void _handleTap() {
+    final now = DateTime.now();
+    if (_lastTapAt == null || now.difference(_lastTapAt!) > _tapTimeout) {
+      _tapCount = 1;
+    } else {
+      _tapCount += 1;
+    }
+    _lastTapAt = now;
+    if (_tapCount >= _requiredTaps) {
+      _tapCount = 0;
+      _lastTapAt = null;
+      widget.onToggle();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _handleTap,
+      child: widget.child,
     );
   }
 }

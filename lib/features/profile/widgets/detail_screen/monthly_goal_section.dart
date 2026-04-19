@@ -1,0 +1,597 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:ddalgguk/core/constants/app_colors.dart';
+import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
+import 'package:ddalgguk/features/profile/screens/goal_detail_screen.dart';
+import 'package:ddalgguk/features/profile/widgets/dialogs/goal_edit_sheet.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
+
+class MonthlyGoalSection extends ConsumerWidget {
+  const MonthlyGoalSection({super.key, required this.theme});
+
+  final AppTheme theme;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+    final proAsync = ref.watch(proProvider);
+    final now = DateTime.now();
+    final monthNum = now.month;
+    final monthKey = DateTime(now.year, now.month);
+
+    // 현재 월 데이터 (목표 있을 때만 사용)
+    final spendingAsync = ref.watch(monthlySpendingProvider(monthKey));
+    final alcoholAsync = ref.watch(currentMonthAlcoholBottlesProvider);
+    final avgSpendingAsync = ref.watch(prevMonthAvgSpendingProvider);
+
+    return userAsync.when(
+      skipLoadingOnReload: true,
+      data: (user) {
+        final budget = user?.monthlyGoalBudget;
+        final alcoholGoal = user?.monthlyGoalAlcohol;
+        final isPro = proAsync.valueOrNull ?? false;
+        // Non-pro users always see the empty state
+        final hasGoal = isPro && (budget != null || alcoholGoal != null);
+
+        final currentSpending = spendingAsync.valueOrNull ?? 0;
+        final currentAlcohol = alcoholAsync.valueOrNull ?? 0.0;
+        final avgSpending = avgSpendingAsync.valueOrNull ?? 30000.0;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 목표가 설정된 경우에만 요약 텍스트 표시
+            if (hasGoal) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: _GoalSummaryText(
+                  budget: budget,
+                  alcoholGoal: alcoholGoal,
+                  currentSpending: currentSpending,
+                  currentAlcohol: currentAlcohol,
+                  avgDrinkSpending: avgSpending,
+                ),
+              ),
+            ],
+            // 카드
+            GestureDetector(
+              onTap: !isPro ? () => showProPlanPopup(context, 0) : null,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$monthNum월달 음주 잔고',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward, size: 22),
+                            color: Colors.grey[500],
+                            onPressed: () => _onEditTapped(
+                              context,
+                              ref,
+                              isPro,
+                              budget,
+                              alcoholGoal,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Content
+                    if (!hasGoal)
+                      _PlaceholderGoalContent(isPro: isPro)
+                    else
+                      _GoalProgressContent(
+                        monthNum: monthNum,
+                        budget: budget,
+                        alcoholGoal: alcoholGoal,
+                        currentSpending: currentSpending,
+                        currentAlcohol: currentAlcohol,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  void _onEditTapped(
+    BuildContext context,
+    WidgetRef ref,
+    bool isPro,
+    int? budget,
+    double? alcoholGoal,
+  ) {
+    if (!isPro) {
+      _showProDialog(context);
+      return;
+    }
+
+    final hasGoal = budget != null || alcoholGoal != null;
+    if (hasGoal) {
+      // 이미 목표가 설정됨 → 상세 페이지로 이동
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const GoalDetailScreen()));
+    } else {
+      // 목표 미설정 → 바로 입력 시트 표시
+      final monthNum = DateTime.now().month;
+      showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => GoalEditSheet(monthLabel: '$monthNum월'),
+      );
+    }
+  }
+
+  void _showProDialog(BuildContext context) {
+    showProPlanPopup(context, 0);
+  }
+}
+
+class _PlaceholderGoalContent extends StatelessWidget {
+  const _PlaceholderGoalContent({required this.isPro});
+
+  final bool isPro;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DisabledBarRow(label: '예산'),
+          const SizedBox(height: 20),
+          _DisabledBarRow(label: '음주량'),
+          const SizedBox(height: 16),
+          Center(
+            child: Text(
+              isPro ? '목표를 설정해보세요' : '프로 플랜에서 목표를 설정할 수 있어요',
+              style: const TextStyle(fontSize: 12, color: Colors.black38),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DisabledBarRow extends StatelessWidget {
+  const _DisabledBarRow({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black38,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GoalSummaryText extends StatelessWidget {
+  const _GoalSummaryText({
+    required this.budget,
+    required this.alcoholGoal,
+    required this.currentSpending,
+    required this.currentAlcohol,
+    required this.avgDrinkSpending,
+  });
+
+  final int? budget;
+  final double? alcoholGoal;
+  final int currentSpending;
+  final double currentAlcohol;
+  final double avgDrinkSpending;
+
+  String _formatBottle(double v) {
+    if (v == v.truncateToDouble()) {
+      return v.toInt().toString();
+    }
+    return v.toStringAsFixed(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = <InlineSpan>[];
+
+    if (budget != null) {
+      final remaining = (budget! - currentSpending).clamp(0, budget!);
+      final sessions = (remaining / avgDrinkSpending).floor();
+      spans.addAll([
+        const TextSpan(text: '술자리 '),
+        TextSpan(
+          text: '$sessions번',
+          style: const TextStyle(
+            color: Color(0xFFF27B7B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ]);
+    }
+
+    if (alcoholGoal != null) {
+      final remaining = (alcoholGoal! - currentAlcohol).clamp(
+        0.0,
+        alcoholGoal!,
+      );
+      if (spans.isNotEmpty) {
+        spans.add(const TextSpan(text: ' / '));
+      }
+      spans.addAll([
+        const TextSpan(text: '소주 '),
+        TextSpan(
+          text: '${_formatBottle(remaining)}병',
+          style: const TextStyle(
+            color: Color(0xFFF27B7B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ]);
+    }
+
+    spans.add(const TextSpan(text: '\n남았습니다.'));
+
+    return Text.rich(
+      TextSpan(
+        style: const TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w700,
+          height: 1.4,
+        ),
+        children: spans,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+}
+
+class _GoalProgressContent extends StatelessWidget {
+  const _GoalProgressContent({
+    required this.monthNum,
+    required this.budget,
+    required this.alcoholGoal,
+    required this.currentSpending,
+    required this.currentAlcohol,
+  });
+
+  final int monthNum;
+  final int? budget;
+  final double? alcoholGoal;
+  final int currentSpending;
+  final double currentAlcohol;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (budget != null) ...[
+            _BarRow(
+              label: '예산',
+              ratio: currentSpending > budget!
+                  ? 1.0
+                  : budget! > 0
+                  ? (currentSpending / budget!).clamp(0.0, 1.0)
+                  : 0.0,
+              markerLabel: _formatCurrency(currentSpending),
+              barColor: const Color(0xFFF7B6B6),
+              isOverGoal: currentSpending > budget!,
+            ),
+            const SizedBox(height: 20),
+          ],
+          if (alcoholGoal != null) ...[
+            _BarRow(
+              label: '음주량',
+              ratio: currentAlcohol > alcoholGoal!
+                  ? 1.0
+                  : alcoholGoal! > 0
+                  ? (currentAlcohol / alcoholGoal!).clamp(0.0, 1.0)
+                  : 0.0,
+              markerLabel: '${_formatBottle(currentAlcohol)}병',
+              barColor: const Color(0xFFADE4C3),
+              isOverGoal: currentAlcohol > alcoholGoal!,
+            ),
+          ],
+          if (budget != null || alcoholGoal != null) ...[
+            const SizedBox(height: 20),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            const SizedBox(height: 12),
+            if (budget != null) ...[
+              () {
+                final over = currentSpending > budget!;
+                return _SummaryRow(
+                  color: const Color(0xFFF7B6B6),
+                  label: '$monthNum월 잔액',
+                  value: over
+                      ? '${_formatCurrency(currentSpending - budget!)} 초과'
+                      : _formatCurrency(budget! - currentSpending),
+                  isOverGoal: over,
+                );
+              }(),
+            ],
+            if (budget != null && alcoholGoal != null)
+              const SizedBox(height: 8),
+            if (alcoholGoal != null) ...[
+              () {
+                final goalTenths = (alcoholGoal! * 10).round();
+                final currentTenths = (currentAlcohol * 10).round();
+                final diffTenths = currentTenths - goalTenths;
+                final over = diffTenths > 0;
+                return _SummaryRow(
+                  color: const Color(0xFFADE4C3),
+                  label: '$monthNum월 잔여 음주량',
+                  value: over
+                      ? '${_formatBottle(diffTenths / 10.0)}병 초과'
+                      : '${_formatBottle(-diffTenths / 10.0)}병',
+                  isOverGoal: over,
+                );
+              }(),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatCurrency(int amount) {
+    return '${NumberFormat('#,###').format(amount)}원';
+  }
+
+  String _formatBottle(double v) {
+    if (v == v.truncateToDouble()) {
+      return v.toInt().toString();
+    }
+    return v.toStringAsFixed(1);
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.color,
+    required this.label,
+    required this.value,
+    this.isOverGoal = false,
+  });
+
+  final Color color;
+  final String label;
+  final String value;
+  final bool isOverGoal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: isOverGoal
+                ? Colors.red[300]!.withValues(alpha: 0.5)
+                : color.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isOverGoal ? Colors.red[400] : Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BarRow extends StatelessWidget {
+  const _BarRow({
+    required this.label,
+    required this.ratio,
+    required this.markerLabel,
+    required this.barColor,
+    this.isOverGoal = false,
+  });
+
+  final String label;
+  final double ratio;
+  final String markerLabel;
+  final Color barColor;
+  final bool isOverGoal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final totalWidth = constraints.maxWidth;
+            final filledWidth = totalWidth * ratio;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Background bar
+                    Container(
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    // Filled bar
+                    Container(
+                      width: filledWidth.clamp(0.0, totalWidth),
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: isOverGoal ? Colors.red[400] : barColor,
+                        borderRadius: ratio >= 1.0
+                            ? BorderRadius.circular(5)
+                            : const BorderRadius.only(
+                                topLeft: Radius.circular(5),
+                                bottomLeft: Radius.circular(5),
+                              ),
+                      ),
+                    ),
+                    // Marker line
+                    if (ratio > 0 && ratio < 1)
+                      Positioned(
+                        left: filledWidth - 0.5,
+                        top: -2,
+                        child: Container(
+                          width: 1,
+                          height: 14,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                  ],
+                ),
+                if (ratio > 0) ...[
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 22,
+                    child: CustomSingleChildLayout(
+                      delegate: _MarkerLabelDelegate(
+                        filledWidth: filledWidth,
+                        totalWidth: totalWidth,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isOverGoal
+                              ? Colors.red[400]!.withValues(alpha: 0.25)
+                              : barColor.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          markerLabel,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isOverGoal
+                                ? Colors.red[700]
+                                : barColor
+                                      .withRed((barColor.r * 0.7).round())
+                                      .withGreen((barColor.g * 0.7).round())
+                                      .withBlue((barColor.b * 0.7).round()),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _MarkerLabelDelegate extends SingleChildLayoutDelegate {
+  const _MarkerLabelDelegate({
+    required this.filledWidth,
+    required this.totalWidth,
+  });
+
+  final double filledWidth;
+  final double totalWidth;
+
+  @override
+  Size getSize(BoxConstraints constraints) => constraints.biggest;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints(maxWidth: totalWidth);
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    final idealLeft = filledWidth - childSize.width / 2;
+    final left = idealLeft.clamp(0.0, totalWidth - childSize.width);
+    return Offset(left, (size.height - childSize.height) / 2);
+  }
+
+  @override
+  bool shouldRelayout(_MarkerLabelDelegate oldDelegate) =>
+      oldDelegate.filledWidth != filledWidth ||
+      oldDelegate.totalWidth != totalWidth;
+}

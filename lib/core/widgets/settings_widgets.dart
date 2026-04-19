@@ -49,7 +49,7 @@ class SettingsSectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Pretendard',
           fontSize: SettingsConstants.sectionHeaderFontSize,
           color: Colors.grey[600],
         ),
@@ -81,7 +81,7 @@ class SettingsListTile extends StatelessWidget {
       title: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Pretendard',
           fontSize: SettingsConstants.listTileFontSize,
           fontWeight: FontWeight.w500,
         ),

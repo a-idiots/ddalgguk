@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.1+10
+version: 2.0.0+11
 
 environment:
   sdk: ^3.9.2
@@ -77,6 +77,10 @@ dependencies:
   firebase_analytics: ^12.1.0
   url_launcher: ^6.3.2
   package_info_plus: ^9.0.0
+  image_picker: ^1.1.2
+  image: ^4.3.0
+  in_app_purchase: ^3.2.0
+  home_widget: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -131,23 +135,17 @@ flutter:
     - assets/imgs/onboarding/
     - assets/imgs/badges/drink/
     - assets/imgs/badges/sober/
+    - assets/imgs/goal_assets/goal_badge/
+    - assets/imgs/pro_plan/
+    - assets/imgs/popup/
 
   fonts:
-    - family: GmarketSans
+    - family: Pretendard
       fonts:
-        - asset: assets/fonts/GmarketSans/GmarketSansBold.ttf
-          weight: 500
-        - asset: assets/fonts/GmarketSans/GmarketSansLight.ttf
-          weight: 300
-        - asset: assets/fonts/GmarketSans/GmarketSansMedium.ttf
-          weight: 400
+        - asset: assets/fonts/Pretendard/PretendardVariable.ttf
     - family: GriunSimsimche
       fonts:
         - asset: assets/fonts/GriunSimsimche/GriunSimsimcheMedium.ttf
-          weight: 400
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter/InterMedium.ttf
           weight: 400
 
 

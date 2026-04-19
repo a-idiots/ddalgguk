@@ -42,6 +42,16 @@
 				<string>kakao70ad1321101d5bd9809b1dfcd65e777b</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.aidiot.ddalgguk</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ddalgguk</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>

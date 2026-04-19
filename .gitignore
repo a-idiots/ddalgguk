@@ -1,6 +1,7 @@
 # Miscellaneous
 *.class
 *.log
+firepit-log.txt
 *.pyc
 *.swp
 *.pem

@@ -4,17 +4,83 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/core/widgets/settings_widgets.dart';
+import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
+import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
 import 'package:ddalgguk/features/settings/widgets/save_button.dart';
+import 'package:ddalgguk/features/settings/widgets/settings_dialogs.dart';
+import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// Edit information screen for user profile settings
 class EditInfoScreen extends ConsumerWidget {
   const EditInfoScreen({super.key});
 
+  void _invalidateUserProviders(WidgetRef ref) {
+    // Reset the timestamp that all per-user data providers watch —
+    // this cascades a re-fetch to weeklyStats, currentProfileStats,
+    // alcoholGuideline, prevMonthAvg, monthRecords, etc.
+    ref.invalidate(drinkingRecordsLastUpdatedProvider);
+    // Invalidate other non-autoDispose user-data providers explicitly
+    ref.invalidate(weeklyStatsProvider);
+    ref.invalidate(weeklyStatsOffsetProvider);
+    ref.invalidate(weeklyStatsByMondayProvider);
+    ref.invalidate(currentProfileStatsProvider);
+    ref.invalidate(alcoholGuidelineDataProvider);
+    ref.invalidate(prevMonthAvgSpendingProvider);
+    ref.invalidate(userBadgesProvider);
+    ref.invalidate(userPhysicalInfoProvider);
+    ref.invalidate(proProvider);
+    ref.invalidate(authStateProvider);
+  }
+
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showLogoutDialog(context);
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final authRepository = ref.read(authRepositoryProvider);
+        await authRepository.signOut();
+        _invalidateUserProviders(ref);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('로그아웃 실패: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleAccountDeletion(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirmed = await showAccountDeletionDialog(context);
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final authRepository = ref.read(authRepositoryProvider);
+        await authRepository.deleteAccount();
+        await AnalyticsService.instance.logDeleteAccount();
+        _invalidateUserProviders(ref);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('회원 탈퇴 실패: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentUserAsync = ref.watch(currentUserProvider);
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -24,7 +90,7 @@ class EditInfoScreen extends ConsumerWidget {
         title: const Text(
           '정보 수정',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -69,97 +135,17 @@ class EditInfoScreen extends ConsumerWidget {
           ),
           const SettingsSectionDivider(),
 
-          // Drinking Related Section
-          const SettingsSectionHeader(title: '음주 관련'),
+          // Account Info Section
+          const SettingsSectionHeader(title: '계정 정보'),
           SettingsListTile(
-            title: '음주 빈도',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const DrinkingFrequencyScreen(),
-                ),
-              );
-            },
+            title: '로그아웃',
+            onTap: () => _handleLogout(context, ref),
           ),
           SettingsListTile(
-            title: '가장 선호하는 주종',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const FavoriteDrinkScreen(),
-                ),
-              );
-            },
-          ),
-          SettingsListTile(
-            title: '주량',
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AlcoholToleranceScreen(),
-                ),
-              );
-            },
+            title: '회원 탈퇴',
+            onTap: () => _handleAccountDeletion(context, ref),
           ),
           const SettingsSectionDivider(),
-
-          // Usage Purpose Section
-          const SettingsSectionHeader(title: '이용 목적'),
-          currentUserAsync.when(
-            data: (user) => _GoalToggleTile(
-              currentGoal: user?.goal ?? true,
-              onToggle: (newGoal) async {
-                try {
-                  final authRepository = ref.read(authRepositoryProvider);
-                  final currentUser = user;
-
-                  if (currentUser != null) {
-                    await authRepository.saveProfileData(
-                      id: currentUser.id ?? '',
-                      name: currentUser.name ?? '',
-                      goal: newGoal,
-                      favoriteDrink: currentUser.favoriteDrink ?? 0,
-                      maxAlcohol: currentUser.maxAlcohol ?? 0,
-                      weeklyDrinkingFrequency:
-                          currentUser.weeklyDrinkingFrequency ?? 0,
-                      gender: currentUser.gender,
-                      birthDate: currentUser.birthDate,
-                      height: currentUser.height,
-                      weight: currentUser.weight,
-                    );
-
-                    // Refresh user data immediately
-                    ref.invalidate(currentUserProvider);
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).clearSnackBars();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            newGoal ? '즐거운 음주로 변경되었습니다' : '건강한 절주로 변경되었습니다',
-                          ),
-                        ),
-                      );
-                    }
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('변경 실패: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-            loading: () =>
-                const _GoalToggleTile(currentGoal: true, onToggle: null),
-            error: (_, __) =>
-                const _GoalToggleTile(currentGoal: true, onToggle: null),
-          ),
         ],
       ),
     );
@@ -167,17 +153,21 @@ class EditInfoScreen extends ConsumerWidget {
 }
 
 /// Goal toggle tile widget
-class _GoalToggleTile extends StatefulWidget {
-  const _GoalToggleTile({required this.currentGoal, required this.onToggle});
+class GoalToggleTile extends StatefulWidget {
+  const GoalToggleTile({
+    super.key,
+    required this.currentGoal,
+    required this.onToggle,
+  });
 
   final bool currentGoal;
   final Future<void> Function(bool)? onToggle;
 
   @override
-  State<_GoalToggleTile> createState() => _GoalToggleTileState();
+  State<GoalToggleTile> createState() => GoalToggleTileState();
 }
 
-class _GoalToggleTileState extends State<_GoalToggleTile> {
+class GoalToggleTileState extends State<GoalToggleTile> {
   late bool _localGoal;
   bool _isUpdating = false;
 
@@ -188,7 +178,7 @@ class _GoalToggleTileState extends State<_GoalToggleTile> {
   }
 
   @override
-  void didUpdateWidget(_GoalToggleTile oldWidget) {
+  void didUpdateWidget(GoalToggleTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.currentGoal != oldWidget.currentGoal && !_isUpdating) {
       _localGoal = widget.currentGoal;
@@ -238,7 +228,7 @@ class _GoalToggleTileState extends State<_GoalToggleTile> {
           children: [
             Text(
               _localGoal ? '즐거운 음주' : '건강한 절주',
-              style: const TextStyle(fontFamily: 'Inter', fontSize: 16),
+              style: const TextStyle(fontFamily: 'Pretendard', fontSize: 16),
             ),
             GestureDetector(
               onTap: widget.onToggle != null ? _handleToggle : null,
@@ -388,7 +378,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
           title: const Text(
             '성별',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -408,7 +398,7 @@ class _GenderSelectionScreenState extends ConsumerState<GenderSelectionScreen> {
         title: const Text(
           '성별',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -591,7 +581,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
           title: const Text(
             '신체 정보',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -615,7 +605,7 @@ class _PhysicalInfoScreenState extends ConsumerState<PhysicalInfoScreen> {
           title: const Text(
             '신체 정보',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -775,7 +765,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
           title: const Text(
             '생년월일',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -795,7 +785,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
         title: const Text(
           '생년월일',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -962,7 +952,7 @@ class _DrinkingFrequencyScreenState
           title: const Text(
             '음주 빈도',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -987,7 +977,7 @@ class _DrinkingFrequencyScreenState
           title: const Text(
             '음주 빈도',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -1201,7 +1191,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
           title: const Text(
             '가장 선호하는 주종',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -1221,7 +1211,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
         title: const Text(
           '가장 선호하는 주종',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -1460,7 +1450,7 @@ class _AlcoholToleranceScreenState
           title: const Text(
             '주량',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -1480,7 +1470,7 @@ class _AlcoholToleranceScreenState
         title: const Text(
           '주량',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),

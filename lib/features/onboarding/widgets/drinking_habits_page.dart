@@ -1,70 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 
-/// Page for setting drinking habits (favorite drink and max alcohol)
+/// Page for setting max alcohol capacity
 class DrinkingHabitsPage extends StatefulWidget {
   const DrinkingHabitsPage({
     super.key,
     required this.onComplete,
-    this.initialFavoriteDrink,
     this.initialMaxAlcohol,
   });
 
-  final void Function({required int favoriteDrink, required double maxAlcohol})
-  onComplete;
-
-  final int? initialFavoriteDrink;
+  final void Function({required double maxAlcohol}) onComplete;
   final double? initialMaxAlcohol;
 
   @override
   State<DrinkingHabitsPage> createState() => _DrinkingHabitsPageState();
 }
 
-class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
-    with SingleTickerProviderStateMixin {
-  int? _selectedDrink;
+class _DrinkingHabitsPageState extends State<DrinkingHabitsPage> {
   int? _sliderIndex;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialFavoriteDrink != null) {
-      _selectedDrink = widget.initialFavoriteDrink;
-    }
     if (widget.initialMaxAlcohol != null) {
       _sliderIndex = _alcoholToSliderIndex(widget.initialMaxAlcohol!);
-    }
-    // Initialize slider index if drink is already selected
-    if (_selectedDrink != null && _sliderIndex == null) {
+    } else {
       _sliderIndex = 8; // Default to 1.5 bottles
     }
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, -0.1), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-        );
-
-    if (_selectedDrink != null) {
-      _animationController.value = 1.0;
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   // Convert slider index to actual alcohol amount
@@ -95,20 +56,9 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
   double get _maxAlcohol =>
       _sliderIndex != null ? _sliderIndexToAlcohol(_sliderIndex!) : 0.0;
 
-  bool get _isFormComplete => _selectedDrink != null && _sliderIndex != null;
+  bool get _isFormComplete => _sliderIndex != null;
 
   void _handleComplete() {
-    if (_selectedDrink == null) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('선호하는 주류를 선택해주세요'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
     if (_sliderIndex == null) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +70,7 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
       return;
     }
 
-    widget.onComplete(favoriteDrink: _selectedDrink!, maxAlcohol: _maxAlcohol);
+    widget.onComplete(maxAlcohol: _maxAlcohol);
   }
 
   @override
@@ -132,7 +82,7 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
         children: [
           const SizedBox(height: 120),
           const Text(
-            '당신의 음주 습관이 궁금해요!',
+            '당신의 주량이 궁금해요!',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 22,
@@ -141,33 +91,20 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
             ),
           ),
           const SizedBox(height: 60),
-          _buildDrinkSelectionCards(),
-          const SizedBox(height: 25),
-          // Slider section with animation
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Column(
-                children: [
-                  const Text(
-                    '소주 주량을 입력해주세요.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildAlcoholSlider(),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '음주 백과💡 소주 1병은 약 7잔이다.',
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                ],
-              ),
+          const Text(
+            '소주 주량을 입력해주세요.',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
             ),
+          ),
+          const SizedBox(height: 16),
+          _buildAlcoholSlider(),
+          const SizedBox(height: 12),
+          const Text(
+            '음주 백과💡 소주 1병은 약 7잔이다.',
+            style: TextStyle(fontSize: 12, color: Colors.black54),
           ),
           const Spacer(),
           SizedBox(
@@ -192,84 +129,6 @@ class _DrinkingHabitsPageState extends State<DrinkingHabitsPage>
             ),
           ),
           const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrinkSelectionCards() {
-    Widget buildDrinkCard(int drinkId) {
-      final drink = drinks.firstWhere((drink) => drink.id == drinkId);
-      final isSelected = _selectedDrink == drinkId;
-
-      return Expanded(
-        child: GestureDetector(
-          onTap: () {
-            final wasNull = _selectedDrink == null;
-            setState(() {
-              _selectedDrink = drinkId;
-              _sliderIndex ??= 0;
-            });
-            if (wasNull) {
-              _animationController.forward();
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFFFFB3B3)
-                  : Colors.grey.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Image.asset(drink.imagePath, width: 40, height: 40),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(color: Colors.grey.withValues(alpha: 0.1), blurRadius: 4),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          const Text(
-            '당신의 최애 술은?',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 20),
-          // First row: 3 items
-          Row(
-            children: [
-              buildDrinkCard(1),
-              const SizedBox(width: 12),
-              buildDrinkCard(2),
-              const SizedBox(width: 12),
-              buildDrinkCard(3),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Second row: 2 items
-          Row(
-            children: [
-              buildDrinkCard(4),
-              const SizedBox(width: 12),
-              buildDrinkCard(5),
-              const SizedBox(width: 12),
-              buildDrinkCard(6),
-            ],
-          ),
         ],
       ),
     );
@@ -397,7 +256,7 @@ class _NonLinearSlider extends StatelessWidget {
           builder: (context, constraints) {
             // Thumb의 반지름
             const thumbRadius = 10.0;
-            // 실제 사용 가능한 트랙 너비 (padding 제외)
+            // 실제 사�� 가능한 트랙 너비 (padding 제외)
             final trackWidth = constraints.maxWidth;
             // Thumb의 중심 위치 (thumbRadius ~ trackWidth - thumbRadius 범위)
             final thumbCenterPosition =

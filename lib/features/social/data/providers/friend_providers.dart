@@ -127,6 +127,13 @@ final hasFriendRequestsProvider = Provider.autoDispose<bool>((ref) {
   return count > 0;
 });
 
+/// 친구의 메인 기록 주종 Top 5 provider
+final friendTopDrinkTypesProvider = FutureProvider.autoDispose
+    .family<List<int>, String>((ref, userId) async {
+      final friendService = ref.watch(friendServiceProvider);
+      return friendService.getFriendTopDrinkTypes(userId);
+    });
+
 /// 친구의 프로필 통계 계산 프로바이더
 /// 친구의 체중, 키, 성별 등을 모두 고려하여 정확한 혈중 알코올 농도와 분해 시간 계산
 final friendProfileStatsProvider = FutureProvider.autoDispose
