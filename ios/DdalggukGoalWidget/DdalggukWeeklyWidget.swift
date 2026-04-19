@@ -17,24 +17,11 @@ private let kWeeklyDrinkingDays = "weekly_drinking_days"
 // MARK: - Day labels (Korean)
 private let dayLabels = ["월", "화", "수", "목", "금", "토", "일"]
 
-// MARK: - Saku gradient colors (matches AppColors.sakuGradientColors)
-private let sakuGradientColors: [Int: Color] = [
-    0:   Color(red: 0xD9/255, green: 0xD9/255, blue: 0xD9/255),
-    10:  Color(red: 0xFF/255, green: 0xCD/255, blue: 0xC2/255),
-    20:  Color(red: 0xFB/255, green: 0xB5/255, blue: 0xAB/255),
-    30:  Color(red: 0xFB/255, green: 0xA9/255, blue: 0x9E/255),
-    40:  Color(red: 0xFF/255, green: 0x97/255, blue: 0x8C/255),
-    50:  Color(red: 0xFF/255, green: 0x93/255, blue: 0xB3/255),
-    60:  Color(red: 0xE6/255, green: 0xB5/255, blue: 0xFF/255),
-    70:  Color(red: 0xAF/255, green: 0x8B/255, blue: 0xFA/255),
-    80:  Color(red: 0xBC/255, green: 0x6D/255, blue: 0xF4/255),
-    90:  Color(red: 0xAE/255, green: 0x39/255, blue: 0x95/255),
-    100: Color(red: 0x2C/255, green: 0x62/255, blue: 0x70/255),
-]
-
-private func sakuColor(for drunkLevel: Int) -> Color {
-    let level = (drunkLevel / 10) * 10
-    return sakuGradientColors[min(level, 100)] ?? sakuGradientColors[0]!
+// MARK: - Saku image name from drunk level (matches getBodyImagePath in drink_helpers.dart)
+private func sakuImageName(for drunkLevel: Int) -> String {
+    let clamped = max(0, min(drunkLevel, 100))
+    let level = (clamped / 10) * 10
+    return "saku_\(String(format: "%02d", level))"
 }
 
 // MARK: - Entry
@@ -112,17 +99,35 @@ struct WeeklyProvider: TimelineProvider {
 private enum WPalette {
     static let textPrimary = Color.black.opacity(0.87)
     static let textSecondary = Color.black.opacity(0.55)
-    static let futureCircle = Color(white: 0.90)
-    static let emptyCircle = Color(red: 0xD9/255, green: 0xD9/255, blue: 0xD9/255)
-    static let greenAccent = Color(red: 0x27/255, green: 0xD6/255, blue: 0x81/255)
+}
+
+// MARK: - Saku character view (body + eyes overlay)
+private struct SakuCharacterView: View {
+    let drunkLevel: Int
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Image(sakuImageName(for: drunkLevel))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: size, height: size)
+            Image("saku_eyes")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: size * 0.3, height: size * 0.3)
+        }
+    }
 }
 
 // MARK: - Views
 struct WeeklyWidgetView: View {
     let entry: WeeklyEntry
 
+    private let characterSize: CGFloat = 36
+
     var body: some View {
-        let content = VStack(alignment: .leading, spacing: 8) {
+        let content = VStack(alignment: .leading, spacing: 4) {
             // Header
             HStack(alignment: .firstTextBaseline) {
                 Text("지난 일주일")
@@ -136,7 +141,7 @@ struct WeeklyWidgetView: View {
 
             Spacer(minLength: 0)
 
-            // 7-day circles row
+            // 7-day Saku row
             HStack(spacing: 0) {
                 ForEach(0..<7, id: \.self) { i in
                     dayColumn(index: i)
@@ -147,27 +152,6 @@ struct WeeklyWidgetView: View {
             }
 
             Spacer(minLength: 0)
-
-            // Bottom summary
-            HStack(spacing: 16) {
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(sakuColor(for: 30))
-                        .frame(width: 8, height: 8)
-                    Text("음주 \(entry.drinkingDays)일")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(WPalette.textSecondary)
-                }
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(WPalette.greenAccent)
-                        .frame(width: 8, height: 8)
-                    Text("금주 \(entry.soberDays)일")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(WPalette.textSecondary)
-                }
-                Spacer()
-            }
         }
         .padding(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -183,7 +167,7 @@ struct WeeklyWidgetView: View {
     private func dayColumn(index: Int) -> some View {
         let day = entry.days[index]
 
-        return VStack(spacing: 6) {
+        return VStack(spacing: 4) {
             Text(dayLabels[index])
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(
@@ -192,37 +176,26 @@ struct WeeklyWidgetView: View {
                         : WPalette.textPrimary
                 )
 
-            ZStack {
-                if day.isFuture {
-                    // Future: dashed outline circle
-                    Circle()
-                        .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
-                        .foregroundColor(WPalette.futureCircle)
-                        .frame(width: 32, height: 32)
-                } else if day.hasRecords && day.drunkLevel > 0 {
-                    // Had drinks: colored circle with level
-                    Circle()
-                        .fill(sakuColor(for: day.drunkLevel))
-                        .frame(width: 32, height: 32)
-                    Text("\(day.drunkLevel)")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
-                } else if day.hasRecords && day.drunkLevel == 0 {
-                    // Recorded sober
-                    Circle()
-                        .fill(WPalette.greenAccent.opacity(0.3))
-                        .frame(width: 32, height: 32)
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(WPalette.greenAccent)
-                } else {
-                    // No record (past)
-                    Circle()
-                        .fill(WPalette.emptyCircle.opacity(0.4))
-                        .frame(width: 32, height: 32)
-                    Text("–")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(WPalette.textSecondary)
+            if day.isFuture {
+                // Future: future_date image
+                Image("future_date")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: characterSize, height: characterSize)
+            } else if day.hasRecords {
+                // Has records: Saku character with drunk level color + eyes
+                SakuCharacterView(drunkLevel: day.drunkLevel, size: characterSize)
+            } else {
+                // No record: empty_date (grey) + eyes
+                ZStack {
+                    Image("empty_date")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: characterSize, height: characterSize)
+                    Image("saku_eyes")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: characterSize * 0.3, height: characterSize * 0.3)
                 }
             }
         }

@@ -40,8 +40,6 @@ void main() async {
   KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!);
 
   // Initialize Firebase
-  // Note: You need to add google-services.json (Android) and GoogleService-Info.plist (iOS)
-  // and run `flutterfire configure` to generate firebase_options.dart
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
