@@ -6,7 +6,6 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
 
 /// 기록 추가 다이얼로그
@@ -78,7 +77,10 @@ class _AddRecordDialogState extends ConsumerState<AddRecordDialog> {
         sessionNumber: 0, // 서비스에서 자동 계산
         meetingName: meetingName,
         drunkLevel: drunkLevel,
-        yearMonth: DateFormat('yyyy-MM').format(widget.selectedDate),
+        // UTC 날짜 성분 직접 추출: DateFormat.format()은 로컬 변환하므로 월 경계에서 오류 발생
+        yearMonth:
+            '${widget.selectedDate.year.toString().padLeft(4, '0')}-'
+            '${widget.selectedDate.month.toString().padLeft(2, '0')}',
         drinkAmount: drinkAmounts,
         memo: {'text': memo},
         cost: cost,

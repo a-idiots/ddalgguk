@@ -50,7 +50,8 @@ class DrinkingRecordService {
       }
 
       // 같은 날짜의 기록 개수를 확인하여 sessionNumber 결정
-      final dateStart = DateTime(
+      // UTC 자정 기준으로 쿼리: 해외 타임존에서도 날짜 일치
+      final dateStart = DateTime.utc(
         record.date.year,
         record.date.month,
         record.date.day,
@@ -158,7 +159,8 @@ class DrinkingRecordService {
   /// 특정 날짜의 모든 음주 기록 가져오기
   Future<List<DrinkingRecord>> getRecordsByDate(DateTime date) async {
     try {
-      final dateStart = DateTime(date.year, date.month, date.day);
+      // UTC 자정 기준으로 쿼리: 해외 타임존에서도 날짜 일치
+      final dateStart = DateTime.utc(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
       final querySnapshot = await _getRecordsCollection()
@@ -183,7 +185,8 @@ class DrinkingRecordService {
     DateTime date,
   ) async {
     try {
-      final dateStart = DateTime(date.year, date.month, date.day);
+      // UTC 자정 기준으로 쿼리: 해외 타임존에서도 날짜 일치
+      final dateStart = DateTime.utc(date.year, date.month, date.day);
       final dateEnd = dateStart.add(const Duration(days: 1));
 
       final querySnapshot = await _firestore
@@ -230,8 +233,9 @@ class DrinkingRecordService {
   /// 특정 월의 모든 음주 기록 가져오기
   Future<List<DrinkingRecord>> getRecordsByMonth(int year, int month) async {
     try {
-      final startDate = DateTime(year, month, 1);
-      final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+      // UTC 자정 기준으로 쿼리: 해외 타임존에서도 월 경계가 정확함
+      final startDate = DateTime.utc(year, month, 1);
+      final endDate = DateTime.utc(year, month + 1, 0, 23, 59, 59);
 
       return await getRecordsByDateRange(startDate, endDate);
     } catch (e) {
@@ -248,7 +252,8 @@ class DrinkingRecordService {
 
       // 친구들에게 음주 데이터 업데이트 (해당 날짜의 평균 재계산)
       try {
-        final dateStart = DateTime(
+        // UTC 자정 기준으로 쿼리: 해외 타임존에서도 날짜 일치
+        final dateStart = DateTime.utc(
           record.date.year,
           record.date.month,
           record.date.day,
@@ -332,7 +337,8 @@ class DrinkingRecordService {
 
       // 친구들에게 음주 데이터 업데이트 (weeklyDrunkLevels 재계산)
       try {
-        final dateStart = DateTime(
+        // UTC 자정 기준으로 쿼리: 해외 타임존에서도 날짜 일치
+        final dateStart = DateTime.utc(
           recordDate.year,
           recordDate.month,
           recordDate.day,
@@ -445,7 +451,8 @@ class DrinkingRecordService {
 
   /// 실시간 음주 기록 스트림 (특정 날짜)
   Stream<List<DrinkingRecord>> streamRecordsByDate(DateTime date) {
-    final dateStart = DateTime(date.year, date.month, date.day);
+    // UTC 자정 기준으로 쿼리: 해외 타임존에서도 날짜 일치
+    final dateStart = DateTime.utc(date.year, date.month, date.day);
     final dateEnd = dateStart.add(const Duration(days: 1));
 
     return _getRecordsCollection()
