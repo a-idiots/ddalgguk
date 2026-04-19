@@ -3,12 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:home_widget/home_widget.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ddalgguk/firebase_options.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
+import 'package:ddalgguk/features/profile/data/providers/goal_widget_sync_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/weekly_widget_sync_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/widget_deeplink_provider.dart';
+import 'package:ddalgguk/features/profile/data/services/goal_home_widget_service.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
 //import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
@@ -86,12 +91,51 @@ void main() async {
   runApp(const ProviderScope(child: DdalggukApp()));
 }
 
-class DdalggukApp extends ConsumerWidget {
+class DdalggukApp extends ConsumerStatefulWidget {
   const DdalggukApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DdalggukApp> createState() => _DdalggukAppState();
+}
+
+class _DdalggukAppState extends ConsumerState<DdalggukApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initHomeWidgetLinks();
+  }
+
+  Future<void> _initHomeWidgetLinks() async {
+    await HomeWidget.setAppGroupId(GoalHomeWidgetService.appGroupId);
+    // Cold-start: the app was launched by tapping the widget.
+    final initial = await HomeWidget.initiallyLaunchedFromHomeWidget();
+    _handleWidgetUri(initial);
+    // Warm-start: app resumed from background via widget tap.
+    HomeWidget.widgetClicked.listen(_handleWidgetUri);
+  }
+
+  void _handleWidgetUri(Uri? uri) {
+    if (uri == null) {
+      return;
+    }
+    // ddalgguk://goal → 음주 목표 화면 열기
+    if (uri.host == 'goal' || uri.path == '/goal') {
+      ref.read(widgetDeepLinkProvider.notifier).state = 'goal';
+    }
+    // ddalgguk://profile → 프로필 화면 열기
+    if (uri.host == 'profile' || uri.path == '/profile') {
+      ref.read(widgetDeepLinkProvider.notifier).state = 'profile';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    // Keep the iOS home-screen widget in sync — fires automatically on any
+    // goal / spending / alcohol change, regardless of which screen the user
+    // is currently looking at.
+    ref.watch(goalWidgetSyncProvider);
+    ref.watch(weeklyWidgetSyncProvider);
 
     return MaterialApp.router(
       title: 'Ddalgguk',
@@ -104,7 +148,7 @@ class DdalggukApp extends ConsumerWidget {
       ],
       supportedLocales: const [Locale('ko', ''), Locale('en', '')],
       theme: ThemeData(
-        fontFamily: 'GmarketSans',
+        fontFamily: 'Pretendard',
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
@@ -122,6 +166,9 @@ class DdalggukApp extends ConsumerWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primaryPink,
           primary: AppColors.primaryPink,
+        ),
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: Colors.grey,
         ),
       ),
       routerConfig: router,
