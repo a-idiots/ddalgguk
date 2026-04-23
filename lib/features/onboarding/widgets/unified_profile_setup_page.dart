@@ -65,6 +65,21 @@ class _UnifiedProfileSetupPageState extends State<UnifiedProfileSetupPage> {
   }
 
   void _nextStep() {
+    // Age assurance check on birth date step
+    if (_currentStep == 2 && widget.selectedDate != null) {
+      final now = DateTime.now();
+      final birth = widget.selectedDate!;
+      int age = now.year - birth.year;
+      if (now.month < birth.month ||
+          (now.month == birth.month && now.day < birth.day)) {
+        age--;
+      }
+      if (age < 19) {
+        _showAgeRestrictionDialog();
+        return;
+      }
+    }
+
     if (_currentStep < 4) {
       setState(() {
         _currentStep++;
@@ -83,6 +98,51 @@ class _UnifiedProfileSetupPageState extends State<UnifiedProfileSetupPage> {
     } else {
       widget.onComplete();
     }
+  }
+
+  void _showAgeRestrictionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.hardEdge,
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 72, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: const Text(
+                '이용 제한',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              child: Text(
+                '만 19세 이상만\n이용할 수 있습니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   String _getTitle() {
@@ -133,7 +193,7 @@ class _UnifiedProfileSetupPageState extends State<UnifiedProfileSetupPage> {
             initialDateTime:
                 widget.selectedDate ?? DateTime(DateTime.now().year - 19),
             minimumDate: DateTime(1900),
-            maximumDate: DateTime(DateTime.now().year - 19, 12, 31),
+            maximumDate: DateTime.now(),
             dateOrder: DatePickerDateOrder.ymd,
             onDateTimeChanged: widget.onDateSelected,
           ),

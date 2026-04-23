@@ -720,11 +720,69 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
     }
   }
 
+  void _showAgeRestrictionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.hardEdge,
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 72, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: const Text(
+                '이용 제한',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              child: Text(
+                '만 19세 이상만\n이용할 수 있습니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleSave() async {
     if (_selectedDate == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('생년월일을 선택해주세요')));
+      return;
+    }
+
+    // Age assurance check
+    final now = DateTime.now();
+    final birth = _selectedDate!;
+    int age = now.year - birth.year;
+    if (now.month < birth.month ||
+        (now.month == birth.month && now.day < birth.day)) {
+      age--;
+    }
+    if (age < 19) {
+      _showAgeRestrictionDialog();
       return;
     }
 
@@ -803,7 +861,7 @@ class _BirthDateScreenState extends ConsumerState<BirthDateScreen> {
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedDate ?? DateTime(2007, 1, 1),
                 minimumDate: DateTime(1900),
-                maximumDate: DateTime(DateTime.now().year - 19, 12, 31),
+                maximumDate: DateTime.now(),
                 dateOrder: DatePickerDateOrder.ymd,
                 onDateTimeChanged: (DateTime newDate) {
                   setState(() {
