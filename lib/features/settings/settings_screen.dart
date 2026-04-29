@@ -46,10 +46,7 @@ class SettingsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('회원 탈퇴 실패: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('회원 탈퇴 실패: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -77,16 +74,12 @@ class SettingsScreen extends ConsumerWidget {
                     _ProSecretTapper(
                       isPro: isPro,
                       onToggle: () async {
-                        await ref
-                            .read(proProvider.notifier)
-                            .setValue(!isPro);
+                        await ref.read(proProvider.notifier).setValue(!isPro);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).clearSnackBars();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Pro 상태: ${!isPro ? "ON" : "OFF"}',
-                              ),
+                              content: Text('Pro 상태: ${!isPro ? "ON" : "OFF"}'),
                               duration: const Duration(seconds: 1),
                             ),
                           );

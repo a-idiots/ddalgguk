@@ -232,9 +232,9 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               onTap: _isLoading
                                   ? null
                                   : () => setState(
-                                        () => _selectedProductId =
-                                            kProLifetimeProductId,
-                                      ),
+                                      () => _selectedProductId =
+                                          kProLifetimeProductId,
+                                    ),
                             ),
                             const SizedBox(height: 12),
                             _PaymentCard(
@@ -247,9 +247,9 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               onTap: _isLoading
                                   ? null
                                   : () => setState(
-                                        () => _selectedProductId =
-                                            kProAnnualProductId,
-                                      ),
+                                      () => _selectedProductId =
+                                          kProAnnualProductId,
+                                    ),
                             ),
                             const SizedBox(height: 16),
                             SizedBox(
@@ -257,8 +257,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               child: ElevatedButton(
                                 onPressed: _isLoading
                                     ? null
-                                    : () =>
-                                          _handlePurchase(_selectedProductId),
+                                    : () => _handlePurchase(_selectedProductId),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFF08080),
                                   foregroundColor: Colors.white,

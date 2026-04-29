@@ -26,9 +26,7 @@ class WeeklyHomeWidgetService {
   }
 
   /// Writes the weekly stats and triggers a widget reload.
-  static Future<void> update({
-    required WeeklyStats weeklyStats,
-  }) async {
+  static Future<void> update({required WeeklyStats weeklyStats}) async {
     if (!Platform.isIOS) {
       return;
     }

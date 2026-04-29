@@ -416,11 +416,7 @@ class _GuidelineDialogState extends State<_GuidelineDialog>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 14,
-                    color: Colors.grey[600],
-                  ),
+                  Icon(Icons.info_outline, size: 14, color: Colors.grey[600]),
                   const SizedBox(width: 5),
                   Text(
                     '출처 및 참고 자료',

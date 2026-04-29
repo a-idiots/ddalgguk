@@ -46,10 +46,7 @@ class GoalHomeWidgetService {
         HomeWidget.saveWidgetData<int>('month_num', monthNum),
         HomeWidget.saveWidgetData<int>('goal_budget', budget ?? 0),
         HomeWidget.saveWidgetData<bool>('has_budget', budget != null),
-        HomeWidget.saveWidgetData<double>(
-          'goal_alcohol',
-          alcoholGoal ?? 0.0,
-        ),
+        HomeWidget.saveWidgetData<double>('goal_alcohol', alcoholGoal ?? 0.0),
         HomeWidget.saveWidgetData<bool>('has_alcohol', alcoholGoal != null),
         HomeWidget.saveWidgetData<int>('current_spending', currentSpending),
         HomeWidget.saveWidgetData<double>('current_alcohol', currentAlcohol),
