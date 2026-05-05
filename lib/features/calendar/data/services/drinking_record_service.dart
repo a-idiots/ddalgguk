@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ddalgguk/shared/services/in_app_review_service.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/ranking/data/services/ranking_service.dart';
 import 'package:ddalgguk/features/social/data/services/friend_service.dart';
@@ -107,6 +108,9 @@ class DrinkingRecordService {
             debugPrint('Failed to update ranking: $e');
           }),
       ]);
+
+      // Best-effort: request app review at milestone counts
+      InAppReviewService.onRecordCreated();
 
       return docRef.id;
     } catch (e) {
