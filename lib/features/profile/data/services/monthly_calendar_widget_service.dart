@@ -54,8 +54,9 @@ class MonthlyCalendarWidgetService {
       // Determine elapsed days (up to today)
       final isCurrentMonth = year == today.year && month == today.month;
       final isFutureMonth = DateTime(year, month).isAfter(today);
-      final elapsedDays =
-          isFutureMonth ? 0 : (isCurrentMonth ? today.day : daysInMonth);
+      final elapsedDays = isFutureMonth
+          ? 0
+          : (isCurrentMonth ? today.day : daysInMonth);
 
       final futures = <Future<bool?>>[];
 
@@ -98,19 +99,25 @@ class MonthlyCalendarWidgetService {
         // Average drunk level for the day (0-100 scale, matching drunkLevel * 10)
         int drunkLevel = 0;
         if (dayRecords.isNotEmpty) {
-          final avg = dayRecords.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
+          final avg =
+              dayRecords.map((r) => r.drunkLevel).reduce((a, b) => a + b) /
               dayRecords.length;
           drunkLevel = (avg.round() * 10).clamp(0, 100);
         }
 
         futures.addAll([
           HomeWidget.saveWidgetData<int>('cal_day_${d}_status', status),
-          HomeWidget.saveWidgetData<int>('cal_day_${d}_drunk_level', drunkLevel),
+          HomeWidget.saveWidgetData<int>(
+            'cal_day_${d}_drunk_level',
+            drunkLevel,
+          ),
         ]);
       }
 
-      final noRecordDays =
-          (elapsedDays - drinkingDays - soberDays).clamp(0, 999);
+      final noRecordDays = (elapsedDays - drinkingDays - soberDays).clamp(
+        0,
+        999,
+      );
 
       futures.addAll([
         HomeWidget.saveWidgetData<int>('cal_drinking_days', drinkingDays),
