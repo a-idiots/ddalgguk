@@ -212,46 +212,45 @@ struct MonthlyCalendarWidgetView: View {
         let drunkLevel = entry.dayDrunkLevels[day - 1]
         let isToday = isDateToday(day: day)
 
-        return VStack(spacing: 1) {
+        return ZStack {
+            // Today background
+            if isToday {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.black.opacity(0.08))
+            }
+
+            VStack(spacing: 1) {
             // Day number
             Text("\(day)")
                 .font(.system(size: 9, weight: isToday ? .bold : .regular))
                 .foregroundColor(isToday ? CalPalette.todayRing : dayNumberColor(status: status))
 
             // Saku character or placeholder
-            ZStack {
+            Group {
                 if status == 1 {
-                    // Drinking: saku with drunk level
                     CalSakuView(drunkLevel: drunkLevel, size: sakuSize)
                 } else if status == 2 {
-                    // Sober: saku at level 0
                     CalSakuView(drunkLevel: 0, size: sakuSize)
                 } else if status == 3 {
-                    // Future: future_date
                     Image("future_date")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: sakuSize, height: sakuSize)
                 } else {
-                    // No record (past): empty_date + eyes
-                    Image("empty_date")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: sakuSize, height: sakuSize)
-                    Image("saku_eyes")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: sakuSize * 0.3, height: sakuSize * 0.3)
-                }
-
-                // Today ring
-                if isToday {
-                    Circle()
-                        .strokeBorder(CalPalette.todayRing, lineWidth: 1.5)
-                        .frame(width: sakuSize, height: sakuSize)
+                    ZStack {
+                        Image("empty_date")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: sakuSize, height: sakuSize)
+                        Image("saku_eyes")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: sakuSize * 0.3, height: sakuSize * 0.3)
+                    }
                 }
             }
             .frame(width: sakuSize, height: sakuSize)
+            }
         }
         .frame(height: sakuSize + 12)
     }
