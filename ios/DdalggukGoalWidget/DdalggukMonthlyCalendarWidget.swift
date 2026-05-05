@@ -157,18 +157,34 @@ struct MonthlyCalendarWidgetView: View {
     let entry: MonthlyCalendarEntry
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
-    private let sakuSize: CGFloat = 36
+
+    private var weekRows: Int {
+        let totalCells = entry.firstWeekday - 1 + entry.daysInMonth
+        return (totalCells + 6) / 7
+    }
+
+    private var sakuSize: CGFloat {
+        weekRows <= 5 ? 36 : 30
+    }
+
+    private var cellHeight: CGFloat {
+        sakuSize + 14
+    }
 
     var body: some View {
-        let content = VStack(alignment: .leading, spacing: 4) {
-            // Header
-            HStack(alignment: .firstTextBaseline) {
-                Text("\(entry.month)월")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(CalPalette.textPrimary)
+        let content = VStack(alignment: .center, spacing: 2) {
+            // Month title (centered)
+            Text("\(entry.month)월")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(CalPalette.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            // Stat dots (right-aligned)
+            HStack {
                 Spacer()
                 statDotsRow
             }
+            .padding(.top, 2)
 
             // Day-of-week header
             HStack(spacing: 0) {
@@ -179,13 +195,13 @@ struct MonthlyCalendarWidgetView: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .padding(.top, 2)
+            .padding(.top, 4)
 
             // Calendar grid
-            LazyVGrid(columns: columns, spacing: 2) {
-                // Empty cells before day 1
-                ForEach(0..<(entry.firstWeekday - 1), id: \.self) { _ in
-                    Color.clear.frame(height: sakuSize + 12)
+            LazyVGrid(columns: columns, spacing: 1) {
+                // Empty cells before day 1 (use negative IDs to avoid collision)
+                ForEach((-entry.firstWeekday + 1)..<0, id: \.self) { _ in
+                    Color.clear.frame(height: cellHeight)
                 }
 
                 // Day cells
@@ -193,11 +209,9 @@ struct MonthlyCalendarWidgetView: View {
                     dayCell(day: day)
                 }
             }
-
-            Spacer(minLength: 0)
         }
-        .padding(EdgeInsets(top: 14, leading: 12, bottom: 10, trailing: 12))
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(EdgeInsets(top: 12, leading: 10, bottom: 8, trailing: 10))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .widgetURL(URL(string: "ddalgguk://calendar"))
 
         if #available(iOSApplicationExtension 17.0, *) {
@@ -220,39 +234,39 @@ struct MonthlyCalendarWidgetView: View {
             }
 
             VStack(spacing: 1) {
-            // Day number
-            Text("\(day)")
-                .font(.system(size: 9, weight: isToday ? .bold : .regular))
-                .foregroundColor(isToday ? CalPalette.todayRing : dayNumberColor(status: status))
-
-            // Saku character or placeholder
-            Group {
-                if status == 1 {
-                    CalSakuView(drunkLevel: drunkLevel, size: sakuSize)
-                } else if status == 2 {
-                    CalSakuView(drunkLevel: 0, size: sakuSize)
-                } else if status == 3 {
-                    Image("future_date")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: sakuSize, height: sakuSize)
-                } else {
-                    ZStack {
-                        Image("empty_date")
+                // Saku character or placeholder (top)
+                Group {
+                    if status == 1 {
+                        CalSakuView(drunkLevel: drunkLevel, size: sakuSize)
+                    } else if status == 2 {
+                        CalSakuView(drunkLevel: 0, size: sakuSize)
+                    } else if status == 3 {
+                        Image("future_date")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: sakuSize, height: sakuSize)
-                        Image("saku_eyes")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: sakuSize * 0.3, height: sakuSize * 0.3)
+                    } else {
+                        ZStack {
+                            Image("empty_date")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: sakuSize, height: sakuSize)
+                            Image("saku_eyes")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: sakuSize * 0.3, height: sakuSize * 0.3)
+                        }
                     }
                 }
-            }
-            .frame(width: sakuSize, height: sakuSize)
+                .frame(width: sakuSize, height: sakuSize)
+
+                // Day number (bottom)
+                Text("\(day)")
+                    .font(.system(size: weekRows <= 5 ? 9 : 8, weight: isToday ? .bold : .regular))
+                    .foregroundColor(isToday ? CalPalette.todayRing : dayNumberColor(status: status))
             }
         }
-        .frame(height: sakuSize + 12)
+        .frame(height: cellHeight)
     }
 
     private func dayNumberColor(status: Int) -> Color {
