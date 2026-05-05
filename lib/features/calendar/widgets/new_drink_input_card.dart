@@ -258,7 +258,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     final bool isOtherButton = type == -1;
     // '기타' 버튼이 선택된 상태인지
     final bool isCustomDrinkSelected =
-        widget.inputData.drinkType > 5 &&
+        widget.inputData.drinkType > 0 &&
         !_mainDrinkIds.contains(widget.inputData.drinkType);
 
     // 이 버튼이 선택되었는지 판별
