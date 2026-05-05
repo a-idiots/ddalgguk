@@ -210,6 +210,9 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
                           if (value == null || value.isEmpty) {
                             return '도수를 입력해주세요';
                           }
+                          if (double.tryParse(value.trim()) == null) {
+                            return '유효한 숫자를 입력해주세요';
+                          }
                           return null;
                         },
                       ),
