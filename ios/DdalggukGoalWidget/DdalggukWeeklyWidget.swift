@@ -151,7 +151,11 @@ struct WeeklyWidgetView: View {
                 }
             }
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 2)
+
+            // Stat dots
+            statDotsRow
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -161,6 +165,35 @@ struct WeeklyWidgetView: View {
             content.containerBackground(Color.white, for: .widget)
         } else {
             content.background(Color.white)
+        }
+    }
+
+    private var statDotsRow: some View {
+        let noRecordDays = entry.days.filter { !$0.isFuture && !$0.hasRecords }.count
+        let drinkingDays = entry.drinkingDays
+        let soberDays = entry.days.filter { !$0.isFuture && $0.hasRecords && $0.drunkLevel == 0 }.count
+
+        return HStack(spacing: 10) {
+            if drinkingDays > 0 {
+                statDot(color: Color(red: 1.0, green: 0.64, blue: 0.64), count: drinkingDays)
+            }
+            if soberDays > 0 {
+                statDot(color: Color(red: 0.61, green: 0.88, blue: 0.75), count: soberDays)
+            }
+            if noRecordDays > 0 {
+                statDot(color: Color(red: 0.74, green: 0.74, blue: 0.74), count: noRecordDays)
+            }
+        }
+    }
+
+    private func statDot(color: Color, count: Int) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 10, height: 10)
+            Text("\(count)")
+                .font(.system(size: 11))
+                .foregroundColor(WPalette.textPrimary)
         }
     }
 
