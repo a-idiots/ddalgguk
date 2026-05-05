@@ -11,6 +11,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/features/profile/data/providers/goal_widget_sync_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/monthly_calendar_widget_sync_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/weekly_widget_sync_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/widget_deeplink_provider.dart';
 import 'package:ddalgguk/features/profile/data/services/goal_home_widget_service.dart';
@@ -130,6 +131,7 @@ class _DdalggukAppState extends ConsumerState<DdalggukApp> {
     // is currently looking at.
     ref.watch(goalWidgetSyncProvider);
     ref.watch(weeklyWidgetSyncProvider);
+    ref.watch(monthlyCalendarWidgetSyncProvider);
 
     return MaterialApp.router(
       title: 'Ddalgguk',
