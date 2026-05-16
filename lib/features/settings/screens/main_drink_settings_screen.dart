@@ -3,6 +3,7 @@ import 'package:ddalgguk/core/widgets/settings_widgets.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/features/settings/widgets/add_custom_drink_card.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/drink_icon.dart';
 import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,11 +52,14 @@ class _MainDrinkSettingsScreenState
 
       setState(() {
         _allDrinks = [...standardDrinks, ...customDrinks];
+        final validIds = _allDrinks.map((d) => d.id).toSet();
         _selectedIds.clear();
         if (savedIds.isEmpty) {
           _selectedIds.addAll(kFreeDefaultDrinkIds);
         } else {
-          _selectedIds.addAll(savedIds);
+          // 그리드에 표시되는 주종만 선택 상태로 유지 — 삭제된 커스텀이나
+          // 잘못 저장된 기타(-1) 같은 잔재 제거.
+          _selectedIds.addAll(savedIds.where(validIds.contains));
         }
         _isLoading = false;
       });
@@ -316,11 +320,10 @@ class _MainDrinkSettingsScreenState
                                         shape: BoxShape.circle,
                                       ),
                                       child: Center(
-                                        child: Image.asset(
-                                          drink.imagePath,
+                                        child: DrinkIcon(
+                                          imagePath: drink.imagePath,
                                           width: 30,
                                           height: 30,
-                                          fit: BoxFit.contain,
                                         ),
                                       ),
                                     ),

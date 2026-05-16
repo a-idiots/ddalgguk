@@ -1,5 +1,6 @@
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/drink_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -119,14 +120,7 @@ class _OtherDrinkSelectionDialogState
                                     shape: BoxShape.circle,
                                   ),
                                   padding: const EdgeInsets.all(8),
-                                  child: Image.asset(
-                                    drink.imagePath,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.asset(
-                                        'assets/imgs/alcohol_icons/undecided.png',
-                                      );
-                                    },
-                                  ),
+                                  child: DrinkIcon(imagePath: drink.imagePath),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(

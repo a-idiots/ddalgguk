@@ -17,6 +17,8 @@ class StorageKeys {
   static const String mainDrinkIds = 'main_drink_ids'; // List<int>
   static const String customDrinks =
       'custom_drinks'; // List<Map<String, dynamic>>
+  static const String customDrinkIcons =
+      'custom_drink_icons'; // JSON: {drinkId: base64}
 }
 
 /// Login provider types

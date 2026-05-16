@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/drink_icon.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
 import 'package:ddalgguk/core/providers/notification_provider.dart';
 import 'package:ddalgguk/core/providers/pro_provider.dart';
@@ -1318,7 +1319,11 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
                   : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Image.asset(drink.imagePath, width: 40, height: 40),
+            child: DrinkIcon(
+              imagePath: drink.imagePath,
+              width: 40,
+              height: 40,
+            ),
           ),
         ),
       );
