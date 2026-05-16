@@ -122,9 +122,7 @@ class DrinkSettingsService {
 
     // 업로드된 아이콘이 있는 주종이 하나라도 있으면 Firestore에서 아이콘 일괄 복원.
     if (drinks.any((d) => parseCustomDrinkIconId(d.imagePath) != null)) {
-      await _ref
-          .read(customDrinkIconServiceProvider)
-          .restoreFromFirestore();
+      await _ref.read(customDrinkIconServiceProvider).restoreFromFirestore();
     }
     return drinks;
   }
@@ -162,8 +160,7 @@ class DrinkSettingsService {
     }
 
     // 업로드한 아이콘이었다면 스토리지/캐시에서도 제거.
-    if (removed != null &&
-        parseCustomDrinkIconId(removed.imagePath) != null) {
+    if (removed != null && parseCustomDrinkIconId(removed.imagePath) != null) {
       await _ref.read(customDrinkIconServiceProvider).delete(id);
     }
   }

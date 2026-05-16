@@ -1319,11 +1319,7 @@ class _FavoriteDrinkScreenState extends ConsumerState<FavoriteDrinkScreen> {
                   : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: DrinkIcon(
-              imagePath: drink.imagePath,
-              width: 40,
-              height: 40,
-            ),
+            child: DrinkIcon(imagePath: drink.imagePath, width: 40, height: 40),
           ),
         ),
       );

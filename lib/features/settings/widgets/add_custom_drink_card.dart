@@ -58,9 +58,7 @@ class _AddCustomDrinkCardState extends ConsumerState<AddCustomDrinkCard> {
       String imagePath = _selectedImagePath;
       final pending = _pendingIconBytes;
       if (pending != null) {
-        await ref
-            .read(customDrinkIconServiceProvider)
-            .persist(id, pending);
+        await ref.read(customDrinkIconServiceProvider).persist(id, pending);
         imagePath = customDrinkIconMarker(id);
       }
 
@@ -363,9 +361,9 @@ class _IconSelectionDialogState extends ConsumerState<_IconSelectionDialog> {
       Navigator.pop(context, _IconSelectionResult.upload(processed));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('이미지를 처리할 수 없습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('이미지를 처리할 수 없습니다.')));
       }
     } finally {
       if (mounted) {

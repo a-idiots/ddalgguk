@@ -232,8 +232,9 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                               child: ElevatedButton(
                                 onPressed: _isLoading
                                     ? null
-                                    : () =>
-                                          _handlePurchase(kProLifetimeProductId),
+                                    : () => _handlePurchase(
+                                        kProLifetimeProductId,
+                                      ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFF08080),
                                   foregroundColor: Colors.white,
