@@ -2,8 +2,8 @@
  * 딸꾹 랭킹 히스토리 백필 스크립트
  *
  * 처리 범위:
- *   - 주간: 2026_W01 (12/29~1/4) ~ 2026_W09 (2/23~3/1)
- *   - 월간: 2026_01, 2026_02, 2026_03
+ *   - 주간: 2026_W01 (12/29~1/4) ~ 2026_W18 (4/27~5/3, 이번주 진행중)
+ *   - 월간: 2026_01, 2026_02, 2026_03, 2026_04
  *
  * 저장 경로:
  *   rankings/{uid}/weekly/{weekKey}  → { amount: double (ml) }
@@ -30,14 +30,15 @@ const db = admin.firestore();
 // ─── 대상 기간 ──────────────────────────────────────────────────────────────
 
 // 조회 시작: 2026_W01의 첫날 (2025-12-29 UTC)
-// 조회 종료: 2026-04-12 (2026_W15 마지막날, 포함)
+// 조회 종료: 2026-05-03 (2026_W18 마지막날, 포함) — 이번주 포함하여 fill
 const RANGE_START = new Date(Date.UTC(2025, 11, 29)); // 2025-12-29
-const RANGE_END   = new Date(Date.UTC(2026,  3, 12)); // 2026-04-12 (inclusive)
+const RANGE_END   = new Date(Date.UTC(2026,  4,  3)); // 2026-05-03 (inclusive)
 
 const TARGET_WEEK_KEYS  = [
   '2026_W01', '2026_W02', '2026_W03', '2026_W04', '2026_W05',
   '2026_W06', '2026_W07', '2026_W08', '2026_W09', '2026_W10',
   '2026_W11', '2026_W12', '2026_W13', '2026_W14', '2026_W15',
+  '2026_W16', '2026_W17', '2026_W18',
 ];
 const TARGET_MONTH_KEYS = ['2026_01', '2026_02', '2026_03', '2026_04'];
 
@@ -186,7 +187,7 @@ async function main() {
 
       console.log(
         `✅ [${successCount}/${totalUsers}] ${name.padEnd(16)} ` +
-        `주차 ${weekWritten}/15  월 ${monthWritten}/4  (${batchCount}건 저장)`,
+        `주차 ${weekWritten}/${TARGET_WEEK_KEYS.length}  월 ${monthWritten}/${TARGET_MONTH_KEYS.length}  (${batchCount}건 저장)`,
       );
 
     } catch (err) {

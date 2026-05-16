@@ -39,19 +39,25 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
       String unit;
       double amount;
 
-      // 주종별 병 용량 기준으로 1병 이상인지 확인
-      final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
-      final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
-
-      if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
-        unit = '병';
-        amount = drink.amount / bottleMultiplier;
-      } else if (drink.amount >= glassMultiplier) {
-        unit = '잔';
-        amount = drink.amount / glassMultiplier;
-      } else {
+      // 커스텀 주종은 항상 ml로 표시 (사용자가 ml로 입력함).
+      if (drink.drinkType >= 1000) {
         unit = 'ml';
         amount = drink.amount;
+      } else {
+        // 주종별 병 용량 기준으로 1병 이상인지 확인
+        final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
+        final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
+
+        if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
+          unit = '병';
+          amount = drink.amount / bottleMultiplier;
+        } else if (drink.amount >= glassMultiplier) {
+          unit = '잔';
+          amount = drink.amount / glassMultiplier;
+        } else {
+          unit = 'ml';
+          amount = drink.amount;
+        }
       }
 
       records.add(

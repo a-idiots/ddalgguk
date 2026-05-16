@@ -112,6 +112,11 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
 
+    // 커스텀 주종 아이콘 (base64 JPEG, 본인 전용)
+    match /customDrinkIcons/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
     // 기본적으로 모든 접근 거부
     match /{document=**} {
       allow read, write: if false;

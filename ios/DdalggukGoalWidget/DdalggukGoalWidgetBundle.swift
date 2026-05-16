@@ -5,5 +5,7 @@ import WidgetKit
 struct DdalggukGoalWidgetBundle: WidgetBundle {
     var body: some Widget {
         DdalggukGoalWidget()
+        DdalggukWeeklyWidget()
+        DdalggukMonthlyCalendarWidget()
     }
 }

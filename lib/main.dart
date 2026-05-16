@@ -11,6 +11,8 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
 import 'package:ddalgguk/features/profile/data/providers/goal_widget_sync_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/monthly_calendar_widget_sync_provider.dart';
+import 'package:ddalgguk/features/profile/data/providers/weekly_widget_sync_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/widget_deeplink_provider.dart';
 import 'package:ddalgguk/features/profile/data/services/goal_home_widget_service.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
@@ -39,8 +41,6 @@ void main() async {
   KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!);
 
   // Initialize Firebase
-  // Note: You need to add google-services.json (Android) and GoogleService-Info.plist (iOS)
-  // and run `flutterfire configure` to generate firebase_options.dart
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -130,6 +130,8 @@ class _DdalggukAppState extends ConsumerState<DdalggukApp> {
     // goal / spending / alcohol change, regardless of which screen the user
     // is currently looking at.
     ref.watch(goalWidgetSyncProvider);
+    ref.watch(weeklyWidgetSyncProvider);
+    ref.watch(monthlyCalendarWidgetSyncProvider);
 
     return MaterialApp.router(
       title: 'Ddalgguk',

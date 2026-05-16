@@ -3,6 +3,7 @@ import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
 import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/drink_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -61,9 +62,10 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
 
       if (mounted) {
         setState(() {
-          _mainDrinkIds = savedIds.isNotEmpty
-              ? savedIds.take(5).toList()
-              : _mainDrinkIds;
+          // 기타(-1)/알 수 없음(0) 같은 잘못 저장된 잔재 제거 — 기타 버튼은
+          // 항상 우측 끝에 별도로 렌더링되므로 메인 리스트에 들어가면 중복됨.
+          final cleaned = savedIds.where((id) => id > 0).take(5).toList();
+          _mainDrinkIds = cleaned.isNotEmpty ? cleaned : _mainDrinkIds;
           _customDrinks = customDrinks;
         });
       }
@@ -258,7 +260,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     final bool isOtherButton = type == -1;
     // '기타' 버튼이 선택된 상태인지
     final bool isCustomDrinkSelected =
-        widget.inputData.drinkType > 5 &&
+        widget.inputData.drinkType > 0 &&
         !_mainDrinkIds.contains(widget.inputData.drinkType);
 
     // 이 버튼이 선택되었는지 판별
@@ -287,24 +289,14 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
       final drink = findDrink(widget.inputData.drinkType);
       label = drink?.name ?? getDrinkTypeName(widget.inputData.drinkType);
       icon = drink != null
-          ? Image.asset(
-              drink.imagePath,
-              width: 28,
-              height: 28,
-              fit: BoxFit.contain,
-            )
+          ? DrinkIcon(imagePath: drink.imagePath, width: 28, height: 28)
           : getDrinkIcon(widget.inputData.drinkType);
     } else {
       // 일반 버튼 (메인 리스트에 있는 버튼)
       final drink = findDrink(type);
       if (drink != null) {
         label = drink.name;
-        icon = Image.asset(
-          drink.imagePath,
-          width: 28,
-          height: 28,
-          fit: BoxFit.contain,
-        );
+        icon = DrinkIcon(imagePath: drink.imagePath, width: 28, height: 28);
       } else {
         label = getDrinkTypeName(type);
         icon = getDrinkIcon(type);
