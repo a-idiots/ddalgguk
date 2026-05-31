@@ -12,45 +12,9 @@ import 'package:ddalgguk/shared/widgets/profile_avatar.dart';
 import 'package:ddalgguk/shared/widgets/page_header.dart';
 import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 import 'package:ddalgguk/core/providers/pro_provider.dart';
-import 'package:ddalgguk/core/services/analytics_service.dart';
-import 'package:ddalgguk/features/profile/data/providers/profile_providers.dart';
-import 'package:ddalgguk/features/calendar/data/providers/calendar_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
-  Future<void> _handleAccountDeletion(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final confirmed = await showAccountDeletionDialog(context);
-    if (confirmed != true || !context.mounted) {
-      return;
-    }
-    try {
-      final authRepository = ref.read(authRepositoryProvider);
-      await authRepository.deleteAccount();
-      await AnalyticsService.instance.logDeleteAccount();
-      ref.invalidate(drinkingRecordsLastUpdatedProvider);
-      ref.invalidate(weeklyStatsProvider);
-      ref.invalidate(weeklyStatsOffsetProvider);
-      ref.invalidate(weeklyStatsByMondayProvider);
-      ref.invalidate(currentProfileStatsProvider);
-      ref.invalidate(alcoholGuidelineDataProvider);
-      ref.invalidate(prevMonthAvgSpendingProvider);
-      ref.invalidate(userBadgesProvider);
-      ref.invalidate(userPhysicalInfoProvider);
-      ref.invalidate(proProvider);
-      ref.invalidate(authStateProvider);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('회원 탈퇴 실패: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -309,14 +273,6 @@ class SettingsScreen extends ConsumerWidget {
           SettingsListTile(
             title: '문의하기',
             onTap: () => showContactDialog(context),
-          ),
-          const SettingsSectionDivider(),
-
-          // 계정 관리 — Apple Guideline 5.1.1(v): 앱 내 계정 삭제 필수.
-          const SettingsSectionHeader(title: '계정 관리'),
-          SettingsListTile(
-            title: '회원 탈퇴',
-            onTap: () => _handleAccountDeletion(context, ref),
           ),
         ],
       ),
