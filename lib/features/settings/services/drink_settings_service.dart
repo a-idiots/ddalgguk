@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:ddalgguk/features/settings/services/custom_drink_icon_service.dart';
@@ -84,6 +85,7 @@ class DrinkSettingsService {
     if (jsonList != null && jsonList.isNotEmpty) {
       final drinks = _parseDrinksFromJsonList(jsonList);
       updateCustomDrinksCache(drinks);
+      _restoreIconCacheFromPrefs(prefs);
       return drinks;
     }
 
@@ -170,6 +172,33 @@ class DrinkSettingsService {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  /// SharedPreferences에 저장된 base64 아이콘을 인메모리 캐시에 복원.
+  /// 캐시가 이미 채워져 있으면 건너뛴다 (cold start 직후 한 번만 비용 부담).
+  void _restoreIconCacheFromPrefs(SharedPreferences prefs) {
+    if (customDrinkIconCacheSnapshot().isNotEmpty) {
+      return;
+    }
+    final raw = prefs.getString(StorageKeys.customDrinkIcons);
+    if (raw == null) {
+      return;
+    }
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final newCache = <int, Uint8List>{};
+      map.forEach((k, v) {
+        final id = int.tryParse(k);
+        if (id != null && v is String) {
+          try {
+            newCache[id] = base64Decode(v);
+          } catch (_) {}
+        }
+      });
+      if (newCache.isNotEmpty) {
+        updateCustomDrinkIconCache(newCache);
+      }
+    } catch (_) {}
+  }
 
   List<Drink> _parseDrinksFromJsonList(List<String> jsonList) {
     return jsonList.map((jsonStr) {
