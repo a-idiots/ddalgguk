@@ -20,7 +20,6 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
 import 'package:ddalgguk/core/services/friend_notification_service.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -92,27 +91,7 @@ void main() async {
   }
 
   // Run the app with Riverpod
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = 'https://05bb15ae811c9fdd9c4c66ced66bef9e@o4511399383400448.ingest.us.sentry.io/4511399384580096';
-      // Adds request headers and IP for users, for more info visit:
-      // https://docs.sentry.io/platforms/dart/guides/flutter/data-management/data-collected/
-      options.sendDefaultPii = true;
-      options.enableLogs = true;
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-      // The sampling rate for profiling is relative to tracesSampleRate
-      // Setting to 1.0 will profile 100% of sampled transactions:
-      options.profilesSampleRate = 1.0;
-      // Configure Session Replay
-      options.replay.sessionSampleRate = 0.1;
-      options.replay.onErrorSampleRate = 1.0;
-    },
-    appRunner: () => runApp(SentryWidget(child: const ProviderScope(child: DdalggukApp()))),
-  );
-  // TODO: Remove this line after sending the first sample event to sentry.
-  await Sentry.captureException(StateError('This is a sample exception.'));
+  runApp(const ProviderScope(child: DdalggukApp()));
 }
 
 class DdalggukApp extends ConsumerStatefulWidget {

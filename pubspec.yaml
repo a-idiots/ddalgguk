@@ -29,7 +29,6 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  sentry_flutter: ^9.20.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -85,7 +84,6 @@ dependencies:
   in_app_review: ^2.0.11
 
 dev_dependencies:
-  sentry_dart_plugin: ^3.3.0
   flutter_test:
     sdk: flutter
 
@@ -178,9 +176,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-
-sentry:
-  upload_debug_symbols: true
-  upload_source_maps: true
-  project: flutter
-  org: pbs-hy
