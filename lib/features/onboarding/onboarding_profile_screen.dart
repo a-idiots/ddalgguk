@@ -442,9 +442,9 @@ class _OnboardingProfileScreenState
     if (await ProfanityFilterService.instance.containsProfanity(value)) {
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('부적절한 단어가 포함되어 있어요.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('부적절한 단어가 포함되어 있어요.')));
       }
       // Non-null blocks navigation; empty renders no inline error since
       // the snackbar is the visible feedback.
