@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.2+18
+version: 2.1.0+19
 
 environment:
   sdk: ^3.9.2
@@ -114,6 +114,12 @@ flutter_launcher_icons:
 # The following section is specific to Flutter packages.
 flutter:
 
+  config:
+    # Flutter SDK가 FlutterGeneratedPluginSwiftPackage의 iOS 최소 버전을 13.0으로
+    # 하드코딩하는 문제 때문에 Firebase SPM 패키지(15.0 요구)와 충돌. CocoaPods만
+    # 사용하도록 SPM 자동 통합을 비활성화.
+    enable-swift-package-manager: false
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -122,6 +128,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - .env
+    - assets/data/
     - assets/logo/
     - assets/icons/
     - assets/imgs/

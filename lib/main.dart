@@ -16,7 +16,7 @@ import 'package:ddalgguk/features/profile/data/providers/weekly_widget_sync_prov
 import 'package:ddalgguk/features/profile/data/providers/widget_deeplink_provider.dart';
 import 'package:ddalgguk/features/profile/data/services/goal_home_widget_service.dart';
 import 'package:ddalgguk/shared/services/secure_storage_service.dart';
-//import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/core/services/notification_manager.dart';
 import 'package:ddalgguk/core/services/friend_notification_service.dart';
 import 'package:ddalgguk/core/constants/app_colors.dart';
@@ -52,6 +52,10 @@ void main() async {
 
   // Initialize Secure Storage Service
   await SecureStorageService.instance.init();
+
+  // Warm up custom drink + uploaded icon caches from SharedPreferences so
+  // they're available before the first frame.
+  await initializeDrinkHelper();
 
   // Initialize Notification Service FIRST (before FriendNotificationService)
   try {

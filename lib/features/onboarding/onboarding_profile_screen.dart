@@ -7,6 +7,7 @@ import 'package:ddalgguk/features/onboarding/widgets/info_input_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_goal_page.dart';
 import 'package:ddalgguk/features/onboarding/widgets/drinking_habits_page.dart';
 import 'package:ddalgguk/core/services/analytics_service.dart';
+import 'package:ddalgguk/core/services/profanity_filter_service.dart';
 import 'package:ddalgguk/features/onboarding/widgets/page_indicator.dart';
 import 'package:ddalgguk/features/onboarding/widgets/unified_profile_setup_page.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
@@ -436,6 +437,18 @@ class _OnboardingProfileScreenState
   Future<String?> _validateName(String? value) async {
     if (value == null || value.trim().isEmpty) {
       return '이름을 입력해주세요';
+    }
+
+    if (await ProfanityFilterService.instance.containsProfanity(value)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('부적절한 단어가 포함되어 있어요.')));
+      }
+      // Non-null blocks navigation; empty renders no inline error since
+      // the snackbar is the visible feedback.
+      return '';
     }
 
     // Only allow Korean (Hangul), English letters, and numbers
