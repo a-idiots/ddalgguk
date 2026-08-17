@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:ddalgguk/core/constants/storage_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,7 +68,7 @@ const List<Drink> drinks = [
     defaultAlcoholContent: 10.0,
     defaultUnit: '잔',
     glassVolume: 200.0,
-    bottleVolume: 750.0,
+    bottleVolume: 0.0, // 병 없음
   ),
   Drink(
     id: 4,
@@ -102,8 +103,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/highball.png',
     defaultAlcoholContent: 7.0,
     defaultUnit: '잔',
-    glassVolume: 350.0,
-    bottleVolume: 0.0, // 보통 잔으로 마심
+    glassVolume: 300.0,
+    bottleVolume: 0.0, // 병 없음
   ),
   Drink(
     id: 8,
@@ -111,8 +112,8 @@ const List<Drink> drinks = [
     imagePath: 'assets/imgs/alcohol_icons/sake.png',
     defaultAlcoholContent: 15.0,
     defaultUnit: '잔',
-    glassVolume: 50.0,
-    bottleVolume: 720.0,
+    glassVolume: 30.0,
+    bottleVolume: 180.0,
   ),
   Drink(
     id: 9,
@@ -127,6 +128,9 @@ const List<Drink> drinks = [
 
 // Custom drinks cache
 List<Drink> _customDrinksCache = [];
+
+// 커스텀 주종 아이콘(업로드 이미지) 인메모리 캐시 — drinkId → JPEG bytes.
+Map<int, Uint8List> _customDrinkIconCache = {};
 
 /// Initialize custom drinks cache from SharedPreferences
 Future<void> initializeDrinkHelper() async {
@@ -154,6 +158,21 @@ Future<void> initializeDrinkHelper() async {
         );
       }).toList();
     }
+
+    final iconsRaw = prefs.getString(StorageKeys.customDrinkIcons);
+    if (iconsRaw != null) {
+      final map = jsonDecode(iconsRaw) as Map<String, dynamic>;
+      final newCache = <int, Uint8List>{};
+      map.forEach((k, v) {
+        final id = int.tryParse(k);
+        if (id != null && v is String) {
+          try {
+            newCache[id] = base64Decode(v);
+          } catch (_) {}
+        }
+      });
+      _customDrinkIconCache = newCache;
+    }
   } catch (e) {
     debugPrint('Failed to initialize drink helper: $e');
   }
@@ -164,6 +183,19 @@ void updateCustomDrinksCache(List<Drink> newCache) {
   _customDrinksCache = newCache;
 }
 
+/// 커스텀 주종 아이콘(업로드 이미지) 캐시 교체.
+void updateCustomDrinkIconCache(Map<int, Uint8List> newCache) {
+  _customDrinkIconCache = Map<int, Uint8List>.from(newCache);
+}
+
+/// 현재 캐시의 읽기 전용 스냅샷.
+Map<int, Uint8List> customDrinkIconCacheSnapshot() =>
+    Map<int, Uint8List>.unmodifiable(_customDrinkIconCache);
+
+/// 업로드된 커스텀 아이콘 바이트 조회. 없으면 null.
+Uint8List? getCustomDrinkIconBytes(int drinkId) =>
+    _customDrinkIconCache[drinkId];
+
 /// Find a drink by ID (checks standard then custom)
 Drink? _findDrink(int id) {
   return drinks.where((d) => d.id == id).firstOrNull ??
@@ -173,7 +205,31 @@ Drink? _findDrink(int id) {
 /// 술 종류에 따른 아이콘 반환
 Widget getDrinkIcon(int drinkType) {
   final iconPath = getDrinkIconPath(drinkType);
+  final customId = _extractCustomIconId(iconPath);
+  if (customId != null) {
+    final bytes = _customDrinkIconCache[customId];
+    if (bytes != null) {
+      // 업로드 사진은 원형으로 크롭 (짧은 변 기준 cover).
+      return ClipOval(
+        child: Image.memory(bytes, width: 28, height: 28, fit: BoxFit.cover),
+      );
+    }
+    return Image.asset(
+      'assets/imgs/alcohol_icons/undecided.png',
+      width: 28,
+      height: 28,
+      fit: BoxFit.contain,
+    );
+  }
   return Image.asset(iconPath, width: 28, height: 28, fit: BoxFit.contain);
+}
+
+const String _customIconPrefix = 'custom://';
+int? _extractCustomIconId(String imagePath) {
+  if (!imagePath.startsWith(_customIconPrefix)) {
+    return null;
+  }
+  return int.tryParse(imagePath.substring(_customIconPrefix.length));
 }
 
 /// 술 종류에 따른 아이콘 경로 반환

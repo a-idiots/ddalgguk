@@ -1,8 +1,9 @@
+import 'package:ddalgguk/core/providers/pro_provider.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drink_input_data.dart';
+import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-// TODO(premium): 프리미엄 기능 활성화 시 아래 import 주석 해제
-// import 'package:ddalgguk/features/calendar/widgets/dialogs/other_drink_selection_dialog.dart';
+import 'package:ddalgguk/shared/widgets/drink_icon.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -36,21 +37,35 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     _loadMainDrinkSettings();
   }
 
+  static const List<int> _freeDefaultDrinkIds = kFreeDefaultDrinkIds;
+
   Future<void> _loadMainDrinkSettings() async {
     try {
+      final isPro = await ref.read(proProvider.future);
+
+      if (!isPro) {
+        // 무료 전환 시 storage도 기본값으로 리셋
+        final service = ref.read(drinkSettingsServiceProvider);
+        await service.saveMainDrinkIds(List.of(_freeDefaultDrinkIds));
+        if (mounted) {
+          setState(() {
+            _mainDrinkIds = _freeDefaultDrinkIds;
+            _customDrinks = [];
+          });
+        }
+        return;
+      }
+
       final service = ref.read(drinkSettingsServiceProvider);
       final savedIds = await service.loadMainDrinkIds();
-      final customDrinks = await service
-          .loadCustomDrinks(); // Load custom drinks
+      final customDrinks = await service.loadCustomDrinks();
 
-      if (savedIds.isNotEmpty) {
-        // Ensure we only take up to 5, though settings limits to 5
+      if (mounted) {
         setState(() {
-          _mainDrinkIds = savedIds.take(5).toList();
-          _customDrinks = customDrinks;
-        });
-      } else {
-        setState(() {
+          // 기타(-1)/알 수 없음(0) 같은 잘못 저장된 잔재 제거 — 기타 버튼은
+          // 항상 우측 끝에 별도로 렌더링되므로 메인 리스트에 들어가면 중복됨.
+          final cleaned = savedIds.where((id) => id > 0).take(5).toList();
+          _mainDrinkIds = cleaned.isNotEmpty ? cleaned : _mainDrinkIds;
           _customDrinks = customDrinks;
         });
       }
@@ -61,6 +76,15 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Pro 상태가 바뀌면 주종 목록 재로드 (Pro→free 시 리셋, free→Pro 시 저장된 설정 복원)
+    ref.listen<AsyncValue<bool>>(proProvider, (previous, next) {
+      final wasPro = previous?.valueOrNull ?? false;
+      final isPro = next.valueOrNull ?? false;
+      if (wasPro != isPro) {
+        _loadMainDrinkSettings();
+      }
+    });
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -129,53 +153,7 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
             decoration: InputDecoration(
               hintText: '양을 입력해주세요.',
               hintStyle: TextStyle(color: Colors.grey[400]),
-              suffixIcon: Container(
-                padding: const EdgeInsets.only(right: 8),
-                child: PopupMenuButton<String>(
-                  initialValue: widget.inputData.selectedUnit,
-                  color: Colors.grey[200],
-                  onSelected: (String newUnit) {
-                    setState(() {
-                      widget.inputData.selectedUnit = newUnit;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                        const PopupMenuItem<String>(
-                          value: 'ml',
-                          child: Text('ml'),
-                        ),
-                        const PopupMenuItem<String>(
-                          value: '잔',
-                          child: Text('잔'),
-                        ),
-                        const PopupMenuItem<String>(
-                          value: '병',
-                          child: Text('병'),
-                        ),
-                      ],
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.inputData.selectedUnit,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          size: 28,
-                          color: Colors.grey[600],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              suffixIcon: _buildUnitSelector(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(color: Colors.grey[300]!),
@@ -206,10 +184,10 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
                 backgroundColor: Colors.black87,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                 ),
               ),
-              child: const Text('추가', style: TextStyle(fontSize: 16)),
+              child: const Text('추가하기', style: TextStyle(fontSize: 16)),
             ),
           ),
         ],
@@ -219,17 +197,76 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
 
   List<Drink> _customDrinks = [];
 
+  /// 선택된 주종에서 사용 가능한 단위 목록을 반환.
+  /// 커스텀 주종(id >= 1000)은 ml만, 그 외는 볼륨 값에 따라 필터링.
+  List<String> _getAvailableUnits(int drinkType) {
+    if (drinkType >= 1000) {
+      return ['ml'];
+    }
+
+    Drink? d = drinks.where((d) => d.id == drinkType).firstOrNull;
+    d ??= _customDrinks.where((d) => d.id == drinkType).firstOrNull;
+    if (d == null) {
+      return ['ml', '잔', '병'];
+    }
+
+    return ['ml', if (d.glassVolume > 0) '잔', if (d.bottleVolume > 0) '병'];
+  }
+
+  Widget _buildUnitSelector() {
+    final availableUnits = _getAvailableUnits(widget.inputData.drinkType);
+
+    // 단위가 ml 하나뿐이면 드롭다운 없이 정적 텍스트
+    if (availableUnits.length == 1) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: const Text('ml', style: TextStyle(fontSize: 16)),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.only(right: 8),
+      child: PopupMenuButton<String>(
+        initialValue: widget.inputData.selectedUnit,
+        color: Colors.grey[200],
+        onSelected: (String newUnit) {
+          setState(() {
+            widget.inputData.selectedUnit = newUnit;
+          });
+        },
+        itemBuilder: (BuildContext context) => availableUnits
+            .map(
+              (unit) => PopupMenuItem<String>(value: unit, child: Text(unit)),
+            )
+            .toList(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.inputData.selectedUnit,
+                style: const TextStyle(fontSize: 16),
+              ),
+              Icon(Icons.arrow_drop_down, size: 28, color: Colors.grey[600]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDrinkTypeButton(int type) {
     final bool isOtherButton = type == -1;
     // '기타' 버튼이 선택된 상태인지
     final bool isCustomDrinkSelected =
-        widget.inputData.drinkType > 5 &&
+        widget.inputData.drinkType > 0 &&
         !_mainDrinkIds.contains(widget.inputData.drinkType);
 
     // 이 버튼이 선택되었는지 판별
     bool isSelected;
     if (isOtherButton) {
-      isSelected = isCustomDrinkSelected;
+      isSelected = isCustomDrinkSelected || widget.inputData.drinkType == -1;
     } else {
       isSelected = widget.inputData.drinkType == type;
     }
@@ -252,24 +289,14 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
       final drink = findDrink(widget.inputData.drinkType);
       label = drink?.name ?? getDrinkTypeName(widget.inputData.drinkType);
       icon = drink != null
-          ? Image.asset(
-              drink.imagePath,
-              width: 28,
-              height: 28,
-              fit: BoxFit.contain,
-            )
+          ? DrinkIcon(imagePath: drink.imagePath, width: 28, height: 28)
           : getDrinkIcon(widget.inputData.drinkType);
     } else {
       // 일반 버튼 (메인 리스트에 있는 버튼)
       final drink = findDrink(type);
       if (drink != null) {
         label = drink.name;
-        icon = Image.asset(
-          drink.imagePath,
-          width: 28,
-          height: 28,
-          fit: BoxFit.contain,
-        );
+        icon = DrinkIcon(imagePath: drink.imagePath, width: 28, height: 28);
       } else {
         label = getDrinkTypeName(type);
         icon = getDrinkIcon(type);
@@ -277,26 +304,29 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     }
 
     return GestureDetector(
-      onTap: () {
-        // TODO(premium): 기타 버튼 클릭 시 다이얼로그 표시 (프리미엄 기능으로 추후 활성화)
-        // if (isOtherButton) {
-        //   final selectedId = await showDialog<int>(
-        //     context: context,
-        //     builder: (context) => const OtherDrinkSelectionDialog(),
-        //   );
-        //   if (selectedId != null) {
-        //     setState(() {
-        //       _updateDrinkData(selectedId);
-        //     });
-        //   }
-        // } else {
-        //   setState(() {
-        //     _updateDrinkData(type);
-        //   });
-        // }
-        setState(() {
-          _updateDrinkData(type);
-        });
+      onTap: () async {
+        if (isOtherButton) {
+          final isPro = ref.read(proProvider).valueOrNull ?? false;
+          if (!context.mounted) {
+            return;
+          }
+          final selectedId = await showDialog<int>(
+            context: context,
+            builder: (context) => OtherDrinkSelectionDialog(
+              excludeIds: _mainDrinkIds,
+              isPro: isPro,
+            ),
+          );
+          if (selectedId != null) {
+            setState(() {
+              _updateDrinkData(selectedId);
+            });
+          }
+        } else {
+          setState(() {
+            _updateDrinkData(type);
+          });
+        }
       },
       child: Column(
         children: [
@@ -346,6 +376,11 @@ class _NewDrinkInputCardState extends ConsumerState<NewDrinkInputCard> {
     }
 
     widget.inputData.alcoholController.text = defaultAlcohol.toString();
-    widget.inputData.selectedUnit = defaultUnit;
+
+    // defaultUnit이 이 주종에서 허용되지 않는 경우 ml로 폴백
+    final availableUnits = _getAvailableUnits(type);
+    widget.inputData.selectedUnit = availableUnits.contains(defaultUnit)
+        ? defaultUnit
+        : availableUnits.first;
   }
 }

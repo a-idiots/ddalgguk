@@ -120,38 +120,69 @@ class _BubblePainter extends CustomPainter {
   }
 }
 
+/// Clean dialog widget with black header and white body
+class _CleanDialog extends StatelessWidget {
+  const _CleanDialog({required this.title, required this.content});
+
+  final String title;
+  final Widget content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.hardEdge,
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 72, vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Black header
+          Container(
+            width: double.infinity,
+            color: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          // White body
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            child: content,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Shows the app version dialog
 void showVersionDialog(BuildContext context) {
   showDialog(
     context: context,
-    builder: (context) => SakuInfoDialog(
+    builder: (context) => _CleanDialog(
+      title: '앱 버전',
       content: FutureBuilder<PackageInfo>(
         future: PackageInfo.fromPlatform(),
         builder: (context, snapshot) {
           final version = snapshot.hasData ? snapshot.data!.version : '';
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '딸꾹',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'ver $version',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
+          return Text(
+            'ver $version',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
           );
         },
       ),
@@ -163,16 +194,17 @@ void showVersionDialog(BuildContext context) {
 void showContactDialog(BuildContext context) {
   showDialog(
     context: context,
-    builder: (context) => const SakuInfoDialog(
+    builder: (context) => const _CleanDialog(
+      title: '문의하기',
       content: Text(
         '@ddal_gguk_으로\n인스타그램 DM',
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Pretendard',
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: Colors.black87,
-          height: 1.5,
+          height: 1.6,
         ),
       ),
     ),
@@ -183,38 +215,70 @@ void showContactDialog(BuildContext context) {
 Future<bool?> showLogoutDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (context) => SakuInfoDialog(
-      content: const Text(
-        '정말 로그아웃 하시겠습니까?',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Colors.black87,
-        ),
-      ),
-      bottomButtons: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-          ),
-          child: const Text(
-            '로그아웃',
+    builder: (context) => _CleanDialog(
+      title: '로그아웃',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '정말 로그아웃 하시겠습니까?',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontFamily: 'Pretendard',
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
           ),
-        ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black54,
+                    side: const BorderSide(color: Colors.black26),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '로그아웃',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     ),
   );
@@ -224,7 +288,8 @@ Future<bool?> showLogoutDialog(BuildContext context) {
 Future<bool?> showAccountDeletionDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (context) => SakuInfoDialog(
+    builder: (context) => _CleanDialog(
+      title: '회원 탈퇴',
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -232,9 +297,9 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
             '정말 탈퇴하시겠습니까?',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontFamily: 'Pretendard',
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
           ),
@@ -243,36 +308,62 @@ Future<bool?> showAccountDeletionDialog(BuildContext context) {
             '탈퇴하시면 사쿠와 쌓은 모든 추억이\n즉시 지워지며, 복구하실 수 없습니다.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontFamily: 'Pretendard',
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
               color: Colors.grey[600],
               height: 1.5,
             ),
           ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black54,
+                    side: const BorderSide(color: Colors.black26),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    '탈퇴하기',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
-      ),
-      bottomButtons: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-          ),
-          child: const Text(
-            '탈퇴하기',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     ),
   );

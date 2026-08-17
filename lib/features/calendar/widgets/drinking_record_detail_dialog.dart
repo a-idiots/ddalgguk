@@ -27,19 +27,25 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
       String unit;
       double amount;
 
-      // 주종별 병 용량 기준으로 1병 이상인지 확인
-      final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
-      final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
-
-      if (drink.amount >= bottleMultiplier) {
-        unit = '병';
-        amount = drink.amount / bottleMultiplier;
-      } else if (drink.amount >= glassMultiplier) {
-        unit = '잔';
-        amount = drink.amount / glassMultiplier;
-      } else {
+      // 커스텀 주종은 항상 ml로 표시 (사용자가 ml로 입력함).
+      if (drink.drinkType >= 1000) {
         unit = 'ml';
         amount = drink.amount;
+      } else {
+        // 주종별 병 용량 기준으로 1병 이상인지 확인
+        final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
+        final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
+
+        if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
+          unit = '병';
+          amount = drink.amount / bottleMultiplier;
+        } else if (drink.amount >= glassMultiplier) {
+          unit = '잔';
+          amount = drink.amount / glassMultiplier;
+        } else {
+          unit = 'ml';
+          amount = drink.amount;
+        }
       }
 
       return CompletedDrinkRecord(
@@ -104,8 +110,8 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                     // 둥근 슬라이더와 캐릭터 (조작 불가)
                     Center(
                       child: SizedBox(
-                        width: 240,
-                        height: 240,
+                        width: 170,
+                        height: 170,
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
@@ -115,13 +121,13 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                               min: 0,
                               max: 100,
                               divisions: 20,
-                              size: 240,
-                              trackWidth: 16,
+                              size: 170,
+                              trackWidth: 8,
                               inactiveColor: Colors.grey[300]!,
                               activeColor: const Color(0xFFFA75A5),
-                              thumbColor: Colors.transparent, // 핸들 숨김
-                              thumbRadius: 0, // 핸들 크기 0
-                              onChanged: (_) {}, // 조작 불가 (빈 함수)
+                              thumbColor: Colors.transparent,
+                              thumbRadius: 0,
+                              onChanged: (_) {},
                             ),
                             // 가운데 컨텐츠
                             Column(
@@ -129,15 +135,15 @@ class DrinkingRecordDetailDialog extends StatelessWidget {
                               children: [
                                 // 사쿠 캐릭터
                                 SakuCharacter(
-                                  size: 80,
+                                  size: 54,
                                   drunkLevel: (record.drunkLevel * 10).toInt(),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 // 퍼센트 표시
                                 Text(
                                   '${(record.drunkLevel * 10).round()}%',
                                   style: const TextStyle(
-                                    fontSize: 24,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

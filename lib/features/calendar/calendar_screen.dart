@@ -7,7 +7,6 @@ import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:ddalgguk/features/calendar/widgets/drinking_record_detail_dialog.dart';
 import 'package:ddalgguk/shared/widgets/saku_character.dart';
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
-import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -26,11 +25,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<DrinkingRecord>> _recordsMap = {};
+  final GlobalKey _fabKey = GlobalKey();
+  OverlayEntry? _menuOverlay;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+  }
+
+  @override
+  void dispose() {
+    _removeMenu();
+    super.dispose();
   }
 
   void _updateRecordsMap(List<DrinkingRecord> records) {
@@ -225,12 +232,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Transform.translate(
-        offset: const Offset(0, -20), // 오른쪽 20% 가리기
+        offset: const Offset(0, -20),
         child: SizedBox(
           width: 55,
           height: 55,
           child: FloatingActionButton(
-            onPressed: () => _showAddRecordDialog(context),
+            key: _fabKey,
+            onPressed: _showAddMenu,
             backgroundColor: AppColors.primaryPink,
             foregroundColor: Colors.white,
             elevation: 0,
@@ -244,6 +252,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           children: [
             // 캘린더 영역 - 고정 높이로 표시
             Stack(
+              clipBehavior: Clip.none,
               children: [
                 Transform.scale(
                   scale: 0.9,
@@ -336,14 +345,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Colors.grey[300],
-              indent: 0,
-              endIndent: 0,
-            ),
+            Divider(height: 1, thickness: 1, color: Colors.grey[300]),
             // 음주 기록 리스트 - 스크롤 가능
             _buildRecordsList(),
           ],
@@ -479,16 +481,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final records = _getRecordsForDay(_selectedDay!);
 
     if (records.isEmpty) {
-      // 미래 날짜 체크
-      final today = DateTime.now();
-      final normalizedToday = DateTime(today.year, today.month, today.day);
-      final normalizedSelectedDay = DateTime(
-        _selectedDay!.year,
-        _selectedDay!.month,
-        _selectedDay!.day,
-      );
-      final isFutureDate = normalizedSelectedDay.isAfter(normalizedToday);
-
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
@@ -512,25 +504,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              if (!isFutureDate) ...[
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => _confirmAndAddNoDrinkRecord(_selectedDay!),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 0,
-                    ),
-                  ),
-                  child: const Text(
-                    '+ 금주 기록 추가하기',
-                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -669,7 +642,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           '잔',
                         );
 
-                        if (drink.amount >= bottleMultiplier) {
+                        if (bottleMultiplier > 0 &&
+                            drink.amount >= bottleMultiplier) {
                           unit = '병';
                           amount = drink.amount / bottleMultiplier;
                         } else if (drink.amount >= glassMultiplier) {
@@ -800,8 +774,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       // 캘린더 새로고침을 위해 provider notify
       ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
           DateTime.now();
-      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-      ref.invalidate(friendsProvider);
 
       // Log sober record completion
       await AnalyticsService.instance.logDrinkRecordComplete(type: 'sober');
@@ -828,6 +800,94 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         );
       }
     }
+  }
+
+  void _removeMenu() {
+    _menuOverlay?.remove();
+    _menuOverlay = null;
+  }
+
+  /// + 버튼 팝업 메뉴 (음주 / 금주) — 커스텀 오버레이로 애니메이션 없이 정확한 위치에 표시
+  void _showAddMenu() {
+    if (_menuOverlay != null) {
+      return;
+    }
+
+    final renderBox = _fabKey.currentContext!.findRenderObject()! as RenderBox;
+    final fabPos = renderBox.localToGlobal(Offset.zero);
+    final fabSize = renderBox.size;
+    final screenSize = MediaQuery.of(context).size;
+
+    // 팝업 우하단 = FAB 우측 상단
+    final anchorRight = screenSize.width - (fabPos.dx + fabSize.width);
+    final anchorY = fabPos.dy;
+
+    _menuOverlay = OverlayEntry(
+      builder: (ctx) => GestureDetector(
+        onTap: _removeMenu,
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
+            Positioned(
+              right: anchorRight,
+              bottom: screenSize.height - anchorY + 12,
+              width: 172,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                      offset: Offset.zero,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Material(
+                    color: Colors.white,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildMenuItem('음주 기록 추가하기', () {
+                          _removeMenu();
+                          _showAddRecordDialog(context);
+                        }),
+                        Divider(height: 1, color: Colors.grey[200]),
+                        _buildMenuItem('금주 기록 추가하기', () {
+                          _removeMenu();
+                          if (_selectedDay != null) {
+                            _confirmAndAddNoDrinkRecord(_selectedDay!);
+                          }
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_menuOverlay!);
+  }
+
+  Widget _buildMenuItem(String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: SizedBox(
+          width: double.infinity,
+          child: Text(text, style: const TextStyle(fontSize: 15)),
+        ),
+      ),
+    );
   }
 
   /// 기록 추가 다이얼로그
@@ -903,80 +963,87 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.hardEdge,
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Stack(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // 검정 헤더
+            Container(
+              width: double.infinity,
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: const Text(
+                '기록 삭제',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            // 흰 본문
             Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 말풍선
-                  Center(
-                    child: CustomPaint(
-                      painter: _BubblePainter(
-                        Colors.white,
-                        TailPosition.bottom,
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
-                        child: const Text(
-                          '이 기록을 삭제하시겠습니까?',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
+                  const Text(
+                    '이 기록을 삭제하시겠습니까?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: Colors.grey[200],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          ),
+                          child: const Text(
+                            '취소',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // 사쿠 캐릭터
-                  const Center(child: SakuCharacter(size: 84, drunkLevel: 0)),
-                  const SizedBox(height: 16),
-                  // 삭제 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPink,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          ),
+                          child: const Text(
+                            '삭제',
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        '삭제',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
-              ),
-            ),
-            // X 버튼
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.black54),
-                onPressed: () => Navigator.of(context).pop(false),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ),
           ],
@@ -985,138 +1052,72 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
 
     if (confirmed == true) {
+      // Optimistic UI: 즉시 로컬에서 제거
+      final normalizedDate = _normalizeDate(
+        _recordsMap.entries
+                .expand((e) => e.value)
+                .where((r) => r.id == recordId)
+                .firstOrNull
+                ?.date ??
+            _selectedDay ??
+            _focusedDay,
+      );
+      setState(() {
+        final dayRecords = _recordsMap[normalizedDate];
+        if (dayRecords != null) {
+          dayRecords.removeWhere((r) => r.id == recordId);
+          if (dayRecords.isEmpty) {
+            _recordsMap.remove(normalizedDate);
+          }
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
+      }
+
+      // 백그라운드에서 Firestore 삭제 + sessionNumber 재정렬
       try {
         final service = ref.read(drinkingRecordServiceProvider);
 
-        // 삭제하기 전에 해당 기록의 정보를 가져옴
         final recordToDelete = await service.getRecord(recordId);
         if (recordToDelete == null) {
-          throw Exception('기록을 찾을 수 없습니다');
+          return;
         }
 
         final deletedDate = recordToDelete.date;
         final deletedSessionNumber = recordToDelete.sessionNumber;
 
-        // 기록 삭제
+        // Firestore 삭제
         await service.deleteRecord(recordId);
 
-        // 같은 날짜의 남은 기록들을 가져옴
+        // sessionNumber 재정렬: Firestore 필드만 업데이트 (full updateRecord 체인 안 탐)
         final remainingRecords = await service.getRecordsByDate(deletedDate);
-
-        // 삭제된 차수보다 큰 차수를 가진 기록들의 차수를 1씩 감소
         for (final record in remainingRecords) {
           if (record.sessionNumber > deletedSessionNumber) {
-            final updatedRecord = record.copyWith(
-              sessionNumber: record.sessionNumber - 1,
+            await service.updateSessionNumber(
+              record.id,
+              record.sessionNumber - 1,
             );
-            await service.updateRecord(updatedRecord);
           }
         }
 
-        // 캘린더 새로고침을 위해 provider notify
+        // 서버 완료 후 정확한 데이터로 갱신
         ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
             DateTime.now();
-        // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-        ref.invalidate(friendsProvider);
-
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
-        }
       } catch (e) {
+        debugPrint('기록 삭제 실패: $e');
+        // 실패 시 되돌리기
+        ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
+            DateTime.now();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('삭제 실패: $e'), backgroundColor: Colors.red),
+          );
         }
       }
     }
-  }
-}
-
-/// 말풍선 꼬리 위치
-enum TailPosition { bottom }
-
-/// 테두리가 있는 말풍선을 그리는 CustomPainter
-class _BubblePainter extends CustomPainter {
-  _BubblePainter(this.backgroundColor, this.tailPosition);
-
-  final Color backgroundColor;
-  final TailPosition tailPosition;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = Colors.grey[300]!
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    const double tailWidth = 20.0;
-    const double tailHeight = 10.0;
-    const double radius = 20.0;
-
-    final bubbleHeight = size.height - tailHeight;
-    final tailCenterX = size.width / 2;
-
-    // 전체 말풍선 경로 (꼬리 포함)
-    final path = Path();
-
-    // 왼쪽 상단 모서리부터 시작
-    path.moveTo(0, radius);
-    path.arcToPoint(Offset(radius, 0), radius: const Radius.circular(radius));
-
-    // 상단 선
-    path.lineTo(size.width - radius, 0);
-
-    // 오른쪽 상단 모서리
-    path.arcToPoint(
-      Offset(size.width, radius),
-      radius: const Radius.circular(radius),
-    );
-
-    // 오른쪽 선
-    path.lineTo(size.width, bubbleHeight - radius);
-
-    // 오른쪽 하단 모서리
-    path.arcToPoint(
-      Offset(size.width - radius, bubbleHeight),
-      radius: const Radius.circular(radius),
-    );
-
-    // 하단 선 (꼬리 오른쪽까지)
-    path.lineTo(tailCenterX + tailWidth / 2, bubbleHeight);
-
-    // 꼬리
-    path.lineTo(tailCenterX, size.height);
-    path.lineTo(tailCenterX - tailWidth / 2, bubbleHeight);
-
-    // 하단 선 (꼬리 왼쪽부터)
-    path.lineTo(radius, bubbleHeight);
-
-    // 왼쪽 하단 모서리
-    path.arcToPoint(
-      Offset(0, bubbleHeight - radius),
-      radius: const Radius.circular(radius),
-    );
-
-    // 왼쪽 선 (닫기)
-    path.close();
-
-    // 배경 그리기
-    canvas.drawPath(path, paint);
-
-    // 테두리 그리기
-    canvas.drawPath(path, borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(_BubblePainter oldDelegate) {
-    return oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.tailPosition != tailPosition;
   }
 }

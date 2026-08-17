@@ -1,4 +1,3 @@
-import 'package:ddalgguk/core/constants/app_colors.dart';
 import 'package:ddalgguk/features/social/domain/models/daily_status.dart';
 import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
@@ -82,87 +81,102 @@ class _DailyStatusDialogState extends ConsumerState<DailyStatusDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
-              '상태 메시지를 남겨보세요',
+              '상태메시지를 남겨보세요.',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              '24시간 후 자동으로 사라집니다',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
-              ),
+              '24시간 후 자동으로 사라집니다.',
+              style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _controller,
               maxLength: DailyStatus.maxLength,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              maxLines: 6,
+              style: const TextStyle(fontSize: 15),
               decoration: InputDecoration(
-                hintText: '예: 오늘도 화이팅!',
-                hintStyle: const TextStyle(fontWeight: FontWeight.w500),
                 filled: true,
                 fillColor: Colors.grey[100],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
                 ),
                 counterText:
                     '${_controller.text.length}/${DailyStatus.maxLength}',
-                counterStyle: const TextStyle(fontWeight: FontWeight.w500),
+                counterStyle: TextStyle(fontSize: 13, color: Colors.grey[500]),
               ),
               onChanged: (_) => setState(() {}),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () => Navigator.of(context).pop(),
-                  child: const Text(
-                    '취소',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submitStatus,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPink,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: Colors.black87),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    child: const Text(
+                      '취소',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submitStatus,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.black87,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            '추가',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          '등록',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
+                  ),
                 ),
               ],
             ),

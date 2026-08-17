@@ -126,12 +126,6 @@ class PostboxScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/imgs/socials/empty_postbox.png',
-                  width: 120,
-                  height: 120,
-                ),
-                const SizedBox(height: 24),
                 const Text(
                   '받은 친구 요청이 없습니다',
                   style: TextStyle(
@@ -165,12 +159,6 @@ class PostboxScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/imgs/socials/empty_postbox.png',
-                  width: 120,
-                  height: 120,
-                ),
-                const SizedBox(height: 24),
                 const Text(
                   '보낸 친구 신청이 없습니다',
                   style: TextStyle(

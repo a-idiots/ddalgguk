@@ -1,20 +1,36 @@
+import 'dart:typed_data';
+
+import 'package:ddalgguk/features/settings/services/custom_drink_icon_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
-class AddCustomDrinkCard extends StatefulWidget {
+/// 아이콘 선택 다이얼로그의 반환값. asset 경로 또는 업로드된 이미지 바이트.
+class _IconSelectionResult {
+  const _IconSelectionResult.asset(this.assetPath) : uploadedBytes = null;
+  const _IconSelectionResult.upload(this.uploadedBytes) : assetPath = null;
+
+  final String? assetPath;
+  final Uint8List? uploadedBytes;
+}
+
+class AddCustomDrinkCard extends ConsumerStatefulWidget {
   const AddCustomDrinkCard({required this.onAdd, super.key});
 
   final Function(Drink) onAdd;
 
   @override
-  State<AddCustomDrinkCard> createState() => _AddCustomDrinkCardState();
+  ConsumerState<AddCustomDrinkCard> createState() => _AddCustomDrinkCardState();
 }
 
-class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
+class _AddCustomDrinkCardState extends ConsumerState<AddCustomDrinkCard> {
   final _nameController = TextEditingController();
   final _alcoholContentController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String _selectedImagePath = 'assets/imgs/alcohol_icons/undecided.png';
+  Uint8List? _pendingIconBytes;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -23,18 +39,33 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
     super.dispose();
   }
 
-  void _handleAdd() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _handleAdd() async {
+    if (_isSubmitting) {
+      return;
+    }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
       final name = _nameController.text.trim();
       final alcoholContent =
           double.tryParse(_alcoholContentController.text.trim()) ?? 0.0;
 
       final id = DateTime.now().millisecondsSinceEpoch % 100000 + 1000;
 
+      String imagePath = _selectedImagePath;
+      final pending = _pendingIconBytes;
+      if (pending != null) {
+        await ref.read(customDrinkIconServiceProvider).persist(id, pending);
+        imagePath = customDrinkIconMarker(id);
+      }
+
       final newDrink = Drink(
         id: id,
         name: name,
-        imagePath: _selectedImagePath,
+        imagePath: imagePath,
         defaultAlcoholContent: alcoholContent,
         defaultUnit: 'ml',
         glassVolume: 50.0,
@@ -43,24 +74,39 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
 
       widget.onAdd(newDrink);
 
-      // Clear fields
       _nameController.clear();
       _alcoholContentController.clear();
-      setState(() {
-        _selectedImagePath = 'assets/imgs/alcohol_icons/undecided.png';
-      });
+      if (mounted) {
+        setState(() {
+          _selectedImagePath = 'assets/imgs/alcohol_icons/undecided.png';
+          _pendingIconBytes = null;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
   Future<void> _handleIconTap() async {
-    final selectedPath = await showDialog<String>(
+    final result = await showDialog<_IconSelectionResult>(
       context: context,
       builder: (context) => const _IconSelectionDialog(),
     );
 
-    if (selectedPath != null) {
+    if (result == null) {
+      return;
+    }
+    if (result.uploadedBytes != null) {
       setState(() {
-        _selectedImagePath = selectedPath;
+        _pendingIconBytes = result.uploadedBytes;
+        _selectedImagePath = 'assets/imgs/alcohol_icons/undecided.png';
+      });
+    } else if (result.assetPath != null) {
+      setState(() {
+        _selectedImagePath = result.assetPath!;
+        _pendingIconBytes = null;
       });
     }
   }
@@ -104,18 +150,56 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
             // Body
             Row(
               children: [
-                // Icon
+                // Icon (with pencil badge)
                 GestureDetector(
                   onTap: _handleIconTap,
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Image.asset(_selectedImagePath, fit: BoxFit.contain),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _pendingIconBytes != null
+                          ? Container(
+                              width: 60,
+                              height: 60,
+                              clipBehavior: Clip.antiAlias,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                              ),
+                              child: Image.memory(
+                                _pendingIconBytes!,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[200],
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              child: Image.asset(
+                                _selectedImagePath,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF0A9A9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 12,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -185,6 +269,9 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
                           if (value == null || value.isEmpty) {
                             return '도수를 입력해주세요';
                           }
+                          if (double.tryParse(value.trim()) == null) {
+                            return '유효한 숫자를 입력해주세요';
+                          }
                           return null;
                         },
                       ),
@@ -201,7 +288,9 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isSubmitting
+                      ? null
+                      : () => Navigator.pop(context),
                   child: const Text(
                     '취소',
                     style: TextStyle(color: Colors.grey, fontSize: 16),
@@ -209,15 +298,24 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
                 ),
                 const SizedBox(width: 8),
                 TextButton(
-                  onPressed: _handleAdd,
-                  child: const Text(
-                    '추가',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  onPressed: _isSubmitting ? null : _handleAdd,
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black54,
+                          ),
+                        )
+                      : const Text(
+                          '추가',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -228,17 +326,62 @@ class _AddCustomDrinkCardState extends State<AddCustomDrinkCard> {
   }
 }
 
-class _IconSelectionDialog extends StatelessWidget {
+class _IconSelectionDialog extends ConsumerStatefulWidget {
   const _IconSelectionDialog();
 
   @override
+  ConsumerState<_IconSelectionDialog> createState() =>
+      _IconSelectionDialogState();
+}
+
+class _IconSelectionDialogState extends ConsumerState<_IconSelectionDialog> {
+  bool _isProcessing = false;
+
+  Future<void> _handleUploadTap() async {
+    if (_isProcessing) {
+      return;
+    }
+    setState(() => _isProcessing = true);
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+      if (file == null) {
+        return;
+      }
+      final raw = await file.readAsBytes();
+      final processed = await ref
+          .read(customDrinkIconServiceProvider)
+          .processImageBytes(raw);
+      if (!mounted || processed == null) {
+        return;
+      }
+      Navigator.pop(context, _IconSelectionResult.upload(processed));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('이미지를 처리할 수 없습니다.')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Only standard drinks (ID >= 1) usually have valid icons we want to reuse
     final availableIcons = drinks
         .where((d) => d.id >= 1)
         .map((d) => d.imagePath)
         .toSet()
         .toList();
+
+    // 그리드 아이템 수 = 기본 아이콘 + 업로드 버튼 1.
+    final itemCount = availableIcons.length + 1;
 
     return Dialog(
       backgroundColor: Colors.white,
@@ -257,7 +400,7 @@ class _IconSelectionDialog extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: _isProcessing ? null : () => Navigator.pop(context),
                   child: const Icon(Icons.close, color: Colors.grey),
                 ),
               ],
@@ -272,11 +415,48 @@ class _IconSelectionDialog extends StatelessWidget {
                   crossAxisSpacing: 16,
                   childAspectRatio: 1.0,
                 ),
-                itemCount: availableIcons.length,
+                itemCount: itemCount,
                 itemBuilder: (context, index) {
+                  if (index == availableIcons.length) {
+                    // 업로드 버튼.
+                    return GestureDetector(
+                      onTap: _isProcessing ? null : _handleUploadTap,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFFF0A9A9),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: _isProcessing
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFFF0A9A9),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.add,
+                                  color: Color(0xFFF0A9A9),
+                                  size: 28,
+                                ),
+                        ),
+                      ),
+                    );
+                  }
                   final path = availableIcons[index];
                   return GestureDetector(
-                    onTap: () => Navigator.pop(context, path),
+                    onTap: _isProcessing
+                        ? null
+                        : () => Navigator.pop(
+                            context,
+                            _IconSelectionResult.asset(path),
+                          ),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.grey[100],

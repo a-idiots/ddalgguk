@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ddalgguk/core/providers/auth_provider.dart';
+import 'package:ddalgguk/core/providers/pro_provider.dart';
+import 'package:ddalgguk/shared/widgets/pro_plan_popup.dart';
 import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/report/data/providers/report_providers.dart'; // Import analytics provider
 import 'package:ddalgguk/shared/widgets/bottom_handle_dialogue.dart';
@@ -29,6 +31,31 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   final GlobalKey _globalKey = GlobalKey();
   final SojuGlassController _sojuGlassController = SojuGlassController();
   final AppinioSocialShare _appinioSocialShare = AppinioSocialShare();
+
+  DateTime _selectedMonth = () {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month);
+  }();
+
+  // 이전 데이터를 캐시하여 로딩 중 흰 화면 방지
+  List<DrinkingRecord>? _cachedRecords;
+
+  void _prevMonth() {
+    final isPro = ref.read(proProvider).valueOrNull ?? false;
+    if (!isPro) {
+      showProPlanPopup(context, 4);
+      return;
+    }
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    });
+  }
 
   Future<String?> _captureImage() async {
     try {
@@ -161,14 +188,24 @@ class _RecapTabState extends ConsumerState<RecapTab> {
 
   @override
   Widget build(BuildContext context) {
-    // Normalize DateTime
     final now = DateTime.now();
-    final normalizedDate = DateTime(now.year, now.month);
+    final normalizedDate = _selectedMonth;
+    final isCurrentMonth =
+        _selectedMonth.year == now.year && _selectedMonth.month == now.month;
 
     final currentUserAsync = ref.watch(currentUserProvider);
-    final monthRecordsAsync = ref.watch(
+    final monthRecordsRaw = ref.watch(
       analyticsMonthRecordsProvider(normalizedDate),
     );
+    // 새 데이터 도착 시 캐시 업데이트
+    if (monthRecordsRaw.hasValue) {
+      _cachedRecords = monthRecordsRaw.value;
+    }
+    // 로딩 중 캐시된 데이터로 대체하여 흰 화면 방지
+    final monthRecordsAsync =
+        monthRecordsRaw.isLoading && _cachedRecords != null
+        ? AsyncValue.data(_cachedRecords!)
+        : monthRecordsRaw;
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
@@ -209,12 +246,37 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '${now.month}월 음주 Recap',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                  onTap: _prevMonth,
+                                  child: const Icon(
+                                    Icons.chevron_left,
+                                    size: 20,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${_selectedMonth.month}월 음주 Recap',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: isCurrentMonth ? null : _nextMonth,
+                                  child: Icon(
+                                    Icons.chevron_right,
+                                    size: 20,
+                                    color: isCurrentMonth
+                                        ? Colors.grey[400]
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         );
@@ -306,7 +368,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                             Align(
                               alignment: Alignment.center,
                               child: Text(
-                                '${now.month}월 한줄평',
+                                '${_selectedMonth.month}월 한줄평',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -347,7 +409,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(28),
                         side: const BorderSide(color: Colors.grey),
                       ),
                       elevation: 0,
@@ -364,7 +426,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(28),
                       ),
                       elevation: 0,
                     ),
@@ -380,24 +442,14 @@ class _RecapTabState extends ConsumerState<RecapTab> {
   }
 
   Widget _buildStatsGrid(List<DrinkingRecord> records, double? maxAlcohol) {
-    // Calculate stats
-    // 만취 횟수: 주량 초과 여부로 판단
-    // maxAlcohol(주량)이 있으면 주량 초과 시 만취로 간주
-    // 없으면 기존 로직(drunkLevel >= 9) 유지
-    final drunkCount = records.where((r) {
-      if (maxAlcohol != null) {
-        // Calculate total pure alcohol for this record
-        double totalPureAlcohol = 0;
-        for (final drink in r.drinkAmount) {
-          totalPureAlcohol += drink.amount * (drink.alcoholContent / 100);
-        }
-        // Soju 1 bottle (360ml, 16.5%) = ~59.4ml pure alcohol
-        final limitPureAlcohol = maxAlcohol * 59.4;
-        return totalPureAlcohol > limitPureAlcohol;
-      } else {
-        return r.drunkLevel >= 9;
+    // 총 순수 알코올 그램
+    double totalPureAlcoholMl = 0;
+    for (final r in records) {
+      for (final d in r.drinkAmount) {
+        totalPureAlcoholMl += d.amount * (d.alcoholContent / 100);
       }
-    }).length;
+    }
+    final pureAlcoholGrams = (totalPureAlcoholMl * 0.7893).round();
 
     double totalBottles = 0;
     for (var r in records) {
@@ -456,7 +508,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: _StatCard(value: '$drunkCount번', label: '만취'),
+              child: _StatCard(value: '${pureAlcoholGrams}g', label: '총 알코올'),
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -479,7 +531,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     if (records.isEmpty) {
       return _RecordHighlightSection(
         title: '지갑에 빵꾸 뚫린 날',
-        subtitle: '${DateTime.now().month}월 술값 지출 부문 1위',
+        subtitle: '${_selectedMonth.month}월 술값 지출 부문 1위',
         recordName: '-',
         valueText: '0원',
       );
@@ -500,7 +552,7 @@ class _RecapTabState extends ConsumerState<RecapTab> {
     if (records.isEmpty) {
       return _RecordHighlightSection(
         title: '가장 얼큰했던 술자리',
-        subtitle: '${DateTime.now().month}월 가장 취한 부문 1위',
+        subtitle: '${_selectedMonth.month}월 가장 취한 부문 1위',
         recordName: '-',
         valueText: '0%',
       );
@@ -604,7 +656,7 @@ class _RecordHighlightSection extends StatelessWidget {
                 recordName,
                 style: const TextStyle(
                   fontFamily: 'GriunSimsimche',
-                  fontSize: 26,
+                  fontSize: 20,
                   fontWeight: FontWeight.w400,
                 ),
                 maxLines: 1,
@@ -685,8 +737,6 @@ class _SojuGlassWidgetState extends State<_SojuGlassWidget>
   late List<Bubble> _bubbles;
   final int _bubbleCount = 5;
 
-  // We use the controller passed from parent to sync with page scroll.
-  // If not provided, we create a local one (e.g. for testing or isolated usage).
   late final SojuGlassController _sojuGlassController;
   double _currentTilt = 0.0;
   double _velocity = 0.0;
@@ -843,16 +893,12 @@ class _SojuGlassPainter extends CustomPainter {
     final double height = size.height;
 
     // Apply tilt to top corners for sloshing effect
-    // Limit tilt to avoid breaking geometry too much
-    // Tilt > 0: Scrolling down (content moves down), surface waves UP relative?
     final double clampedTilt = tilt.clamp(-30.0, 30.0);
 
     path.reset();
     path.moveTo(0, 0); // Top Left (Pinned)
 
     // Waving effect
-    // We add 'tilt' to control point Ys to create a wave.
-    // One goes up, one goes down.
     path.cubicTo(
       topWidth * 0.25,
       height * 0.1 + clampedTilt, // CP1 moves

@@ -48,7 +48,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
         title: const Text(
           '알림 설정',
           style: TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Pretendard',
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -63,7 +63,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             child: Text(
               '받고 싶은 알림을 선택하세요',
               style: TextStyle(
-                fontFamily: 'Inter',
+                fontFamily: 'Pretendard',
                 fontSize: 14,
                 color: Colors.grey,
               ),
@@ -88,7 +88,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 Text(
                   '※ 알림을 받으려면 기기 설정에서 알림 권한을 허용해주세요.',
                   style: TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: 'Pretendard',
                     fontSize: 12,
                     color: Colors.grey[600],
                   ),
@@ -151,7 +151,7 @@ class _NotificationToggleTileState
                       Text(
                         widget.title,
                         style: const TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'Pretendard',
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -160,7 +160,7 @@ class _NotificationToggleTileState
                       Text(
                         widget.description,
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'Pretendard',
                           fontSize: 13,
                           color: Colors.grey[600],
                         ),
@@ -251,7 +251,7 @@ class _NotificationToggleTileState
                     Text(
                       widget.title,
                       style: const TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: 'Pretendard',
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -260,7 +260,7 @@ class _NotificationToggleTileState
                     Text(
                       widget.description,
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: 'Pretendard',
                         fontSize: 13,
                         color: Colors.grey[600],
                       ),
@@ -289,7 +289,7 @@ class _NotificationToggleTileState
           child: Text(
             '알림 설정을 불러올 수 없습니다',
             style: TextStyle(
-              fontFamily: 'Inter',
+              fontFamily: 'Pretendard',
               fontSize: 14,
               color: Colors.grey[600],
             ),

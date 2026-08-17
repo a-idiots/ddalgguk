@@ -1,10 +1,21 @@
 import 'package:ddalgguk/features/settings/services/drink_settings_service.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
+import 'package:ddalgguk/shared/widgets/drink_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OtherDrinkSelectionDialog extends ConsumerStatefulWidget {
-  const OtherDrinkSelectionDialog({super.key});
+  const OtherDrinkSelectionDialog({
+    super.key,
+    this.excludeIds = const [],
+    this.isPro = true,
+  });
+
+  /// 메인 기록 주종으로 이미 표시되는 ID — 이 목록에서 제외됨
+  final List<int> excludeIds;
+
+  /// 프로 유저 여부 — false이면 기타(id=-1)만 선택 가능, 나머지는 반투명 처리
+  final bool isPro;
 
   @override
   ConsumerState<OtherDrinkSelectionDialog> createState() =>
@@ -24,16 +35,23 @@ class _OtherDrinkSelectionDialogState
 
   Future<void> _loadDrinks() async {
     try {
-      // Load standard drinks (ID >= 1)
-      final standardDrinks = drinks.where((d) => d.id >= 1).toList();
+      // "기타" 아이콘(id=-1)을 맨 앞에 추가
+      final gitaDrink = drinks.firstWhere((d) => d.id == -1);
 
-      // Load custom drinks
+      // 표준 주종(ID >= 1) 중 메인 목록에 이미 있는 것 제외
+      final standardDrinks = drinks
+          .where((d) => d.id >= 1 && !widget.excludeIds.contains(d.id))
+          .toList();
+
+      // 커스텀 주종도 메인 목록에 있는 것 제외
       final service = ref.read(drinkSettingsServiceProvider);
-      final customDrinks = await service.loadCustomDrinks();
+      final customDrinks = (await service.loadCustomDrinks())
+          .where((d) => !widget.excludeIds.contains(d.id))
+          .toList();
 
       if (mounted) {
         setState(() {
-          _allDrinks = [...standardDrinks, ...customDrinks];
+          _allDrinks = [gitaDrink, ...standardDrinks, ...customDrinks];
           _isLoading = false;
         });
       }
@@ -85,45 +103,52 @@ class _OtherDrinkSelectionDialogState
                       itemCount: _allDrinks.length,
                       itemBuilder: (context, index) {
                         final drink = _allDrinks[index];
+                        final isEnabled = widget.isPro || drink.id == -1;
                         return GestureDetector(
-                          onTap: () => Navigator.pop(context, drink.id),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  shape: BoxShape.circle,
+                          onTap: isEnabled
+                              ? () => Navigator.pop(context, drink.id)
+                              : null,
+                          child: Opacity(
+                            opacity: isEnabled ? 1.0 : 0.3,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: DrinkIcon(imagePath: drink.imagePath),
                                 ),
-                                padding: const EdgeInsets.all(8),
-                                child: Image.asset(
-                                  drink.imagePath,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(
-                                      'assets/imgs/alcohol_icons/undecided.png',
-                                    );
-                                  },
+                                const SizedBox(height: 8),
+                                Text(
+                                  drink.name,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                drink.name,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },
                     ),
             ),
+            if (!widget.isPro) ...[
+              const SizedBox(height: 16),
+              Text(
+                '딸꾹 PRO에서 모든 주종 아이콘을 이용할 수 있어요!',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
         ),
       ),

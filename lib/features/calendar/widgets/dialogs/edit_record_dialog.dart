@@ -3,7 +3,6 @@ import 'package:ddalgguk/features/calendar/domain/models/drinking_record.dart';
 import 'package:ddalgguk/features/calendar/domain/models/completed_drink_record.dart';
 import 'package:ddalgguk/features/calendar/widgets/forms/drinking_record_form.dart';
 import 'package:ddalgguk/shared/utils/drink_helpers.dart';
-import 'package:ddalgguk/features/social/data/providers/friend_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,6 +22,7 @@ class EditRecordDialog extends ConsumerStatefulWidget {
 }
 
 class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
+  bool _isSubmitted = false;
   // 초기 데이터
   late final List<CompletedDrinkRecord> _initialRecords;
 
@@ -39,19 +39,25 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
       String unit;
       double amount;
 
-      // 주종별 병 용량 기준으로 1병 이상인지 확인
-      final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
-      final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
-
-      if (drink.amount >= bottleMultiplier) {
-        unit = '병';
-        amount = drink.amount / bottleMultiplier;
-      } else if (drink.amount >= glassMultiplier) {
-        unit = '잔';
-        amount = drink.amount / glassMultiplier;
-      } else {
+      // 커스텀 주종은 항상 ml로 표시 (사용자가 ml로 입력함).
+      if (drink.drinkType >= 1000) {
         unit = 'ml';
         amount = drink.amount;
+      } else {
+        // 주종별 병 용량 기준으로 1병 이상인지 확인
+        final bottleMultiplier = getUnitMultiplier(drink.drinkType, '병');
+        final glassMultiplier = getUnitMultiplier(drink.drinkType, '잔');
+
+        if (bottleMultiplier > 0 && drink.amount >= bottleMultiplier) {
+          unit = '병';
+          amount = drink.amount / bottleMultiplier;
+        } else if (drink.amount >= glassMultiplier) {
+          unit = '잔';
+          amount = drink.amount / glassMultiplier;
+        } else {
+          unit = 'ml';
+          amount = drink.amount;
+        }
       }
 
       records.add(
@@ -73,6 +79,12 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
     required int cost,
     required String memo,
   }) async {
+    // 중복 제출 방지
+    if (_isSubmitted) {
+      return;
+    }
+    _isSubmitted = true;
+
     // Navigator and Messenger capture
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -93,52 +105,44 @@ class _EditRecordDialogState extends ConsumerState<EditRecordDialog> {
       );
     }
 
+    final updatedRecord = DrinkingRecord(
+      id: widget.record.id,
+      date: widget.record.date,
+      sessionNumber: widget.record.sessionNumber,
+      meetingName: meetingName,
+      drunkLevel: drunkLevel,
+      yearMonth: widget.record.yearMonth,
+      drinkAmount: drinkAmounts,
+      memo: {'text': memo},
+      cost: cost,
+    );
+
+    // pop() 전에 필요한 참조를 캡처
+    final service = ref.read(drinkingRecordServiceProvider);
+    final lastUpdatedNotifier = ref.read(
+      drinkingRecordsLastUpdatedProvider.notifier,
+    );
+
+    // Optimistic UI: 즉시 로컬 상태 업데이트 → 다이얼로그 닫기
+    lastUpdatedNotifier.state = DateTime.now();
+    widget.onRecordUpdated();
+
+    navigator.pop();
+    scaffoldMessenger.clearSnackBars();
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('기록이 수정되었습니다'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // 백그라운드에서 Firestore write
     try {
-      final updatedRecord = DrinkingRecord(
-        id: widget.record.id, // 기존 ID 유지
-        date: widget.record.date, // 날짜는 변경하지 않음
-        sessionNumber: widget.record.sessionNumber, // 회차 유지
-        meetingName: meetingName,
-        drunkLevel: drunkLevel,
-        yearMonth: widget.record.yearMonth, // 기존 yearMonth 유지
-        drinkAmount: drinkAmounts,
-        memo: {'text': memo},
-        cost: cost,
-      );
-
-      final service = DrinkingRecordService();
       await service.updateRecord(updatedRecord);
-
-      // 데이터 변경 알림
-      ref.read(drinkingRecordsLastUpdatedProvider.notifier).state =
-          DateTime.now();
-
-      // 소셜 탭의 프로필 카드 업데이트를 위해 friendsProvider 새로고침
-      ref.invalidate(friendsProvider);
-
-      widget.onRecordUpdated();
-
-      if (mounted) {
-        navigator.pop();
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('기록이 수정되었습니다'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      lastUpdatedNotifier.state = DateTime.now();
     } catch (e) {
-      if (mounted) {
-        scaffoldMessenger.clearSnackBars();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('수정 실패: $e'),
-            duration: const Duration(seconds: 3),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      debugPrint('기록 수정 실패: $e');
+      lastUpdatedNotifier.state = DateTime.now();
     }
   }
 

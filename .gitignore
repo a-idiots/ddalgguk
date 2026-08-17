@@ -1,11 +1,15 @@
 # Miscellaneous
 *.class
 *.log
+firepit-log.txt
 *.pyc
 *.swp
 *.pem
 .buildlog/
 .history
+
+# Scripts (local utility scripts, contains secrets)
+scripts/
 
 # IDE settings
 .idea/
@@ -149,3 +153,4 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+sentry.properties

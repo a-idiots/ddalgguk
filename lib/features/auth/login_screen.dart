@@ -275,7 +275,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           fontSize: 11,
                           color: Colors.grey.shade400,
                           height: 1.5,
-                          fontFamily: 'Inter',
+                          fontFamily: 'Pretendard',
                         ),
                         children: [
                           const TextSpan(text: '로그인하면 '),
