@@ -1,0 +1,21 @@
+# Compiled output
+lib/
+
+# Dependencies
+node_modules/
+
+# Firebase emulator / local runtime config
+*.local
+.env
+.env.*
+!.env.example
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+firestore-debug.log
+
+# Never commit App Store Connect / Play service account keys
+*.p8
+*.json.key
+service-account*.json
+AuthKey_*.p8

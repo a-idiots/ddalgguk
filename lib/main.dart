@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -10,6 +12,7 @@ import 'package:ddalgguk/firebase_options.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 import 'package:ddalgguk/core/router/app_router.dart';
+import 'package:ddalgguk/core/services/iap_service.dart';
 import 'package:ddalgguk/features/profile/data/providers/goal_widget_sync_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/monthly_calendar_widget_sync_provider.dart';
 import 'package:ddalgguk/features/profile/data/providers/weekly_widget_sync_provider.dart';
@@ -101,11 +104,37 @@ class DdalggukApp extends ConsumerStatefulWidget {
   ConsumerState<DdalggukApp> createState() => _DdalggukAppState();
 }
 
-class _DdalggukAppState extends ConsumerState<DdalggukApp> {
+class _DdalggukAppState extends ConsumerState<DdalggukApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initHomeWidgetLinks();
+
+    // 결제 서비스는 앱 시작 시점에 반드시 살아 있어야 한다. purchaseStream을
+    // 구독하는 순간 StoreKit의 트랜잭션 옵저버가 시작되므로, 이걸 결제 화면에서만
+    // 켜면 앱이 꺼져 있는 동안 완료된 결제·갱신·가족 승인을 놓친다.
+    ref.read(iapServiceProvider);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      return;
+    }
+    // 복귀할 때 권한을 다시 맞춘다. 구독이 만료됐거나 환불된 경우, 그리고 밀린
+    // 영수증 검증이 있는 경우를 여기서 정리한다. 서버 쪽에 자체 캐시 창이 있어서
+    // 매번 스토어를 두드리지는 않는다.
+    final iap = ref.read(iapServiceProvider);
+    unawaited(iap.retryPendingVerifications());
+    unawaited(iap.syncWithStore());
   }
 
   Future<void> _initHomeWidgetLinks() async {

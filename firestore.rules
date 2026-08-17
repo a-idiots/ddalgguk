@@ -117,7 +117,18 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    // PRO 결제 권한. 서버(Cloud Functions)에서 스토어 영수증을 검증한 결과만
+    // 기록되며, 클라이언트는 본인 문서를 읽기만 할 수 있다. 쓰기를 허용하면
+    // 결제 없이 isPro를 켤 수 있게 되므로 절대 열지 않는다.
+    // (Admin SDK는 규칙을 우회하므로 서버 쓰기에는 영향이 없다.)
+    match /entitlements/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
     // 기본적으로 모든 접근 거부
+    // purchaseIndex / purchaseSecrets / purchaseAccountTokens 는 서버 전용
+    // 컬렉션이며, 아래 기본 거부 규칙으로 클라이언트 접근이 차단된다.
     match /{document=**} {
       allow read, write: if false;
     }

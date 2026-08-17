@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:ddalgguk/core/providers/pro_provider.dart';
@@ -9,6 +12,18 @@ const _kTermsUrl =
     'https://melodic-music-7c1.notion.site/2cd5a6752e1b80889671e04b2283c00d';
 const _kPrivacyUrl =
     'https://melodic-music-7c1.notion.site/2cb5a6752e1b80eeb44dc1763020d324';
+
+/// 할인 전 정가(마케팅 표기).
+///
+/// 실제 청구 금액은 항상 스토어에서 받아온 값을 쓴다. 정가는 스토어가 알려주지
+/// 않는 값이라 여기 둘 수밖에 없는데, 원화 가격일 때만 보여준다 — 다른 나라
+/// 스토어프론트에서 원화 정가를 취소선으로 붙이면 사실과 달라진다.
+const Map<String, String> _kKrwListPrice = {
+  kProLifetimeProductId: '29,900원',
+  kProAnnualProductId: '14,900원',
+};
+
+const String _kKrwCurrencyCode = 'KRW';
 
 Future<void> _launchUrl(String url) async {
   final uri = Uri.parse(url);
@@ -54,7 +69,18 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
   late final PageController _pageController;
   late final List<String> _images;
   int _currentPage = 0;
-  bool _isLoading = false;
+
+  List<ProductDetails> _products = const [];
+  bool _loadingProducts = true;
+  String? _productError;
+
+  String _selectedProductId = kProLifetimeProductId;
+  bool _purchasing = false;
+  bool _restoring = false;
+
+  StreamSubscription<IapEvent>? _eventSubscription;
+
+  bool get _busy => _purchasing || _restoring;
 
   @override
   void initState() {
@@ -68,73 +94,131 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
         _featureImages[(start + i) % _featureImages.length],
     ];
     _pageController = PageController();
+
+    // 결제 결과는 결제 시트가 닫힌 뒤에 스트림으로 온다. 그래서 buy()가 반환한
+    // 시점에 스피너를 끄면 안 되고, 이벤트를 받아서 처리해야 중복 탭도 막힌다.
+    _eventSubscription = ref
+        .read(iapServiceProvider)
+        .events
+        .listen(_onIapEvent);
+
+    _loadProducts();
   }
 
   @override
   void dispose() {
+    _eventSubscription?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePurchase(String productId) async {
-    if (_isLoading) {
-      return;
-    }
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _loadProducts() async {
     try {
-      final error = await ref.read(iapServiceProvider).buy(productId);
+      final products = await ref.read(iapServiceProvider).loadProducts();
       if (!mounted) {
         return;
       }
-      if (error != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error)));
+      setState(() {
+        _products = products;
+        _loadingProducts = false;
+        _productError = products.isEmpty ? '상품 정보를 불러올 수 없습니다.' : null;
+        if (!products.any((p) => p.id == _selectedProductId) &&
+            products.isNotEmpty) {
+          _selectedProductId = products.first.id;
+        }
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _loadingProducts = false;
+        _productError = '상품 정보를 불러올 수 없습니다.';
+      });
     }
   }
 
-  Future<void> _handleRestore() async {
-    if (_isLoading) {
+  void _onIapEvent(IapEvent event) {
+    if (!mounted) {
       return;
     }
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      await ref.read(iapServiceProvider).restorePurchases();
-      if (!mounted) {
-        return;
-      }
-      // 복원 결과는 purchaseStream을 통해 proProvider에 반영됨
-      await Future<void>.delayed(const Duration(seconds: 2));
-      if (!mounted) {
-        return;
-      }
-      final isPro = ref.read(proProvider).valueOrNull ?? false;
-      if (isPro) {
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('복원할 구매 내역이 없습니다.')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    switch (event.type) {
+      case IapEventType.pending:
+        _showMessage('결제 승인을 기다리고 있습니다.');
+      case IapEventType.succeeded:
+        // proProvider가 true로 바뀌면 아래 ref.listen이 팝업을 닫는다.
+        setState(() => _purchasing = false);
+      case IapEventType.canceled:
+        setState(() => _purchasing = false);
+      case IapEventType.failed:
+        setState(() => _purchasing = false);
+        _showMessage(event.message ?? '결제에 실패했습니다.');
+      case IapEventType.verificationDeferred:
+        setState(() => _purchasing = false);
+        _showMessage(event.message ?? '결제가 완료됐습니다. 잠시 후 자동으로 확인됩니다.');
     }
   }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _handlePurchase() async {
+    if (_busy) {
+      return;
+    }
+    setState(() => _purchasing = true);
+    final error = await ref.read(iapServiceProvider).buy(_selectedProductId);
+    if (!mounted) {
+      return;
+    }
+    if (error != null) {
+      // 결제 시트를 열지도 못한 경우. 이벤트가 오지 않으므로 여기서 정리한다.
+      setState(() => _purchasing = false);
+      _showMessage(error);
+    }
+    // 성공적으로 시작됐다면 스피너를 유지한 채 이벤트를 기다린다.
+  }
+
+  Future<void> _handleRestore() async {
+    if (_busy) {
+      return;
+    }
+    setState(() => _restoring = true);
+    // 사용자가 직접 누른 복원은 캐시를 지우지 않는다. 다른 Apple ID로 로그인한
+    // 상태에서 눌렀다고 해서 이미 확인된 권한을 잃게 만들 이유가 없다.
+    final outcome = await ref
+        .read(iapServiceProvider)
+        .restorePurchases(clearCacheIfEmpty: false);
+    if (!mounted) {
+      return;
+    }
+    setState(() => _restoring = false);
+
+    if (!outcome.completed) {
+      _showMessage(outcome.message ?? '복원에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    if (!outcome.foundPurchase) {
+      _showMessage('복원할 구매 내역이 없습니다.');
+      return;
+    }
+    // restorePurchases()는 서버 검증까지 끝난 뒤에 반환한다.
+    final isPro = ref.read(proProvider).valueOrNull ?? false;
+    if (isPro) {
+      Navigator.of(context).pop();
+    } else {
+      _showMessage('구매를 확인하는 중입니다. 잠시만 기다려 주세요.');
+    }
+  }
+
+  bool get _selectionIsSubscription =>
+      _selectedProductId == kProAnnualProductId;
+
+  String get _ctaLabel =>
+      _selectionIsSubscription ? '딸꾹PRO 구독하기' : '딸꾹PRO 시작하기';
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +242,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                 padding: const EdgeInsets.only(right: 4, top: 4),
                 child: IconButton(
                   icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: _busy ? null : () => Navigator.of(context).pop(),
                 ),
               ),
             ),
@@ -218,62 +302,7 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
                       // Payment options
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          children: [
-                            const _PaymentCard(
-                              title: '일회성 결제',
-                              subtitle: '한번의 결제로 프로 기능을 영원히!',
-                              originalPrice: '29,900원',
-                              price: '19,900원',
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () => _handlePurchase(
-                                        kProLifetimeProductId,
-                                      ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFF08080),
-                                  foregroundColor: Colors.white,
-                                  disabledBackgroundColor: const Color(
-                                    0xFFF08080,
-                                  ).withValues(alpha: 0.5),
-                                  disabledForegroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 22,
-                                        height: 22,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text(
-                                        '딸꾹PRO 구독하기',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            _BottomLinks(
-                              onRestore: _isLoading ? null : _handleRestore,
-                            ),
-                          ],
-                        ),
+                        child: Column(children: _buildPurchaseSection()),
                       ),
                     ],
                   ),
@@ -285,39 +314,174 @@ class _ProPlanPopupState extends ConsumerState<ProPlanPopup> {
       ),
     );
   }
+
+  List<Widget> _buildPurchaseSection() {
+    if (_loadingProducts) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
+          child: CircularProgressIndicator(color: Color(0xFFF08080)),
+        ),
+      ];
+    }
+
+    if (_productError != null) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Text(
+            _productError!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              _loadingProducts = true;
+              _productError = null;
+            });
+            _loadProducts();
+          },
+          child: const Text('다시 시도'),
+        ),
+        const SizedBox(height: 8),
+        _BottomLinks(onRestore: _busy ? null : _handleRestore),
+      ];
+    }
+
+    // 여러 상품을 파는 경우에만 선택 UI를 보여준다.
+    final showSelection = _products.length > 1;
+
+    return [
+      for (final product in _products) ...[
+        _PaymentCard(
+          product: product,
+          selectable: showSelection,
+          isSelected: !showSelection || product.id == _selectedProductId,
+          onTap: !showSelection || _busy
+              ? null
+              : () => setState(() => _selectedProductId = product.id),
+        ),
+        const SizedBox(height: 12),
+      ],
+      const SizedBox(height: 4),
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _busy ? null : _handlePurchase,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFF08080),
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: const Color(
+              0xFFF08080,
+            ).withValues(alpha: 0.5),
+            disabledForegroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 0,
+          ),
+          child: _busy
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  _ctaLabel,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+        ),
+      ),
+      if (_selectionIsSubscription) ...[
+        const SizedBox(height: 10),
+        Text(
+          '구독은 기간이 끝나기 24시간 전까지 해지하지 않으면 자동으로 갱신됩니다.\n'
+          '구독 관리와 해지는 스토어 계정 설정에서 할 수 있습니다.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 11, color: Colors.grey[600], height: 1.4),
+        ),
+      ],
+      const SizedBox(height: 14),
+      _BottomLinks(onRestore: _busy ? null : _handleRestore),
+    ];
+  }
 }
 
 class _PaymentCard extends StatelessWidget {
   const _PaymentCard({
-    required this.title,
-    required this.subtitle,
-    required this.originalPrice,
-    required this.price,
+    required this.product,
+    required this.selectable,
+    required this.isSelected,
+    required this.onTap,
   });
 
-  final String title;
-  final String subtitle;
-  final String originalPrice;
-  final String price;
+  final ProductDetails product;
+  final bool selectable;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  bool get _isSubscription => product.id == kProAnnualProductId;
+
+  String get _title => _isSubscription ? '연간 결제' : '일회성 결제';
+
+  String get _subtitle =>
+      _isSubscription ? '1년마다 자동 갱신' : '한번의 결제로 프로 기능을 영원히!';
+
+  /// 스토어가 알려주지 않는 정가는 원화 가격일 때만 취소선으로 보여준다.
+  String? get _listPrice =>
+      product.currencyCode == _kKrwCurrencyCode ? _kKrwListPrice[product.id] : null;
 
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFF08080);
-    return Container(
+    final listPrice = _listPrice;
+
+    final card = AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accent, width: 1.5),
+        border: Border.all(
+          color: isSelected ? accent : Colors.black12,
+          width: isSelected ? 1.5 : 1,
+        ),
       ),
       child: Row(
         children: [
+          if (selectable) ...[
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? accent : Colors.white,
+                border: Border.all(
+                  color: isSelected ? accent : Colors.black26,
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  _title,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -325,7 +489,7 @@ class _PaymentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  _subtitle,
                   style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
@@ -334,17 +498,19 @@ class _PaymentCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                originalPrice,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black38,
-                  decoration: TextDecoration.lineThrough,
-                  decorationColor: Colors.black38,
+              if (listPrice != null)
+                Text(
+                  listPrice,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black38,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: Colors.black38,
+                  ),
                 ),
-              ),
               Text(
-                price,
+                // 실제 청구 금액. 스토어에서 받은 현지 통화 표기를 그대로 쓴다.
+                product.price,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -355,6 +521,15 @@ class _PaymentCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    if (onTap == null) {
+      return card;
+    }
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: card,
     );
   }
 }
